@@ -1,0 +1,34 @@
+// !--- Student table ---! //
+model Student {
+  id Int @id @default(autoincrement())
+
+  inquiryId Int? @map("inquiry_id")
+
+  fullName String @map("full_name") @db.VarChar(255)
+
+  gender String? @db.VarChar(20)
+
+  email String? @unique @db.VarChar(255)
+
+  mobile String? @db.VarChar(20)
+
+  otherPhone String? @map("other_phone") @db.VarChar(20)
+
+  birthDate DateTime? @map("birth_date") @db.Date
+
+  gpa Decimal? @db.Decimal(4, 2)
+
+  englishCertificate String? @map("english_certificate") @db.VarChar(255)
+
+  parentPhone String? @map("parent_phone") @db.VarChar(20)
+
+  primaryAddressCity String? @map("primary_address_city") @db.VarChar(255)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz()
+
+  inquiry Inquiry? @relation(fields: [inquiryId], references: [id], onDelete: SetNull)
+
+  @@map("student")
+}

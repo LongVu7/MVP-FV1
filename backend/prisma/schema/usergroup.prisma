@@ -1,0 +1,12 @@
+model UserGroup {
+  id   Int    @id @default(autoincrement())
+  name String @db.VarChar(255)
+
+  groupLeaderId Int? @map("group_leader")
+
+  groupLeader Account? @relation("GroupLeader", fields: [groupLeaderId], references: [id], onDelete: SetNull)
+
+  accounts Account[]
+
+  @@map("user_group")
+}

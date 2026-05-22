@@ -1,0 +1,63 @@
+// !--- Inquiry table ---! //
+model Inquiry {
+  id Int @id @default(autoincrement())
+
+  assignedToId Int? @map("assigned_to_id")
+
+  statusGeneral String? @map("status_general") @db.VarChar(100)
+
+  statusDetail String? @map("status_detail") @db.VarChar(255)
+
+  leadSource String? @map("lead_source") @db.VarChar(255)
+
+  firstContactSource String? @map("first_contact_source") @db.VarChar(255)
+
+  priority String? @db.VarChar(50)
+
+  description String?
+
+  dataReceived DateTime? @map("data_received") @db.Date
+
+  dataSource String? @map("data_source") @db.VarChar(255)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz()
+
+  assignedTo Account? @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
+
+  students Student[]
+
+  @@map("inquiry")
+}
+
+enum LeadSource {
+    online
+    direct
+    database
+    referal 
+    internal
+    online_mass
+    resonance
+    other
+}
+
+enum StatusGeneral {
+    new
+    assigned
+    in_process
+    converted
+    dead
+}
+
+enum StatusDetail {
+    interested
+    considered
+    contact_later
+    KBM
+    not_contacted
+    applied
+}
+
+
+
