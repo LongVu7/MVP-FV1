@@ -1,4 +1,4 @@
-const prisma = require('../../config/db');
+const prisma = require('../../../config/db');
 const xlsx = require('xlsx');
 const fs = require('fs');
 

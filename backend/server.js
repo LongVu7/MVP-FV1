@@ -4,11 +4,11 @@ const cors = require('cors');
 // const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
 
-const studentRoutes = require('./api/routes/studentRoutes');
-const inquiryRoutes = require('./api/routes/inquiryRoutes');
-const accountRoutes = require('./api/routes/accountRoutes');
-const userGroupRoutes = require('./api/routes/userGroupRoutes');
-
+const studentRoutes = require('./api/modules/student/studentRoutes');
+const inquiryRoutes = require('./api/modules/inquiry/inquiryRoutes');
+const accountRoutes = require('./api/modules/account/accountRoutes');
+const userGroupRoutes = require('./api/modules/group/userGroupRoutes');
+const roleRoutes = require('./api/modules/role/roleRoutes');
 
 const app = express();
 const port = process.env.PORT || 3002;
@@ -28,7 +28,7 @@ app.use('/api/students', studentRoutes);
 app.use('/api/inquiries', inquiryRoutes);
 app.use('/api/accounts', accountRoutes);
 app.use('/api/groups', userGroupRoutes);
-
+app.use('/api/roles', roleRoutes);
 
 app.listen(port);
 

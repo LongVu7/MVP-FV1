@@ -20,6 +20,10 @@ model Inquiry {
 
   dataSource String? @map("data_source") @db.VarChar(255)
 
+  regional String? @db.VarChar(10)
+
+  groupTele String? @map("group_tele") @db.VarChar(50)
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
 
   updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz()
@@ -35,9 +39,9 @@ enum LeadSource {
     online
     direct
     database
-    referal 
+    referal
     internal
-    online_mass
+    onlineMass
     resonance
     other
 }
@@ -45,7 +49,7 @@ enum LeadSource {
 enum StatusGeneral {
     new
     assigned
-    in_process
+    inProcess
     converted
     dead
 }
@@ -53,11 +57,41 @@ enum StatusGeneral {
 enum StatusDetail {
     interested
     considered
-    contact_later
-    KBM
-    not_contacted
+    contactLater
+    kbm
+    notContacted
     applied
 }
 
+enum FirstContactSource {
+    tele
+    walkIn
+    online
+    incomingPhone
+}
 
+enum DataSource {
+    webGame
+    holland
+    roadShowCity
+    roadShowProvince
+    acquireCity
+    acquireProvince
+    cityInquiry
+    provinceInquiry
+    partnership
+    income
+    openDayInquiry
+    eventInquiry
+    activeContact
+}
+
+enum Regional {
+    kv1
+    kv2
+    kv3
+    kv4
+    kv5
+    kv6
+}
 

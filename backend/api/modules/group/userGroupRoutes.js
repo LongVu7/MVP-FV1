@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const { checkRole } = require('../../middleware/auth');
-const userGroupController = require('../controllers/userGroupController');
+const { checkRole } = require('../../../middleware/auth');
+const userGroupController = require('./userGroupController');
+const roleController = require('../role/roleController');
 
 // ─── CRUD routes
 router.route('/')

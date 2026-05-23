@@ -1,4 +1,4 @@
-const prisma = require('../../config/db');
+const prisma = require('../../../config/db');
 
 // ─── List all inquiries 
 const getAllInquiries = async (req, res) => {
@@ -327,7 +327,7 @@ const searchStudents = async (req, res) => {
       where: {
         OR: [
           { fullName: { contains: q, mode: 'insensitive' } },
-          { email:    { contains: q, mode: 'insensitive' } }
+          { email: { contains: q, mode: 'insensitive' } }
         ]
       },
       take: 20,
@@ -361,7 +361,7 @@ const searchStaff = async (req, res) => {
           {
             OR: [
               { fullName: { contains: q, mode: 'insensitive' } },
-              { email:    { contains: q, mode: 'insensitive' } }
+              { email: { contains: q, mode: 'insensitive' } }
             ]
           }
         ]

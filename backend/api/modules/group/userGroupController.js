@@ -1,4 +1,4 @@
-const prisma = require('../../config/db');
+const prisma = require('../../../config/db');
 
 // ─── List all groups
 const getAllGroups = async (req, res) => {

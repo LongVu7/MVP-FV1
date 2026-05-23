@@ -1,11 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { checkRole } = require('../../middleware/auth');
-const accountController = require('../controllers/accountController');
+const { checkRole } = require('../../../middleware/auth');
+const accountController = require('./accountController');
 
-// ─── Roles list 
-router.route('/roles')
-    .get(checkRole(['admin']), accountController.getAllRoles);
+
 
 // ─── CRUD routes
 router.route('/')
