@@ -1,14 +1,15 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-// const mongoose = require('mongoose');
 const cookieParser = require('cookie-parser');
+const passport = require('passport');
 
 const studentRoutes = require('./api/modules/student/studentRoutes');
 const inquiryRoutes = require('./api/modules/inquiry/inquiryRoutes');
 const accountRoutes = require('./api/modules/account/accountRoutes');
 const userGroupRoutes = require('./api/modules/group/userGroupRoutes');
 const roleRoutes = require('./api/modules/role/roleRoutes');
+const authRoutes = require('./api/modules/auth/authRoutes');
 
 const app = express();
 const port = process.env.PORT || 3002;
@@ -23,7 +24,10 @@ app.use(cors({
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json()); 
 app.use(cookieParser());
+require('./config/passport')(passport);
+app.use(passport.initialize());
 
+app.use('/api/auth', authRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/inquiries', inquiryRoutes);
 app.use('/api/accounts', accountRoutes);

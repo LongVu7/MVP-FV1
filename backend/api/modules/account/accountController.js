@@ -1,3 +1,4 @@
+const bcrypt = require('bcrypt');
 const prisma = require('../../../config/db');
 
 // ─── List all accounts
@@ -110,11 +111,14 @@ const createAccount = async (req, res) => {
       }
     }
 
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     const newAccount = await prisma.account.create({
       data: {
         fullName,
         email,
-        password, 
+        password: hashedPassword, 
         roleId: roleId ? Number(roleId) : undefined,
         groupId: groupId ? Number(groupId) : undefined
       },
@@ -133,7 +137,7 @@ const createAccount = async (req, res) => {
       message: "Account created successfully",
       requestedByRole: req.user?.roleName,
       requestedByAccountId: req.user?.accountId,
-      data: newAccount
+      newAccountDetail: newAccount
     });
   } catch (error) {
     res.status(500).json({ error: "Failed to create account", details: error.message });
@@ -177,7 +181,7 @@ const updateAccount = async (req, res) => {
       message: "Account updated successfully",
       requestedByRole: req.user?.roleName,
       requestedByAccountId: req.user?.accountId,
-      data: updatedAccount
+      updatedAccountDetail: updatedAccount
     });
   } catch (error) {
     res.status(500).json({ error: "Failed to update account", details: error.message });
@@ -239,7 +243,7 @@ const assignRole = async (req, res) => {
       return res.status(404).json({ error: "Account not found" });
     }
 
-    // Validate role exists (if not null — null means unassign)
+    // Validate role exists 
     if (roleId !== null) {
       const role = await prisma.role.findUnique({ where: { id: Number(roleId) } });
       if (!role) {
