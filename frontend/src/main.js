@@ -19,20 +19,28 @@ import Tooltip from 'primevue/tooltip'
 // Create Vue app instance
 const app = createApp(App)
 
-app.use(createPinia())
-app.use(router)
+const pinia = createPinia()
+app.use(pinia)
 
-app.use(PrimeVue, {
-  theme: {
-    preset: Aura
-  }
+import { useAuthStore } from '@/stores/auth'
+const authStore = useAuthStore(pinia)
+
+// Check auth state before mounting app and router
+authStore.checkAuth().finally(() => {
+  app.use(router)
+
+  app.use(PrimeVue, {
+    theme: {
+      preset: Aura
+    }
+  })
+
+  // Register PrimeVue services
+  app.use(ToastService)
+  app.use(ConfirmationService)
+
+  // Register directives
+  app.directive('tooltip', Tooltip)
+
+  app.mount('#app')
 })
-
-// Register PrimeVue services
-app.use(ToastService)
-app.use(ConfirmationService)
-
-// Register directives
-app.directive('tooltip', Tooltip)
-
-app.mount('#app')

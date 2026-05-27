@@ -22,23 +22,28 @@
       </div>
 
       <!-- Inquiries Card -->
-      <div class="stat-card stat-card--disabled">
+      <div class="stat-card" @click="router.push('/inquiries')">
         <div class="stat-icon stat-icon--inquiries">
           <i class="pi pi-ticket"></i>
         </div>
         <div class="stat-body">
-          <span class="stat-value">—</span>
+          <span class="stat-value" :class="{ loading: loading }">
+            {{ loading ? '...' : inquiryCount }}
+          </span>
           <span class="stat-label">Open Inquiries</span>
         </div>
+        <i class="pi pi-arrow-right stat-arrow"></i>
       </div>
 
       <!-- Staff Card -->
-      <div class="stat-card stat-card--disabled">
+      <div class="stat-card" @click="router.push('/staffs')">
         <div class="stat-icon stat-icon--staff">
           <i class="pi pi-users"></i>
         </div>
         <div class="stat-body">
-          <span class="stat-value">—</span>
+          <span class="stat-value" :class="{ loading: loading }">
+            {{ loading ? '...' : staffCount }}
+          </span>
           <span class="stat-label">Active Staff</span>
         </div>
       </div>
@@ -65,13 +70,23 @@ import { getAllStudents } from '@/helpers/studentHelper'
 const router = useRouter()
 const studentCount = ref(0)
 const loading = ref(true)
+const inquiryCount = ref(0)
+const staffCount = ref(0)
 
 onMounted(async () => {
   try {
     const students = await getAllStudents()
     studentCount.value = students.length
+
+    const inquiries = await getAllInquiries()
+    inquiryCount.value = inquiries.length
+
+    const staffs = await getAllStaff()
+    staffCount.value = staffs.length
   } catch {
     studentCount.value = 0
+    inquiryCount.value = 0
+    staffCount.value = 0
   } finally {
     loading.value = false
   }

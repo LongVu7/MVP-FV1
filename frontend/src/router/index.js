@@ -25,11 +25,45 @@ const router = createRouter({
       component: () => import('../views/student/StudentDetail.vue'),
     },
     {
+      path: '/inquiries',
+      name: 'inquiries',
+      component: () => import('../views/inquiry/Inquiry.vue'),
+    },
+    {
+      path: '/inquiries/new',
+      name: 'inquiry-new',
+      component: () => import('../views/inquiry/InquiryNew.vue'),
+    },
+    {
+      path: '/inquiries/:id',
+      name: 'inquiry-detail',
+      component: () => import('../views/inquiry/InquiryDetail.vue'),
+    },
+    {
+      path: '/login',
+      name: 'login',
+      component: () => import('../views/LoginView.vue'),
+    },
+    {
       path: '/about',
       name: 'about',
       component: () => import('../views/AboutView.vue'),
     },
   ],
+})
+
+import { useAuthStore } from '@/stores/auth'
+
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore()
+  
+  if (to.path !== '/login' && !authStore.isLoggedIn) {
+    next('/login')
+  } else if (to.path === '/login' && authStore.isLoggedIn) {
+    next('/')
+  } else {
+    next()
+  }
 })
 
 export default router

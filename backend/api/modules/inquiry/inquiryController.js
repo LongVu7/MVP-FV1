@@ -71,7 +71,7 @@ const createInquiry = async (req, res) => {
   try {
     const {
       studentId,
-      student,        // optional inline student object
+      student,        
       statusGeneral,
       statusDetail,
       leadSource,
@@ -82,7 +82,7 @@ const createInquiry = async (req, res) => {
       dataSource
     } = req.body;
 
-    // Build the core inquiry data
+    // Inquiry data
     const inquiryData = {
       statusGeneral,
       statusDetail,
@@ -203,7 +203,7 @@ const updateInquiry = async (req, res) => {
   }
 };
 
-// ─── Delete inquiry (preserves student records) ───────────────────────────────
+// ─── Delete inquiry (preserves student records) 
 const deleteInquiry = async (req, res) => {
   try {
     const inquiryId = parseInt(req.params.id, 10);

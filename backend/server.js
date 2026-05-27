@@ -12,7 +12,7 @@ const roleRoutes = require('./api/modules/role/roleRoutes');
 const authRoutes = require('./api/modules/auth/authRoutes');
 
 const app = express();
-const port = process.env.PORT || 3002;
+const port = process.env.PORT || 3003;
 
 
 app.use(cors({

@@ -62,7 +62,7 @@
       </div>
     </div>
 
-    <div class="form-actions">
+    <div class="form-actions" v-if="!hideSubmit">
       <Button type="submit" :label="buttonText" icon="pi pi-check" :loading="isSubmitting" />
     </div>
   </form>
@@ -81,7 +81,8 @@ export default {
   props: {
     student: { type: Object, required: true },
     isSubmitting: { type: Boolean, default: false },
-    buttonText: { type: String, default: 'Submit' }
+    buttonText: { type: String, default: 'Submit' },
+    hideSubmit: { type: Boolean, default: false }
   },
   emits: ['submit'],
   data() {
@@ -90,8 +91,7 @@ export default {
       errors: {},
       genderOptions: [
         { label: 'Male', value: 'Male' },
-        { label: 'Female', value: 'Female' },
-        { label: 'Other', value: 'Other' }
+        { label: 'Female', value: 'Female' }
       ]
     }
   },
@@ -113,29 +113,19 @@ export default {
       this.errors = e
       return Object.keys(e).length === 0
     },
-    onSubmit() {
-      if (!this.validate()) return
-      // Build payload — strip empty strings to avoid sending blank values
-      // for (const [key, value] of Object.entries(this.form)) {
-        //   if (value !== '' && value !== null && value !== undefined) {
-          //     payload[key] = value
-          //   }
-          // }
-          
+    getPayload() {
       const payload = {}
       for (const [key, value] of Object.entries(this.form)) {
-
-        if (key === 'id') continue
-
-        if (
-          value !== '' &&
-          value !== null &&
-          value !== undefined
-        ) {
+        if (key === 'id' || key === 'createdAt' || key === 'updatedAt') continue
+        if (value !== '' && value !== null && value !== undefined) {
           payload[key] = value
         }
       }
-      this.$emit('submit', payload)
+      return payload
+    },
+    onSubmit() {
+      if (!this.validate()) return
+      this.$emit('submit', this.getPayload())
     }
   }
 }
