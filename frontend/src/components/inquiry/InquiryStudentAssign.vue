@@ -13,7 +13,7 @@
         />
         <Button 
           v-else 
-          label="Create New Student Instead" 
+          label="Create New Student" 
           severity="secondary" 
           size="small" 
           icon="pi pi-plus" 
@@ -39,6 +39,15 @@
             <h3>{{ s.fullName }}</h3>
             <p>{{ s.email || 'No email' }} | {{ s.mobile || 'No phone' }}</p>
           </div>
+          <Button 
+            icon="pi pi-times" 
+            severity="danger" 
+            text 
+            rounded 
+            size="small" 
+            @click="$emit('remove-student', s.id)" 
+            v-tooltip.top="'Remove student'"
+          />
         </div>
       </div>
       <div v-else-if="!readonly && selectedStudent" class="entity-info">
@@ -47,6 +56,15 @@
           <h3>{{ selectedStudent.fullName }}</h3>
           <p>{{ selectedStudent.email || 'No email' }} | {{ selectedStudent.mobile || 'No phone' }}</p>
         </div>
+        <Button 
+          icon="pi pi-times" 
+          severity="danger" 
+          text 
+          rounded 
+          size="small" 
+          @click="clearSelectedStudent" 
+          v-tooltip.top="'Remove student'"
+        />
       </div>
       <div v-else class="empty-state">
         <p>No students assigned.</p>
@@ -98,6 +116,8 @@ const props = defineProps({
     default: () => []
   }
 })
+
+const emit = defineEmits(['remove-student'])
 
 const { studentSuggestions, searchStudents } = useStudentSearch()
 
@@ -227,6 +247,10 @@ defineExpose({
   align-items: center;
   justify-content: center;
   font-size: 1.25rem;
+}
+
+.entity-details {
+  flex: 1;
 }
 
 .entity-details h3 {

@@ -1,17 +1,18 @@
 import { ref } from 'vue'
-import * as api from '@/helpers/inquiryHelper'
+import * as api from '@/helpers/groupHelper'
 
-export function useInquiry() {
-  const inquiries = ref([])
-  const inquiry = ref(null)
+export function useGroup() {
+  const groups = ref([])
+  const group = ref(null)
   const loading = ref(false)
   const error = ref(null)
 
-  const fetchInquiries = async () => {
+  const fetchGroups = async () => {
     loading.value = true
     error.value = null
     try {
-      inquiries.value = await api.getAllInquiries()
+      groups.value = await api.getAllGroups()
+      return groups.value
     } catch (err) {
       error.value = err.response?.data?.details || err.message
       throw err
@@ -20,12 +21,12 @@ export function useInquiry() {
     }
   }
 
-  const fetchInquiryById = async (id) => {
+  const fetchGroupById = async (id) => {
     loading.value = true
     error.value = null
     try {
-      inquiry.value = await api.getInquiryById(id)
-      return inquiry.value
+      group.value = await api.getGroupById(id)
+      return group.value
     } catch (err) {
       error.value = err.response?.data?.details || err.message
       throw err
@@ -34,11 +35,11 @@ export function useInquiry() {
     }
   }
 
-  const createInquiry = async (payload) => {
+  const createGroup = async (payload) => {
     loading.value = true
     error.value = null
     try {
-      const response = await api.createInquiry(payload)
+      const response = await api.createGroup(payload)
       return response
     } catch (err) {
       error.value = err.response?.data?.details || err.message
@@ -48,11 +49,11 @@ export function useInquiry() {
     }
   }
 
-  const updateInquiry = async (id, payload) => {
+  const updateGroup = async (id, payload) => {
     loading.value = true
     error.value = null
     try {
-      const response = await api.updateInquiry(id, payload)
+      const response = await api.updateGroup(id, payload)
       return response
     } catch (err) {
       error.value = err.response?.data?.details || err.message
@@ -62,11 +63,11 @@ export function useInquiry() {
     }
   }
 
-  const unassignStudent = async (inquiryId, studentId) => {
+  const deleteGroup = async (id) => {
     loading.value = true
     error.value = null
     try {
-      const response = await api.unassignStudent(inquiryId, studentId)
+      const response = await api.deleteGroup(id)
       return response
     } catch (err) {
       error.value = err.response?.data?.details || err.message
@@ -76,11 +77,25 @@ export function useInquiry() {
     }
   }
 
-  const deleteInquiry = async (id) => {
+  const addMember = async (groupId, accountId) => {
     loading.value = true
     error.value = null
     try {
-      const response = await api.deleteInquiry(id)
+      const response = await api.addMemberToGroup(groupId, accountId)
+      return response
+    } catch (err) {
+      error.value = err.response?.data?.details || err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
+  const removeMember = async (groupId, accountId) => {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await api.removeMemberFromGroup(groupId, accountId)
       return response
     } catch (err) {
       error.value = err.response?.data?.details || err.message
@@ -91,15 +106,16 @@ export function useInquiry() {
   }
 
   return {
-    inquiries,
-    inquiry,
+    groups,
+    group,
     loading,
     error,
-    fetchInquiries,
-    fetchInquiryById,
-    createInquiry,
-    updateInquiry,
-    deleteInquiry,
-    unassignStudent
+    fetchGroups,
+    fetchGroupById,
+    createGroup,
+    updateGroup,
+    deleteGroup,
+    addMember,
+    removeMember
   }
 }

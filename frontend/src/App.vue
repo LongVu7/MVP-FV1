@@ -55,11 +55,18 @@ const router = useRouter()
 const authStore = useAuthStore()
 const sidebarCollapsed = ref(false)
 
-const navItems = [
-  { label: 'Dashboard', icon: 'pi pi-home', to: '/' },
-  { label: 'Students', icon: 'pi pi-graduation-cap', to: '/students' },
-  { label: 'Inquiries', icon: 'pi pi-ticket', to: '/inquiries' }
-]
+const navItems = computed(() => {
+  const items = [
+    { label: 'Dashboard', icon: 'pi pi-home', to: '/' },
+    { label: 'Students', icon: 'pi pi-graduation-cap', to: '/students' },
+    { label: 'Inquiries', icon: 'pi pi-ticket', to: '/inquiries' }
+  ]
+  if (authStore.user?.roleName === 'admin') {
+    items.push({ label: 'Accounts', icon: 'pi pi-users', to: '/accounts' })
+    items.push({ label: 'Groups', icon: 'pi pi-folder', to: '/groups' })
+  }
+  return items
+})
 
 function toggleSidebar() {
   sidebarCollapsed.value = !sidebarCollapsed.value

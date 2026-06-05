@@ -32,6 +32,11 @@ export const searchStudents = async (query) => {
   return response.data.results
 }
 
+export const unassignStudent = async (inquiryId, studentId) => {
+  const response = await api.delete(`${prefix}/${inquiryId}/assign-student`, { data: { studentId } })
+  return response.data
+}
+
 export const searchStaff = async (query) => {
   const response = await api.get(`${prefix}/search/staff`, { params: { q: query } })
   return response.data.results

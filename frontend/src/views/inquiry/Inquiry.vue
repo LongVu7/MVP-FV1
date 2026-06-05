@@ -15,14 +15,22 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import InquiryList from '@/components/inquiry/InquiryList.vue'
 import { useInquiry } from '@/composables/useInquiry'
 
-const { inquiries } = useInquiry()
+const { inquiries, fetchInquiries } = useInquiry()
 const inquiryCount = computed(() => inquiries.value.length)
+
+onMounted(async () => {
+  try {
+    await fetchInquiries()
+  } catch (e) {
+    // handled
+  }
+})
 </script>
 
 <style scoped>

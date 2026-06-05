@@ -36,15 +36,15 @@
       </div>
 
       <!-- Staff Card -->
-      <div class="stat-card" @click="router.push('/staffs')">
+      <div class="stat-card" @click="router.push('/accounts')">
         <div class="stat-icon stat-icon--staff">
           <i class="pi pi-users"></i>
         </div>
         <div class="stat-body">
           <span class="stat-value" :class="{ loading: loading }">
-            {{ loading ? '...' : staffCount }}
+            {{ loading ? '...' : accountCount }}
           </span>
-          <span class="stat-label">Active Staff</span>
+          <span class="stat-label">Total Accounts</span>
         </div>
       </div>
     </div>
@@ -66,12 +66,14 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
 import { getAllStudents } from '@/helpers/studentHelper'
+import { getAllInquiries } from '@/helpers/inquiryHelper'
+import { getAllAccounts } from '@/helpers/accountHelper'
 
 const router = useRouter()
 const studentCount = ref(0)
 const loading = ref(true)
 const inquiryCount = ref(0)
-const staffCount = ref(0)
+const accountCount = ref(0)
 
 onMounted(async () => {
   try {
@@ -81,12 +83,12 @@ onMounted(async () => {
     const inquiries = await getAllInquiries()
     inquiryCount.value = inquiries.length
 
-    const staffs = await getAllStaff()
-    staffCount.value = staffs.length
+    const accounts = await getAllAccounts()
+    accountCount.value = accounts.length
   } catch {
     studentCount.value = 0
     inquiryCount.value = 0
-    staffCount.value = 0
+    accountCount.value = 0
   } finally {
     loading.value = false
   }

@@ -314,6 +314,40 @@ const assignStaffToInquiry = async (req, res) => {
   }
 };
 
+// ─── Unassign a student from an inquiry ───────────────────────────────────────
+const unassignStudentFromInquiry = async (req, res) => {
+  try {
+    const inquiryId = parseInt(req.params.id, 10);
+    const { studentId } = req.body;
+
+    if (!studentId) {
+      return res.status(400).json({ error: "studentId is required in the request body" });
+    }
+
+    const student = await prisma.student.findUnique({ where: { id: parseInt(studentId, 10) } });
+    if (!student) {
+      return res.status(404).json({ error: "Student not found" });
+    }
+
+    if (student.inquiryId !== inquiryId) {
+      return res.status(400).json({ error: "Student is not linked to this inquiry" });
+    }
+
+    await prisma.student.update({
+      where: { id: parseInt(studentId, 10) },
+      data: { inquiryId: null }
+    });
+
+    res.status(200).json({
+      message: "Student unassigned from inquiry successfully",
+      requestedByRole: req.user?.roleName,
+      requestedByAccountId: req.user?.accountId
+    });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to unassign student from inquiry", details: error.message });
+  }
+};
+
 // ─── Search students (for assignment UI) ──────────────────────────────────────
 const searchStudents = async (req, res) => {
   try {
@@ -396,6 +430,7 @@ module.exports = {
   updateInquiry,
   deleteInquiry,
   assignStudentToInquiry,
+  unassignStudentFromInquiry,
   assignStaffToInquiry,
   searchStudents,
   searchStaff

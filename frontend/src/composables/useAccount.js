@@ -1,17 +1,19 @@
 import { ref } from 'vue'
-import * as api from '@/helpers/inquiryHelper'
+import * as api from '@/helpers/accountHelper'
 
-export function useInquiry() {
-  const inquiries = ref([])
-  const inquiry = ref(null)
+export function useAccount() {
+  const accounts = ref([])
+  const account = ref(null)
+  const roles = ref([])
+  const groups = ref([])
   const loading = ref(false)
   const error = ref(null)
 
-  const fetchInquiries = async () => {
+  const fetchAccounts = async () => {
     loading.value = true
     error.value = null
     try {
-      inquiries.value = await api.getAllInquiries()
+      accounts.value = await api.getAllAccounts()
     } catch (err) {
       error.value = err.response?.data?.details || err.message
       throw err
@@ -20,12 +22,12 @@ export function useInquiry() {
     }
   }
 
-  const fetchInquiryById = async (id) => {
+  const fetchAccountById = async (id) => {
     loading.value = true
     error.value = null
     try {
-      inquiry.value = await api.getInquiryById(id)
-      return inquiry.value
+      account.value = await api.getAccountById(id)
+      return account.value
     } catch (err) {
       error.value = err.response?.data?.details || err.message
       throw err
@@ -34,11 +36,11 @@ export function useInquiry() {
     }
   }
 
-  const createInquiry = async (payload) => {
+  const createAccount = async (payload) => {
     loading.value = true
     error.value = null
     try {
-      const response = await api.createInquiry(payload)
+      const response = await api.createAccount(payload)
       return response
     } catch (err) {
       error.value = err.response?.data?.details || err.message
@@ -48,11 +50,11 @@ export function useInquiry() {
     }
   }
 
-  const updateInquiry = async (id, payload) => {
+  const updateAccount = async (id, payload) => {
     loading.value = true
     error.value = null
     try {
-      const response = await api.updateInquiry(id, payload)
+      const response = await api.updateAccount(id, payload)
       return response
     } catch (err) {
       error.value = err.response?.data?.details || err.message
@@ -62,11 +64,11 @@ export function useInquiry() {
     }
   }
 
-  const unassignStudent = async (inquiryId, studentId) => {
+  const deleteAccount = async (id) => {
     loading.value = true
     error.value = null
     try {
-      const response = await api.unassignStudent(inquiryId, studentId)
+      const response = await api.deleteAccount(id)
       return response
     } catch (err) {
       error.value = err.response?.data?.details || err.message
@@ -76,30 +78,35 @@ export function useInquiry() {
     }
   }
 
-  const deleteInquiry = async (id) => {
-    loading.value = true
-    error.value = null
+  const fetchRoles = async () => {
     try {
-      const response = await api.deleteInquiry(id)
-      return response
+      roles.value = await api.getAllRoles()
     } catch (err) {
-      error.value = err.response?.data?.details || err.message
-      throw err
-    } finally {
-      loading.value = false
+      roles.value = []
+    }
+  }
+
+  const fetchGroups = async () => {
+    try {
+      groups.value = await api.getAllGroups()
+    } catch (err) {
+      groups.value = []
     }
   }
 
   return {
-    inquiries,
-    inquiry,
+    accounts,
+    account,
+    roles,
+    groups,
     loading,
     error,
-    fetchInquiries,
-    fetchInquiryById,
-    createInquiry,
-    updateInquiry,
-    deleteInquiry,
-    unassignStudent
+    fetchAccounts,
+    fetchAccountById,
+    createAccount,
+    updateAccount,
+    deleteAccount,
+    fetchRoles,
+    fetchGroups
   }
 }

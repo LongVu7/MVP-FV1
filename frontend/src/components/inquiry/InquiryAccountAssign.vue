@@ -18,6 +18,15 @@
           <h3>{{ selectedAccount.fullName }}</h3>
           <p>{{ selectedAccount.email }} | {{ selectedAccount.role?.name || 'Account' }}</p>
         </div>
+        <Button 
+          icon="pi pi-times" 
+          severity="danger" 
+          text 
+          rounded 
+          size="small" 
+          @click="removeAccount" 
+          v-tooltip.top="'Remove account'"
+        />
       </div>
       <div v-else class="empty-state">
         <p>No account assigned. Inquiry will be unassigned.</p>
@@ -86,6 +95,11 @@ const confirmSelection = () => {
   }
 }
 
+const removeAccount = () => {
+  selectedAccount.value = null
+  tempSelected.value = null
+}
+
 const getPayload = () => {
   return selectedAccount.value ? selectedAccount.value.id : null
 }
@@ -149,6 +163,10 @@ defineExpose({
   align-items: center;
   justify-content: center;
   font-size: 1.25rem;
+}
+
+.entity-details {
+  flex: 1;
 }
 
 .entity-details h3 {

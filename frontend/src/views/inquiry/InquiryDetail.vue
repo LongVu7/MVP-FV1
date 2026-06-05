@@ -28,6 +28,7 @@
         ref="studentAssignRef" 
         :readonly="true" 
         :initialStudents="linkedStudents" 
+        @remove-student="handleRemoveStudent"
       />
       
       <InquiryAccountAssign 
@@ -61,7 +62,7 @@ import InquiryAccountAssign from '@/components/inquiry/InquiryAccountAssign.vue'
 const router = useRouter()
 const route = useRoute()
 const toast = useToast()
-const { fetchInquiryById, updateInquiry } = useInquiry()
+const { fetchInquiryById, updateInquiry, unassignStudent } = useInquiry()
 
 const studentAssignRef = ref(null)
 const accountAssignRef = ref(null)
@@ -107,9 +108,7 @@ const submitGlobal = async () => {
   }
 
   const accountId = accountAssignRef.value.getPayload()
-  if (accountId) {
-    payload.assignedToId = accountId
-  }
+  payload.assignedToId = accountId
 
   isSubmitting.value = true
   try {
@@ -120,6 +119,16 @@ const submitGlobal = async () => {
     toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.details || error.message, life: 5000 })
   } finally {
     isSubmitting.value = false
+  }
+}
+
+const handleRemoveStudent = async (studentId) => {
+  try {
+    await unassignStudent(route.params.id, studentId)
+    linkedStudents.value = linkedStudents.value.filter(s => s.id !== studentId)
+    toast.add({ severity: 'success', summary: 'Removed', detail: 'Student unassigned successfully', life: 3000 })
+  } catch (error) {
+    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.details || error.message, life: 5000 })
   }
 }
 </script>

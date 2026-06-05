@@ -45,7 +45,7 @@ const updateInquirySchema = z.object({
   dataSource: inquiryFields.dataSource,
   regional: inquiryFields.regional,
   groupTele: inquiryFields.groupTele,
-  assignedToId: inquiryFields.assignedToId
+  assignedToId: z.number().int().nullable().optional()
 }).strict().refine((data) => Object.keys(data).length > 0, {
   message: 'Request body cannot be empty'
 });

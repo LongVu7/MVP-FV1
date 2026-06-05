@@ -6,14 +6,14 @@ const { idParamSchema } = require('../../../schemas/commonSchemas');
 const { createInquirySchema, updateInquirySchema, assignStudentSchema, assignStaffSchema } = require('./inquirySchemas');
 const inquiryController = require('./inquiryController');
 
-// ─── Search routes (must be BEFORE /:id to avoid conflicts) ───────────────────
+// ─── Search routes 
 router.route('/search/students')
     .get(authenticate, checkRole(['admin', 'staff']), inquiryController.searchStudents);
 
 router.route('/search/staff')
     .get(authenticate, checkRole(['admin', 'staff']), inquiryController.searchStaff);
 
-// ─── CRUD routes ──────────────────────────────────────────────────────────────
+// ─── CRUD routes
 router.route('/')
     .get(authenticate, checkRole(['admin', 'staff']), inquiryController.getAllInquiries)
     .post(authenticate, checkRole(['admin', 'staff']), validateBody(createInquirySchema), inquiryController.createInquiry);
@@ -23,9 +23,10 @@ router.route('/:id')
     .put(authenticate, checkRole(['admin', 'staff']), validateParams(idParamSchema), validateBody(updateInquirySchema), inquiryController.updateInquiry)
     .delete(authenticate, checkRole(['admin', 'staff']), validateParams(idParamSchema), inquiryController.deleteInquiry);
 
-// ─── Assignment routes ────────────────────────────────────────────────────────
+// ─── Assignment routes
 router.route('/:id/assign-student')
-    .put(authenticate, checkRole(['admin', 'staff']), validateParams(idParamSchema), validateBody(assignStudentSchema), inquiryController.assignStudentToInquiry);
+    .put(authenticate, checkRole(['admin', 'staff']), validateParams(idParamSchema), validateBody(assignStudentSchema), inquiryController.assignStudentToInquiry)
+    .delete(authenticate, checkRole(['admin', 'staff']), validateParams(idParamSchema), validateBody(assignStudentSchema), inquiryController.unassignStudentFromInquiry);
 
 router.route('/:id/assign-staff')
     .put(authenticate, checkRole(['admin', 'staff']), validateParams(idParamSchema), validateBody(assignStaffSchema), inquiryController.assignStaffToInquiry);

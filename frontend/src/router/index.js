@@ -40,6 +40,42 @@ const router = createRouter({
       component: () => import('../views/inquiry/InquiryDetail.vue'),
     },
     {
+      path: '/accounts',
+      name: 'accounts',
+      component: () => import('../views/account/Account.vue'),
+      meta: { requiresAdmin: true }
+    },
+    {
+      path: '/accounts/new',
+      name: 'account-new',
+      component: () => import('../views/account/AccountNew.vue'),
+      meta: { requiresAdmin: true }
+    },
+    {
+      path: '/accounts/:id',
+      name: 'account-detail',
+      component: () => import('../views/account/AccountDetail.vue'),
+      meta: { requiresAdmin: true }
+    },
+    {
+      path: '/groups',
+      name: 'groups',
+      component: () => import('../views/group/Group.vue'),
+      meta: { requiresAdmin: true }
+    },
+    {
+      path: '/groups/new',
+      name: 'group-new',
+      component: () => import('../views/group/GroupNew.vue'),
+      meta: { requiresAdmin: true }
+    },
+    {
+      path: '/groups/:id',
+      name: 'group-detail',
+      component: () => import('../views/group/GroupDetail.vue'),
+      meta: { requiresAdmin: true }
+    },
+    {
       path: '/login',
       name: 'login',
       component: () => import('../views/LoginView.vue'),
@@ -60,6 +96,8 @@ router.beforeEach((to, from, next) => {
   if (to.path !== '/login' && !authStore.isLoggedIn) {
     next('/login')
   } else if (to.path === '/login' && authStore.isLoggedIn) {
+    next('/')
+  } else if (to.matched.some(record => record.meta.requiresAdmin) && authStore.user?.roleName !== 'admin') {
     next('/')
   } else {
     next()

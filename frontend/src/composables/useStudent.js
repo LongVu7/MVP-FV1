@@ -39,6 +39,7 @@ export function useStudent() {
     error.value = null
     try {
       const response = await api.createStudent(payload)
+      // console.log('response: ', response)
       return response
     } catch (err) {
       error.value = err.response?.data?.details || err.message
