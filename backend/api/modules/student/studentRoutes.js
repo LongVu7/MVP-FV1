@@ -8,7 +8,7 @@ const upload = require('../../../middleware/upload');
 const studentController = require('./studentController');
 
 router.route('/')
-    .get(authenticate, checkRole(['admin']), studentController.getAllStudents)
+    .get(authenticate, checkRole(['admin', 'staff']), studentController.getAllStudents)
     .post(authenticate, checkRole(['staff', 'admin']), validateBody(createStudentSchema), studentController.createStudent);
 
 router.route('/import')

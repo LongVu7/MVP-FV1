@@ -54,6 +54,7 @@ import { useRouter, useRoute } from 'vue-router'
 import Button from 'primevue/button'
 import { useToast } from 'primevue/usetoast'
 import { useInquiry } from '@/composables/useInquiry'
+import { useStudent } from '@/composables/useStudent'
 import InquiryForm from '@/components/inquiry/InquiryForm.vue'
 import InquiryStudentAssign from '@/components/inquiry/InquiryStudentAssign.vue'
 import InquiryAccountAssign from '@/components/inquiry/InquiryAccountAssign.vue'
@@ -61,7 +62,8 @@ import InquiryAccountAssign from '@/components/inquiry/InquiryAccountAssign.vue'
 const router = useRouter()
 const route = useRoute()
 const toast = useToast()
-const { fetchInquiryById, updateInquiry, unassignStudent } = useInquiry()
+const { fetchInquiryById, updateInquiry, assignStudent, unassignStudent } = useInquiry()
+const { createStudent } = useStudent()
 
 const studentAssignRef = ref(null)
 const accountAssignRef = ref(null)
@@ -99,6 +101,14 @@ onMounted(async () => {
 })
 
 const submitGlobal = async () => {
+  // Validate student assignment section
+  const studentData = studentAssignRef.value.validateAndGetPayload()
+  if (!studentData.isValid) {
+    toast.add({ severity: 'error', summary: 'Validation Error', detail: 'Please fill out required student fields', life: 3000 })
+    return
+  }
+
+  // Build inquiry payload
   const payload = {}
   for (const [key, value] of Object.entries(inquiryForm.value)) {
     if (value !== '' && value !== null && value !== undefined) {
@@ -111,7 +121,21 @@ const submitGlobal = async () => {
 
   isSubmitting.value = true
   try {
-    await updateInquiry(route.params.id, payload)
+    const inquiryId = route.params.id
+
+    // 1. Update inquiry fields
+    await updateInquiry(inquiryId, payload)
+
+    // 2. Handle student assignment
+    if (studentData.isCreating && studentData.studentPayload) {
+      // Create new student, then assign to inquiry
+      const created = await createStudent(studentData.studentPayload)
+      await assignStudent(inquiryId, created.student.id)
+    } else if (!studentData.isCreating && studentData.studentId) {
+      // Assign existing student to inquiry
+      await assignStudent(inquiryId, studentData.studentId)
+    }
+
     toast.add({ severity: 'success', summary: 'Updated', detail: 'Inquiry updated successfully', life: 3000 })
     router.push('/inquiries')
   } catch (error) {

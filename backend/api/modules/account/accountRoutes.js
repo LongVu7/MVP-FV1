@@ -7,7 +7,7 @@ const accountController = require('./accountController');
 
 // ─── CRUD routes
 router.route('/')
-    .get(authenticate, checkRole(['admin']), accountController.getAllAccounts)
+    .get(authenticate, checkRole(['admin', 'staff']), accountController.getAllAccounts)
     .post(authenticate, checkRole(['admin']), accountController.createAccount);
 
 router.route('/:id')

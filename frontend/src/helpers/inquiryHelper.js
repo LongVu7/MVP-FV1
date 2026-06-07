@@ -37,6 +37,11 @@ export const unassignStudent = async (inquiryId, studentId) => {
   return response.data
 }
 
+export const assignStudent = async (inquiryId, studentId) => {
+  const response = await api.put(`${prefix}/${inquiryId}/assign-student`, { studentId })
+  return response.data
+}
+
 export const searchStaff = async (query) => {
   const response = await api.get(`${prefix}/search/staff`, { params: { q: query } })
   return response.data.results

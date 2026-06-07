@@ -76,6 +76,20 @@ export function useInquiry() {
     }
   }
 
+  const assignStudent = async (inquiryId, studentId) => {
+    loading.value = true
+    error.value = null
+    try {
+      const response = await api.assignStudent(inquiryId, studentId)
+      return response
+    } catch (err) {
+      error.value = err.response?.data?.details || err.message
+      throw err
+    } finally {
+      loading.value = false
+    }
+  }
+
   const deleteInquiry = async (id) => {
     loading.value = true
     error.value = null
@@ -100,6 +114,7 @@ export function useInquiry() {
     createInquiry,
     updateInquiry,
     deleteInquiry,
+    assignStudent,
     unassignStudent
   }
 }
