@@ -26,11 +26,10 @@
 
       <InquiryStudentAssign 
         ref="studentAssignRef" 
-        :readonly="true" 
         :initialStudents="linkedStudents" 
         @remove-student="handleRemoveStudent"
       />
-      
+
       <InquiryAccountAssign 
         ref="accountAssignRef" 
         :initialAccount="selectedStaff" 

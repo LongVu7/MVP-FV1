@@ -90,18 +90,34 @@ const router = createRouter({
 
 import { useAuthStore } from '@/stores/auth'
 
-router.beforeEach((to, from, next) => {
+// router.beforeEach((to, from, next) => {
+//   const authStore = useAuthStore()
+  
+//   if (to.path !== '/login' && !authStore.isLoggedIn) {
+//     next('/login')
+//   } else if (to.path === '/login' && authStore.isLoggedIn) {
+//     next('/')
+//   } else if (to.matched.some(record => record.meta.requiresAdmin) && authStore.user?.roleName !== 'admin') {
+//     next('/')
+//   } else {
+//     next()
+//   }
+
+// })
+
+router.beforeEach((to, from) => {
   const authStore = useAuthStore()
   
   if (to.path !== '/login' && !authStore.isLoggedIn) {
-    next('/login')
+    return '/login'
   } else if (to.path === '/login' && authStore.isLoggedIn) {
-    next('/')
+    return '/'
   } else if (to.matched.some(record => record.meta.requiresAdmin) && authStore.user?.roleName !== 'admin') {
-    next('/')
+    return '/'
   } else {
-    next()
+    return true
   }
+
 })
 
 export default router

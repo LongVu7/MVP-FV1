@@ -8,14 +8,14 @@ const upload = require('../../../middleware/upload');
 const studentController = require('./studentController');
 
 router.route('/')
-    .get(authenticate, checkRole(['admin']), studentController.getAllStudents)
+    .get(authenticate, checkRole(['admin', 'staff']), studentController.getAllStudents)
     .post(authenticate, checkRole(['staff', 'admin']), validateBody(createStudentSchema), studentController.createStudent);
 
 router.route('/import')
     .post(authenticate, checkRole(['staff', 'admin']), upload.array('files'), studentController.importStudents);
 
 router.route('/:id')
-    .get(authenticate, checkRole(['admin']), validateParams(idParamSchema), studentController.getStudentById)
+    .get(authenticate, checkRole(['admin', 'staff']), validateParams(idParamSchema), studentController.getStudentById)
     .put(authenticate, validateParams(idParamSchema), validateBody(updateStudentSchema), studentController.updateStudent)
     .delete(authenticate, validateParams(idParamSchema), studentController.deleteStudent);
 
