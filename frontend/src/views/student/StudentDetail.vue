@@ -64,7 +64,7 @@ const updateExistingStudent = async (payload) => {
     toast.add({ severity: 'success', summary: 'Updated', detail: `Student "${payload.fullName}" updated successfully`, life: 3000 })
     router.push('/students')
   } catch (error) {
-    const detail = error.response?.data?.details || error.message || 'Failed to update student'
+    const detail = error.response?.data?.error || error.response?.data?.details || error.message || 'Failed to update student'
     toast.add({ severity: 'error', summary: 'Error', detail, life: 5000 })
   } finally {
     isSubmitting.value = false

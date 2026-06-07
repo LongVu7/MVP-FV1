@@ -33,7 +33,7 @@
         </div>
       </template>
       
-      <Column header="Student(s)" style="min-width: 150px">
+      <Column header="Students" style="min-width: 150px">
         <template #body="{ data }">
           <span v-if="data.students && data.students.length">{{ data.students.map(s => s.fullName).join(', ') }}</span>
           <span v-else class="null-text">—</span>

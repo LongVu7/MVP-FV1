@@ -3,7 +3,7 @@ const router = express.Router();
 const { authenticate, checkRole } = require('../../../middleware/auth');
 const { validateBody, validateParams } = require('../../../middleware/validate');
 const { idParamSchema } = require('../../../schemas/commonSchemas');
-const { createInquirySchema, updateInquirySchema, assignStudentSchema, assignStaffSchema } = require('./inquirySchemas');
+const { createInquirySchema, updateInquirySchema, assignStudentSchema, assignAccountSchema } = require('./inquirySchemas');
 const inquiryController = require('./inquiryController');
 
 // ─── Search routes 
@@ -28,7 +28,7 @@ router.route('/:id/assign-student')
     .put(authenticate, checkRole(['admin', 'staff']), validateParams(idParamSchema), validateBody(assignStudentSchema), inquiryController.assignStudentToInquiry)
     .delete(authenticate, checkRole(['admin', 'staff']), validateParams(idParamSchema), validateBody(assignStudentSchema), inquiryController.unassignStudentFromInquiry);
 
-router.route('/:id/assign-staff')
-    .put(authenticate, checkRole(['admin', 'staff']), validateParams(idParamSchema), validateBody(assignStaffSchema), inquiryController.assignStaffToInquiry);
+router.route('/:id/assign-account')
+    .put(authenticate, checkRole(['admin', 'staff']), validateParams(idParamSchema), validateBody(assignAccountSchema), inquiryController.assignAccountToInquiry);
 
 module.exports = router;

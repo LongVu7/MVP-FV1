@@ -98,7 +98,7 @@ const submitGlobal = async () => {
     toast.add({ severity: 'success', summary: 'Created', detail: 'Inquiry created successfully', life: 3000 })
     router.push('/inquiries')
   } catch (error) {
-    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.details || error.message, life: 5000 })
+    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.error || error.response?.data?.details || error.message, life: 5000 })
   } finally {
     isSubmitting.value = false
   }

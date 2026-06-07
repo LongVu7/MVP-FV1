@@ -42,6 +42,7 @@ export function useStudent() {
       // console.log('response: ', response)
       return response
     } catch (err) {
+      console.log(err.response?.data)
       error.value = err.response?.data?.details || err.message
       throw err
     } finally {

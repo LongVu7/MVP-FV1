@@ -1,9 +1,35 @@
 const prisma = require('../../../config/db');
 const xlsx = require('xlsx');
 
+
+
 // ─── Create a student
 const createStudent = async (data) => {
-  return prisma.student.create({ data });
+  try {
+    return await prisma.student.create({
+      data: {
+        ...data,
+        birthDate: data.birthDate ? new Date(data.birthDate) : undefined
+      }
+    });
+  } catch (error) {
+    // if (error.code === 'P2002' && String(error.meta?.target).includes('email')) {
+    //   const err = new Error(`Student with email "${data.email}" already exists`);
+    //   err.status = 409;
+    //   throw err;
+    // }
+
+    if (error.code === 'P2002') {
+      const err = new Error(
+        `Student with email "${data.email}" already exists`
+      )
+      err.status = 409
+      // console.log(err)
+      throw err
+    }
+
+    throw error
+  }
 };
 
 // ─── Get all students

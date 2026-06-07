@@ -4,7 +4,9 @@ const studentService = require('./studentService');
 // Helper: translate service errors to HTTP responses
 const handleError = (res, error) => {
   const status = error.status || 500;
-  res.status(status).json({ error: error.message, ...(status === 500 && { details: error.message }) });
+  res.status(status).json({ 
+    error: error.message,
+    ...(status === 500 && { details: error.message }) });
 };
 
 const createStudent = async (req, res) => {

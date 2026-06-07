@@ -1,6 +1,13 @@
 const prisma = require('../../../config/db');
 
-// Shared include shape for inquiry queries
+
+const handleError = (message, status) => {
+  const err = new Error(message);
+  err.status = status;
+  return err;
+};
+
+// Inquiry queries
 const inquiryInclude = {
   students: true,
   assignedTo: {
@@ -24,16 +31,16 @@ const getInquiryById = async (id) => {
   });
 
   if (!inquiry) {
-    const err = new Error('Inquiry not found');
-    err.status = 404;
-    throw err;
+    return handleError('Inquiry not found', 404);
   }
 
   return inquiry;
 };
 
-// ─── Create inquiry (3 methods)
-// 1. Link existing student  2. Create new student  3. No student
+// Create inquiry with 3 methods
+// 1. Link existing student
+// 2. Create new student with the inquiry
+// 3. Create inquiry with no student
 const createInquiry = async ({ studentId, student, assignedToId, ...inquiryFields }) => {
   const inquiryData = {
     ...inquiryFields,
@@ -44,16 +51,14 @@ const createInquiry = async ({ studentId, student, assignedToId, ...inquiryField
     inquiryData.assignedTo = { connect: { id: parseInt(assignedToId, 10) } };
   }
 
+  // ─── Create inquiry with an existing student
   if (studentId) {
-    // Method 1: link an existing student
     const existingStudent = await prisma.student.findUnique({
       where: { id: parseInt(studentId, 10) }
     });
 
     if (!existingStudent) {
-      const err = new Error('Student not found with the provided studentId');
-      err.status = 404;
-      throw err;
+      return handleError('Student not found with the provided studentId', 404);
     }
 
     return prisma.$transaction(async (tx) => {
@@ -71,8 +76,8 @@ const createInquiry = async ({ studentId, student, assignedToId, ...inquiryField
     });
   }
 
+  // Create a new student with the inquiry
   if (student && student.fullName) {
-    // Method 2: create a new student alongside the inquiry
     return prisma.$transaction(async (tx) => {
       const newInquiry = await tx.inquiry.create({ data: inquiryData });
 
@@ -91,7 +96,7 @@ const createInquiry = async ({ studentId, student, assignedToId, ...inquiryField
     });
   }
 
-  // Method 3: inquiry with no student
+  //Create inquiry with no student
   const newInquiry = await prisma.inquiry.create({ data: inquiryData });
   return prisma.inquiry.findUnique({
     where: { id: newInquiry.id },
@@ -173,11 +178,11 @@ const unassignStudentFromInquiry = async (inquiryId, studentId) => {
   });
 };
 
-// ─── Assign a staff member to an inquiry
-const assignStaffToInquiry = async (inquiryId, staffId) => {
-  const staffAccount = await prisma.account.findUnique({ where: { id: parseInt(staffId, 10) } });
-  if (!staffAccount) {
-    const err = new Error('Staff account not found');
+// ─── Assign an account to an inquiry
+const assignAccountToInquiry = async (inquiryId, accountId) => {
+  const account = await prisma.account.findUnique({ where: { id: parseInt(accountId, 10) } });
+  if (!account) {
+    const err = new Error('Account not found');
     err.status = 404;
     throw err;
   }
@@ -185,7 +190,7 @@ const assignStaffToInquiry = async (inquiryId, staffId) => {
   return prisma.inquiry.update({
     where: { id: parseInt(inquiryId, 10) },
     data: {
-      assignedToId: parseInt(staffId, 10),
+      assignedToId: parseInt(accountId, 10),
       updatedAt: new Date()
     },
     include: inquiryInclude
@@ -239,7 +244,7 @@ module.exports = {
   deleteInquiry,
   assignStudentToInquiry,
   unassignStudentFromInquiry,
-  assignStaffToInquiry,
+  assignAccountToInquiry,
   searchStudents,
   searchStaff
 };

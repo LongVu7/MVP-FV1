@@ -26,7 +26,6 @@
 
       <InquiryStudentAssign 
         ref="studentAssignRef" 
-        :readonly="true" 
         :initialStudents="linkedStudents" 
         @remove-student="handleRemoveStudent"
       />
@@ -116,7 +115,7 @@ const submitGlobal = async () => {
     toast.add({ severity: 'success', summary: 'Updated', detail: 'Inquiry updated successfully', life: 3000 })
     router.push('/inquiries')
   } catch (error) {
-    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.details || error.message, life: 5000 })
+    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.error || error.response?.data?.details || error.message, life: 5000 })
   } finally {
     isSubmitting.value = false
   }
@@ -128,7 +127,7 @@ const handleRemoveStudent = async (studentId) => {
     linkedStudents.value = linkedStudents.value.filter(s => s.id !== studentId)
     toast.add({ severity: 'success', summary: 'Removed', detail: 'Student unassigned successfully', life: 3000 })
   } catch (error) {
-    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.details || error.message, life: 5000 })
+    toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.error || error.response?.data?.details || error.message, life: 5000 })
   }
 }
 </script>

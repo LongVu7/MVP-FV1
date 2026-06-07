@@ -121,18 +121,18 @@ const unassignStudentFromInquiry = async (req, res) => {
   }
 };
 
-// ─── Assign a staff member to an inquiry
-const assignStaffToInquiry = async (req, res) => {
+// ─── Assign an account to an inquiry
+const assignAccountToInquiry = async (req, res) => {
   try {
-    const { staffId } = req.body;
+    const { accountId } = req.body;
 
-    if (!staffId) {
-      return res.status(400).json({ error: 'staffId is required in the request body' });
+    if (!accountId) {
+      return res.status(400).json({ error: 'accountId is required in the request body' });
     }
 
-    const data = await inquiryService.assignStaffToInquiry(req.params.id, staffId);
+    const data = await inquiryService.assignAccountToInquiry(req.params.id, accountId);
     res.status(200).json({
-      message: 'Staff assigned to inquiry successfully',
+      message: 'Account assigned to inquiry successfully',
       requestedByRole: req.user?.roleName,
       requestedByAccountId: req.user?.accountId,
       data
@@ -192,7 +192,7 @@ module.exports = {
   deleteInquiry,
   assignStudentToInquiry,
   unassignStudentFromInquiry,
-  assignStaffToInquiry,
+  assignAccountToInquiry,
   searchStudents,
   searchStaff
 };

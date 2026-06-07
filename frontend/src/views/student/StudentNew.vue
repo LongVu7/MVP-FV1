@@ -54,7 +54,7 @@ const createNewStudent = async (payload) => {
     toast.add({ severity: 'success', summary: 'Created', detail: `Student "${payload.fullName}" created successfully`, life: 3000 })
     router.push('/students')
   } catch (error) {
-    const detail = error.response?.data?.details || error.message || 'Failed to create student'
+    const detail = error.response?.data?.error || error.response?.data?.details || error.message || 'Failed to create student'
     toast.add({ severity: 'error', summary: 'Error', detail, life: 5000 })
   } finally {
     isSubmitting.value = false

@@ -54,15 +54,15 @@ const assignStudentSchema = z.object({
   studentId: z.number().int('studentId must be an integer')
 }).strict();
 
-const assignStaffSchema = z.object({
-  staffId: z.number().int('staffId must be an integer')
+const assignAccountSchema = z.object({
+  accountId: z.number().int('accountId must be an integer')
 }).strict();
 
 module.exports = {
   createInquirySchema,
   updateInquirySchema,
   assignStudentSchema,
-  assignStaffSchema
+  assignAccountSchema
 };
 
 // const statusGeneralEnum = ['new', 'assigned', 'inProcess', 'converted', 'dead'];

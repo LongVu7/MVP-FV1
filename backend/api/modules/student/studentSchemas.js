@@ -28,7 +28,10 @@ const updateStudentSchema = z.object({
   englishCertificate: z.string().max(255).optional(),
   parentPhone: z.string().max(20).optional(),
   primaryAddressCity: z.string().max(255).optional()
-}).strict();
+}).strict().refine(
+  (data) => Object.keys(data).length > 0,
+  { message: 'Request body cannot be empty' }
+);
 
 module.exports = { createStudentSchema, updateStudentSchema };
 

@@ -5,7 +5,7 @@
       <template v-if="!readonly">
         <Button 
           v-if="isCreatingStudent" 
-          label="Select Existing Student" 
+          label="Select Student" 
           severity="secondary" 
           size="small" 
           icon="pi pi-search" 
