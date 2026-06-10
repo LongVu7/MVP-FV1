@@ -32,23 +32,21 @@
     </div>
     
     <div v-else class="selected-entity-area">
-      <div v-if="readonly && initialStudents && initialStudents.length > 0" class="linked-list">
-        <div v-for="s in initialStudents" :key="s.id" class="entity-info">
-          <div class="entity-avatar"><i class="pi pi-user"></i></div>
-          <div class="entity-details">
-            <h3>{{ s.fullName }}</h3>
-            <p>{{ s.email || 'No email' }} | {{ s.mobile || 'No phone' }}</p>
-          </div>
-          <Button 
-            icon="pi pi-times" 
-            severity="danger" 
-            text 
-            rounded 
-            size="small" 
-            @click="$emit('remove-student', s.id)" 
-            v-tooltip.top="'Remove student'"
-          />
+      <div v-if="readonly && initialStudent" class="entity-info">
+        <div class="entity-avatar"><i class="pi pi-user"></i></div>
+        <div class="entity-details">
+          <h3>{{ initialStudent.fullName }}</h3>
+          <p>{{ initialStudent.email || 'No email' }} | {{ initialStudent.mobile || 'No phone' }}</p>
         </div>
+        <Button 
+          icon="pi pi-times" 
+          severity="danger" 
+          text 
+          rounded 
+          size="small" 
+          @click="$emit('remove-student', initialStudent.id)" 
+          v-tooltip.top="'Remove student'"
+        />
       </div>
       <div v-else-if="!readonly && selectedStudent" class="entity-info">
         <div class="entity-avatar"><i class="pi pi-user"></i></div>
@@ -99,7 +97,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import Button from 'primevue/button'
 import Dialog from 'primevue/dialog'
 import AutoComplete from 'primevue/autocomplete'
@@ -111,9 +109,9 @@ const props = defineProps({
     type: Boolean,
     default: false
   },
-  initialStudents: {
-    type: Array,
-    default: () => []
+  initialStudent: {
+    type: Object,
+    default: null
   }
 })
 
@@ -140,6 +138,16 @@ const newStudentForm = ref({
   primaryAddressCity: ''
 })
 
+watch(
+  () => props.initialStudent, (newStudent) => {
+    if (newStudent) {
+      isCreatingStudent.value = false
+      selectedStudent.value = newStudent
+    }
+  },
+  { immediate: true }
+)
+
 const onSearch = async (event) => {
   await searchStudents(event.query)
 }
@@ -152,7 +160,18 @@ const confirmSelection = () => {
   }
 }
 
+// const clearSelectedStudent = () => {
+//   selectedStudent.value = null
+//   tempSelected.value = null
+//   isCreatingStudent.value = true
+// }
+
 const clearSelectedStudent = () => {
+  //Unlink if the student is from database
+  if (selectedStudent.value && props.initialStudent && selectedStudent.value.id === props.initialStudent.id) {
+    emit('remove-student', selectedStudent.value.id)
+  }
+  
   selectedStudent.value = null
   tempSelected.value = null
   isCreatingStudent.value = true

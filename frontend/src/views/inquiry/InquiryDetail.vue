@@ -26,7 +26,7 @@
 
       <InquiryStudentAssign 
         ref="studentAssignRef" 
-        :initialStudents="linkedStudents" 
+        :initialStudent="linkedStudent" 
         @remove-student="handleRemoveStudent"
       />
       
@@ -69,7 +69,7 @@ const studentAssignRef = ref(null)
 const accountAssignRef = ref(null)
 
 const inquiryForm = ref({})
-const linkedStudents = ref([])
+const linkedStudent = ref(null)
 const selectedStaff = ref(null)
 
 const loading = ref(true)
@@ -89,7 +89,7 @@ onMounted(async () => {
       dataReceived: data.dataReceived ? new Date(data.dataReceived) : null,
       dataSource: data.dataSource || null
     }
-    linkedStudents.value = data.students || []
+    linkedStudent.value = data.student || null
     if (data.assignedTo) {
       selectedStaff.value = data.assignedTo
     }
@@ -148,7 +148,7 @@ const submitGlobal = async () => {
 const handleRemoveStudent = async (studentId) => {
   try {
     await unassignStudent(route.params.id, studentId)
-    linkedStudents.value = linkedStudents.value.filter(s => s.id !== studentId)
+    linkedStudent.value = null
     toast.add({ severity: 'success', summary: 'Removed', detail: 'Student unassigned successfully', life: 3000 })
   } catch (error) {
     toast.add({ severity: 'error', summary: 'Error', detail: error.response?.data?.error || error.response?.data?.details || error.message, life: 5000 })

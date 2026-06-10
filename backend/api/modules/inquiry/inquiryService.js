@@ -1,108 +1,102 @@
 const prisma = require('../../../config/db');
 
-
+// ─── Error factory
 const handleError = (message, status) => {
   const err = new Error(message);
   err.status = status;
   return err;
 };
 
-// Inquiry queries
+// ─── Shared query 
 const inquiryInclude = {
-  students: true,
+  student: true,
   assignedTo: {
     select: { id: true, fullName: true, email: true }
   }
 };
 
+
+const buildInquiryData = ({ assignedToId, dataReceived, ...rest }) => ({
+  ...rest,
+  ...(dataReceived  && { dataReceived: new Date(dataReceived) }),
+  ...(assignedToId  && { assignedTo: { connect: { id: parseInt(assignedToId, 10) } } })
+});
+
+
+const fetchInquiry = (txOrPrisma, id) =>
+  txOrPrisma.inquiry.findUnique({ 
+    where: { id }, 
+    include: inquiryInclude
+  });
+
+
+
+
 // ─── List all inquiries
-const getAllInquiries = async () => {
-  return prisma.inquiry.findMany({
+const getAllInquiries = async () =>
+  prisma.inquiry.findMany({
     orderBy: { createdAt: 'desc' },
     include: inquiryInclude
   });
-};
 
 // ─── Get specific inquiry by ID
 const getInquiryById = async (id) => {
-  const inquiry = await prisma.inquiry.findUnique({
-    where: { id: Number(id) },
-    include: inquiryInclude
-  });
-
-  if (!inquiry) {
-    return handleError('Inquiry not found', 404);
-  }
-
+  const inquiry = await fetchInquiry(prisma, parseInt(id, 10));
+  if (!inquiry) 
+    throw handleError('Inquiry not found', 404); 
   return inquiry;
 };
 
-// Create inquiry with 3 methods
-// 1. Link existing student
-// 2. Create new student with the inquiry
-// 3. Create inquiry with no student
+/** Create inquiry
+ *   1. Create and link an existing student
+ *   2. create a new student inline
+ *   3. Create with inquiry only
+ */
 const createInquiry = async ({ studentId, student, assignedToId, ...inquiryFields }) => {
-  const inquiryData = {
-    ...inquiryFields,
-    dataReceived: inquiryFields.dataReceived ? new Date(inquiryFields.dataReceived) : undefined
-  };
+  const inquiryData = buildInquiryData({ assignedToId, ...inquiryFields });
 
-  if (assignedToId) {
-    inquiryData.assignedTo = { connect: { id: parseInt(assignedToId, 10) } };
-  }
-
-  // ─── Create inquiry with an existing student
-  if (studentId) {
-    const existingStudent = await prisma.student.findUnique({
-      where: { id: parseInt(studentId, 10) }
-    });
-
-    if (!existingStudent) {
-      return handleError('Student not found with the provided studentId', 404);
-    }
-
-    return prisma.$transaction(async (tx) => {
-      const newInquiry = await tx.inquiry.create({ data: inquiryData });
-
-      await tx.student.update({
-        where: { id: parseInt(studentId, 10) },
-        data: { inquiryId: newInquiry.id }
-      });
-
-      return tx.inquiry.findUnique({
-        where: { id: newInquiry.id },
-        include: inquiryInclude
-      });
-    });
-  }
-
-  // Create a new student with the inquiry
-  if (student && student.fullName) {
-    return prisma.$transaction(async (tx) => {
-      const newInquiry = await tx.inquiry.create({ data: inquiryData });
-
-      await tx.student.create({
-        data: {
-          ...student,
-          birthDate: student.birthDate ? new Date(student.birthDate) : undefined,
-          inquiryId: newInquiry.id
-        }
-      });
-
-      return tx.inquiry.findUnique({
-        where: { id: newInquiry.id },
-        include: inquiryInclude
-      });
-    });
-  }
-
-  //Create inquiry with no student
-  const newInquiry = await prisma.inquiry.create({ data: inquiryData });
-  return prisma.inquiry.findUnique({
-    where: { id: newInquiry.id },
-    include: inquiryInclude
-  });
+  if (studentId)         return _createWithExistingStudent(inquiryData, studentId);
+  if (student?.fullName) return _createWithNewStudent(inquiryData, student);
+  return _createAlone(inquiryData);
 };
+
+const _createWithExistingStudent = async (inquiryData, studentId) => {
+  const sid = parseInt(studentId, 10);
+
+  const existing = await prisma.student.findUnique({ where: { id: sid } });
+  if (!existing) 
+    throw handleError(
+      'Student not found with the provided studentId', 
+      404
+    );
+
+  const { id } = await prisma.inquiry.create({ 
+    data: { ...inquiryData, studentId: sid } 
+  });
+  return fetchInquiry(prisma, id);
+};
+
+//Private method 
+const _createWithNewStudent = async (inquiryData, student) => {
+  const { id } = await prisma.inquiry.create({
+    data: {
+      ...inquiryData,
+      student: {
+        create: {
+          ...student,
+          ...(student.birthDate && { birthDate: new Date(student.birthDate) })
+        }
+      }
+    }
+  });
+  return fetchInquiry(prisma, id);
+};
+
+const _createAlone = async (inquiryData) => {
+  const { id } = await prisma.inquiry.create({ data: inquiryData });
+  return fetchInquiry(prisma, id);
+};
+
 
 // ─── Update inquiry
 const updateInquiry = async (id, updateData) => {
@@ -119,108 +113,83 @@ const updateInquiry = async (id, updateData) => {
   });
 };
 
+
 // ─── Delete inquiry (preserves student records)
 const deleteInquiry = async (id) => {
   const inquiryId = parseInt(id, 10);
-
-  await prisma.$transaction(async (tx) => {
-    await tx.student.updateMany({
-      where: { inquiryId },
-      data: { inquiryId: null }
-    });
-
-    await tx.inquiry.delete({ where: { id: inquiryId } });
-  });
+  await prisma.inquiry.delete({ where: { id: inquiryId } });
 };
+
 
 // ─── Assign a student to an inquiry
 const assignStudentToInquiry = async (inquiryId, studentId) => {
-  const inquiry = await prisma.inquiry.findUnique({ where: { id: parseInt(inquiryId, 10) } });
-  if (!inquiry) {
-    const err = new Error('Inquiry not found');
-    err.status = 404;
-    throw err;
-  }
+  const iid = parseInt(inquiryId, 10);
+  const sid = parseInt(studentId, 10);
 
-  const student = await prisma.student.findUnique({ where: { id: parseInt(studentId, 10) } });
-  if (!student) {
-    const err = new Error('Student not found');
-    err.status = 404;
-    throw err;
-  }
+  const inquiry = await prisma.inquiry.findUnique({ where: { id: iid } });
+  if (!inquiry) throw handleError('Inquiry not found', 404);
 
-  const updatedStudent = await prisma.student.update({
-    where: { id: parseInt(studentId, 10) },
-    data: { inquiryId: parseInt(inquiryId, 10) }
+  const student = await prisma.student.findUnique({ where: { id: sid } });
+  if (!student) throw handleError('Student not found', 404);
+
+  await prisma.inquiry.update({
+    where: { id: iid },
+    data: { studentId: sid }
   });
 
-  return { inquiryId: parseInt(inquiryId, 10), student: updatedStudent };
+  return { inquiryId: iid, student };
 };
 
 // ─── Unassign a student from an inquiry
 const unassignStudentFromInquiry = async (inquiryId, studentId) => {
-  const student = await prisma.student.findUnique({ where: { id: parseInt(studentId, 10) } });
-  if (!student) {
-    const err = new Error('Student not found');
-    err.status = 404;
-    throw err;
-  }
+  const iid = parseInt(inquiryId, 10);
+  const sid = parseInt(studentId, 10);
 
-  if (student.inquiryId !== parseInt(inquiryId, 10)) {
-    const err = new Error('Student is not linked to this inquiry');
-    err.status = 400;
-    throw err;
-  }
+  const inquiry = await prisma.inquiry.findUnique({ where: { id: iid } });
+  if (!inquiry) throw handleError('Inquiry not found', 404);
+  if (inquiry.studentId !== sid) throw handleError('Student is not linked to this inquiry', 400);
 
-  await prisma.student.update({
-    where: { id: parseInt(studentId, 10) },
-    data: { inquiryId: null }
-  });
+  await prisma.inquiry.update({ where: { id: iid }, data: { studentId: null } });
 };
 
 // ─── Assign an account to an inquiry
 const assignAccountToInquiry = async (inquiryId, accountId) => {
-  const account = await prisma.account.findUnique({ where: { id: parseInt(accountId, 10) } });
-  if (!account) {
-    const err = new Error('Account not found');
-    err.status = 404;
-    throw err;
-  }
+  const iid = parseInt(inquiryId, 10);
+  const aid = parseInt(accountId, 10);
+
+  const account = await prisma.account.findUnique({ where: { id: aid } });
+  if (!account) throw handleError('Account not found', 404);
 
   return prisma.inquiry.update({
-    where: { id: parseInt(inquiryId, 10) },
-    data: {
-      assignedToId: parseInt(accountId, 10),
-      updatedAt: new Date()
-    },
+    where: { id: iid },
+    data: { assignedToId: aid, updatedAt: new Date() },
     include: inquiryInclude
   });
 };
 
 // ─── Search students (for assignment UI)
-const searchStudents = async (query) => {
-  return prisma.student.findMany({
+const searchStudents = async (query) =>
+  prisma.student.findMany({
     where: {
       OR: [
         { fullName: { contains: query, mode: 'insensitive' } },
-        { email: { contains: query, mode: 'insensitive' } }
+        { email:    { contains: query, mode: 'insensitive' } }
       ]
     },
     take: 20,
     orderBy: { fullName: 'asc' }
   });
-};
 
 // ─── Search staff accounts (for assignment UI)
-const searchStaff = async (query) => {
-  return prisma.account.findMany({
+const searchStaff = async (query) =>
+  prisma.account.findMany({
     where: {
       AND: [
         { isActive: true },
         {
           OR: [
             { fullName: { contains: query, mode: 'insensitive' } },
-            { email: { contains: query, mode: 'insensitive' } }
+            { email:    { contains: query, mode: 'insensitive' } }
           ]
         }
       ]
@@ -234,7 +203,6 @@ const searchStaff = async (query) => {
     take: 20,
     orderBy: { fullName: 'asc' }
   });
-};
 
 module.exports = {
   getAllInquiries,

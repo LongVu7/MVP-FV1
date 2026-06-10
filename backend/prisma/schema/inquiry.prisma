@@ -30,7 +30,8 @@ model Inquiry {
 
   assignedTo Account? @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
 
-  students Student[]
+  studentId Int? @unique @map("student_id")
+  student Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
 
   @@map("inquiry")
 }
