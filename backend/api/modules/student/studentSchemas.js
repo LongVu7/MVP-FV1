@@ -4,6 +4,12 @@ const dateString = z.string().refine((val) => !isNaN(Date.parse(val)), {
   message: 'Must be a valid date string'
 });
 
+const gpaNumber = z.coerce
+  .number({ invalid_type_error: 'gpa must be a number' })
+  .min(0, 'gpa must be >= 0')
+  .max(10, 'gpa must be <= 10')
+  .optional();
+
 const createStudentSchema = z.object({
   fullName: z.string().min(1, 'fullName is required').max(255),
   gender: z.string().max(20).optional(),
@@ -11,7 +17,7 @@ const createStudentSchema = z.object({
   mobile: z.string().max(20).optional(),
   otherPhone: z.string().max(20).optional(),
   birthDate: dateString.optional(),
-  gpa: z.number({ invalid_type_error: 'gpa must be a number' }).optional(),
+  gpa: gpaNumber,
   englishCertificate: z.string().max(255).optional(),
   parentPhone: z.string().max(20).optional(),
   primaryAddressCity: z.string().max(255).optional()
@@ -24,7 +30,7 @@ const updateStudentSchema = z.object({
   mobile: z.string().max(20).optional(),
   otherPhone: z.string().max(20).optional(),
   birthDate: dateString.optional(),
-  gpa: z.number({ invalid_type_error: 'gpa must be a number' }).optional(),
+  gpa: gpaNumber.optional(),
   englishCertificate: z.string().max(255).optional(),
   parentPhone: z.string().max(20).optional(),
   primaryAddressCity: z.string().max(255).optional()
@@ -34,7 +40,6 @@ const updateStudentSchema = z.object({
 );
 
 module.exports = { createStudentSchema, updateStudentSchema };
-
 
 // const updateStudentSchema = z.object({
 //   fullName: z.string().min(1).max(255).optional(),

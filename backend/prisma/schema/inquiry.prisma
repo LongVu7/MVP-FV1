@@ -33,6 +33,7 @@ model Inquiry {
   studentId Int? @unique @map("student_id")
   student Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
 
+  @@index([createdAt])
   @@map("inquiry")
 }
 

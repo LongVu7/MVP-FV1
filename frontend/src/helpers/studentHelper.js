@@ -2,9 +2,9 @@ import api from './helper.js'
 
 const prefix = '/students'
 
-export const getAllStudents = async () => {
-  const response = await api.get(`${prefix}/`)
-  return response.data.students
+export const getAllStudents = async ({ page = 1, limit = 20, search = '' } = {}) => {
+  const response = await api.get(`${prefix}/`, { params: { page, limit, search } })
+  return response.data
 }
 
 export const getStudentById = async (id) => {

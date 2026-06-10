@@ -3,7 +3,7 @@
     <div class="page-header">
       <div class="header-left">
         <h1><i class="pi pi-graduation-cap"></i> Student Management</h1>
-        <Tag :value="`${studentCount} students`" severity="info" rounded />
+        <Tag :value="`${pagination?.totalCount || 0} students`" severity="info" rounded />
       </div>
       <div class="header-actions">
         <!-- <Button label="Import Excel" icon="pi pi-file-import" severity="secondary" outlined @click="$router.push('/students/new')" /> -->
@@ -11,27 +11,63 @@
       </div>
     </div>
 
-    <StudentList />
+    <StudentList 
+      :students="students"
+      :loading="loading"
+      :pagination="pagination"
+      @page-change="onPageChange"
+      @search="onSearch"
+      @delete="onDelete"
+    />
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import StudentList from '@/components/student/StudentList.vue'
 import { useStudent } from '@/composables/useStudent'
+import { useToast } from 'primevue/usetoast'
 
-const { students, fetchStudents } = useStudent()
-const studentCount = computed(() => students.value.length)
+const { students, pagination, loading, fetchStudents, deleteStudent } = useStudent()
+const toast = useToast()
+
+const currentParams = ref({ page: 1, limit: 20, search: '' })
 
 onMounted(async () => {
-  try {
-    await fetchStudents()
-  } catch (e) {
-    // handled
-  }
+  await loadData()
 })
+
+const loadData = async () => {
+  try {
+    await fetchStudents(currentParams.value)
+  } catch (e) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to load students', life: 5000 })
+  }
+}
+
+const onPageChange = async ({ page, limit }) => {
+  currentParams.value.page = page
+  currentParams.value.limit = limit
+  await loadData()
+}
+
+const onSearch = async (searchQuery) => {
+  currentParams.value.search = searchQuery
+  currentParams.value.page = 1
+  await loadData()
+}
+
+const onDelete = async (id) => {
+  try {
+    await deleteStudent(id)
+    toast.add({ severity: 'success', summary: 'Deleted', detail: 'Student has been deleted', life: 3000 })
+    await loadData()
+  } catch (e) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete student', life: 5000 })
+  }
+}
 </script>
 
 <style scoped>

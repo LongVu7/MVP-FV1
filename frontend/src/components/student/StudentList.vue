@@ -2,12 +2,14 @@
   <div class="table-container">
     <DataTable
       :value="students"
+      lazy
       :paginator="true"
-      :rows="20"
-      :rowsPerPageOptions="[10, 20, 50]"
+      :rows="pagination?.limit || 20"
+      :first="((pagination?.page || 1) - 1) * (pagination?.limit || 20)"
+      :totalRecords="pagination?.totalCount || 0"
+      :rowsPerPageOptions="[10, 20, 50, 100]"
       :loading="loading"
-      v-model:filters="filters"
-      :globalFilterFields="['fullName', 'email', 'mobile', 'gender', 'primaryAddressCity', 'englishCertificate']"
+      @page="onPage"
       dataKey="id"
       removableSort
       stripedRows
@@ -19,7 +21,7 @@
         <div class="table-toolbar">
           <IconField>
             <InputIcon class="pi pi-search" />
-            <InputText placeholder="Search students..." @input="onGlobalFilter" :value="filters.global.value" class="search-input" />
+            <InputText placeholder="Search students (phone, email)..." @input="onSearch" :value="searchQuery" class="search-input" />
           </IconField>
         </div>
       </template>
@@ -96,7 +98,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -106,29 +108,34 @@ import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import Tag from 'primevue/tag'
 import ConfirmDialog from 'primevue/confirmdialog'
-import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
-import { useStudent } from '@/composables/useStudent'
+
+const props = defineProps({
+  students: { type: Array, default: () => [] },
+  loading: { type: Boolean, default: false },
+  pagination: { type: Object, default: null }
+})
+
+const emit = defineEmits(['page-change', 'search', 'delete'])
 
 const router = useRouter()
-const toast = useToast()
 const confirm = useConfirm()
-const { students, loading, fetchStudents, deleteStudent } = useStudent()
 
-const filters = ref({
-  global: { value: null, matchMode: 'contains' }
-})
+const searchQuery = ref('')
+let searchTimeout = null
 
-onMounted(() => {
-  loadData()
-})
+// event.first: skip value, event.rows: limit value
+const onPage = (event) => {
+  const page = Math.floor(event.first / event.rows) + 1
+  emit('page-change', { page, limit: event.rows })
+}
 
-const loadData = async () => {
-  try {
-    await fetchStudents()
-  } catch (error) {
-    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to load students', life: 5000 })
-  }
+const onSearch = (e) => {
+  searchQuery.value = e.target.value
+  if (searchTimeout) clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    emit('search', searchQuery.value)
+  }, 500)
 }
 
 const confirmDeleteAction = (student) => {
@@ -140,14 +147,8 @@ const confirmDeleteAction = (student) => {
     rejectProps: { severity: 'secondary', text: true },
     acceptLabel: 'Delete',
     acceptProps: { severity: 'danger' },
-    accept: async () => {
-      try {
-        await deleteStudent(student.id)
-        toast.add({ severity: 'success', summary: 'Deleted', detail: `Student "${student.fullName}" has been deleted`, life: 3000 })
-        await loadData()
-      } catch (error) {
-        toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete student', life: 5000 })
-      }
+    accept: () => {
+      emit('delete', student.id)
     }
   })
 }
@@ -166,10 +167,6 @@ const genderSeverity = (gender) => {
   if (gender === 'Male') return 'info'
   if (gender === 'Female') return 'warn'
   return 'secondary'
-}
-
-const onGlobalFilter = (e) => {
-  filters.value.global.value = e.target.value
 }
 </script>
 

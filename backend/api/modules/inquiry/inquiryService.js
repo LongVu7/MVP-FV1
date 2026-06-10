@@ -32,12 +32,34 @@ const fetchInquiry = (txOrPrisma, id) =>
 
 
 
+const { buildPaginationMeta } = require('../../utils/pagination');
+
 // ─── List all inquiries
-const getAllInquiries = async () =>
-  prisma.inquiry.findMany({
-    orderBy: { createdAt: 'desc' },
-    include: inquiryInclude
-  });
+const getAllInquiries = async ({ page, limit, skip, search }) => {
+  const where = {};
+  if (search) {
+    where.OR = [
+      { description: { contains: search, mode: 'insensitive' } },
+      { student: { fullName: { contains: search, mode: 'insensitive' } } }
+    ];
+  }
+
+  const [inquiries, totalCount] = await Promise.all([
+    prisma.inquiry.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: 'desc' },
+      include: inquiryInclude
+    }),
+    prisma.inquiry.count({ where })
+  ]);
+
+  return {
+    inquiries,
+    pagination: buildPaginationMeta(page, limit, totalCount)
+  };
+};
 
 // ─── Get specific inquiry by ID
 const getInquiryById = async (id) => {
@@ -71,7 +93,7 @@ const _createWithExistingStudent = async (inquiryData, studentId) => {
     );
 
   const { id } = await prisma.inquiry.create({ 
-    data: { ...inquiryData, studentId: sid } 
+    data: { ...inquiryData, student: { connect: { id: sid } } } 
   });
   return fetchInquiry(prisma, id);
 };
@@ -134,7 +156,7 @@ const assignStudentToInquiry = async (inquiryId, studentId) => {
 
   await prisma.inquiry.update({
     where: { id: iid },
-    data: { studentId: sid }
+    data: { student: { connect: { id: sid } } }
   });
 
   return { inquiryId: iid, student };
@@ -149,7 +171,7 @@ const unassignStudentFromInquiry = async (inquiryId, studentId) => {
   if (!inquiry) throw handleError('Inquiry not found', 404);
   if (inquiry.studentId !== sid) throw handleError('Student is not linked to this inquiry', 400);
 
-  await prisma.inquiry.update({ where: { id: iid }, data: { studentId: null } });
+  await prisma.inquiry.update({ where: { id: iid }, data: { student: { disconnect: true } } });
 };
 
 // ─── Assign an account to an inquiry
@@ -181,7 +203,7 @@ const searchStudents = async (query) =>
   });
 
 // ─── Search staff accounts (for assignment UI)
-const searchStaff = async (query) =>
+const searchAccounts = async (query) =>
   prisma.account.findMany({
     where: {
       AND: [
@@ -214,5 +236,5 @@ module.exports = {
   unassignStudentFromInquiry,
   assignAccountToInquiry,
   searchStudents,
-  searchStaff
+  searchAccounts
 };

@@ -70,8 +70,8 @@ import { getAllInquiries } from '@/helpers/inquiryHelper'
 import { getAllAccounts } from '@/helpers/accountHelper'
 
 const router = useRouter()
-const studentCount = ref(0)
 const loading = ref(true)
+const studentCount = ref(0)
 const inquiryCount = ref(0)
 const accountCount = ref(0)
 

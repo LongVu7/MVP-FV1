@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { searchStaff as apiSearchStaff } from '@/helpers/inquiryHelper'
+import { searchAccounts as apiSearchAccounts } from '@/helpers/inquiryHelper'
 
 export function useAccountSearch() {
   const accountSuggestions = ref([])
@@ -7,7 +7,7 @@ export function useAccountSearch() {
   const searchAccounts = async (query) => {
     if (!query || query.length < 1) return []
     try {
-      accountSuggestions.value = await apiSearchStaff(query)
+      accountSuggestions.value = await apiSearchAccounts(query)
       // console.log(accountSuggestions.value)
       return accountSuggestions.value
     } catch {

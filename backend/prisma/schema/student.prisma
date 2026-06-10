@@ -27,5 +27,6 @@ model Student {
 
   inquiry Inquiry?
 
+  @@index([mobile])
   @@map("student")
 }

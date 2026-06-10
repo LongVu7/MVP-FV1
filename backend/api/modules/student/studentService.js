@@ -32,11 +32,32 @@ const createStudent = async (data) => {
   }
 };
 
+const { buildPaginationMeta } = require('../../utils/pagination');
+
 // ─── Get all students
-const getAllStudents = async () => {
-  return prisma.student.findMany({
-    orderBy: { createdAt: 'desc' }
-  });
+const getAllStudents = async ({ page, limit, skip, search }) => {
+  const where = {};
+  if (search) {
+    where.OR = [
+      { mobile: { contains: search, mode: 'insensitive' } },
+      { email: { contains: search, mode: 'insensitive' } }
+    ];
+  }
+
+  const [students, totalCount] = await Promise.all([
+    prisma.student.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: 'desc' }
+    }),
+    prisma.student.count({ where })
+  ]);
+
+  return {
+    students,
+    pagination: buildPaginationMeta(page, limit, totalCount)
+  };
 };
 
 // ─── Get student by ID

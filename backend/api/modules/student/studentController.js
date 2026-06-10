@@ -23,14 +23,21 @@ const createStudent = async (req, res) => {
   }
 };
 
+const { parsePagination } = require('../../utils/pagination');
+
 const getAllStudents = async (req, res) => {
   try {
-    const students = await studentService.getAllStudents();
+    const { page, limit, skip } = parsePagination(req.query);
+    const search = req.query.search || '';
+
+    const { students, pagination } = await studentService.getAllStudents({ page, limit, skip, search });
+
     res.status(200).json({
       message: 'Students retrieved successfully',
       requestedByRole: req.user?.roleName,
       requestedByAccountId: req.user?.accountId,
-      students
+      data: students,
+      pagination
     });
   } catch (error) {
     handleError(res, error);

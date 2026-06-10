@@ -2,12 +2,14 @@
   <div class="table-container">
     <DataTable
       :value="inquiries"
+      lazy
       :paginator="true"
-      :rows="20"
-      :rowsPerPageOptions="[10, 20, 50]"
+      :rows="pagination?.limit || 20"
+      :first="((pagination?.page || 1) - 1) * (pagination?.limit || 20)"
+      :totalRecords="pagination?.totalCount || 0"
+      :rowsPerPageOptions="[10, 20, 50, 100]"
       :loading="loading"
-      v-model:filters="filters"
-      :globalFilterFields="['statusGeneral', 'priority', 'leadSource', 'description']"
+      @page="onPage"
       dataKey="id"
       removableSort
       stripedRows
@@ -19,7 +21,7 @@
         <div class="table-toolbar">
           <IconField>
             <InputIcon class="pi pi-search" />
-            <InputText placeholder="Search inquiries..." @input="onGlobalFilter" :value="filters.global.value" class="search-input" />
+            <InputText placeholder="Search inquiries (desc, student)..." @input="onSearch" :value="searchQuery" class="search-input" />
           </IconField>
         </div>
       </template>
@@ -89,7 +91,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
@@ -99,27 +101,33 @@ import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import Tag from 'primevue/tag'
 import ConfirmDialog from 'primevue/confirmdialog'
-import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
-import { useInquiry } from '@/composables/useInquiry'
 
-const router = useRouter()
-const toast = useToast()
-const confirm = useConfirm()
-const { inquiries, loading, fetchInquiries, deleteInquiry } = useInquiry()
-
-const filters = ref({ global: { value: null, matchMode: 'contains' } })
-
-onMounted(() => {
-  loadData()
+const props = defineProps({
+  inquiries: { type: Array, default: () => [] },
+  loading: { type: Boolean, default: false },
+  pagination: { type: Object, default: null }
 })
 
-const loadData = async () => {
-  try {
-    await fetchInquiries()
-  } catch (error) {
-    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to load inquiries', life: 5000 })
-  }
+const emit = defineEmits(['page-change', 'search', 'delete'])
+
+const router = useRouter()
+const confirm = useConfirm()
+
+const searchQuery = ref('')
+let searchTimeout = null
+
+const onPage = (event) => {
+  const page = Math.floor(event.first / event.rows) + 1
+  emit('page-change', { page, limit: event.rows })
+}
+
+const onSearch = (e) => {
+  searchQuery.value = e.target.value
+  if (searchTimeout) clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(() => {
+    emit('search', searchQuery.value)
+  }, 500)
 }
 
 const confirmDeleteAction = (inquiry) => {
@@ -131,14 +139,8 @@ const confirmDeleteAction = (inquiry) => {
     rejectProps: { severity: 'secondary', text: true },
     acceptLabel: 'Delete',
     acceptProps: { severity: 'danger' },
-    accept: async () => {
-      try {
-        await deleteInquiry(inquiry.id)
-        toast.add({ severity: 'success', summary: 'Deleted', detail: `Inquiry #${inquiry.id} deleted`, life: 3000 })
-        await loadData()
-      } catch (error) {
-        toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete inquiry', life: 5000 })
-      }
+    accept: () => {
+      emit('delete', inquiry.id)
     }
   })
 }
@@ -151,10 +153,6 @@ const formatDate = (dateStr) => {
 const statusSeverity = (status) => {
   const map = { new: 'info', assigned: 'warn', inProcess: 'warn', converted: 'success', dead: 'danger' }
   return map[status] || 'secondary'
-}
-
-const onGlobalFilter = (e) => {
-  filters.value.global.value = e.target.value
 }
 </script>
 

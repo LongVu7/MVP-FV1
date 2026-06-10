@@ -10,8 +10,8 @@ const inquiryController = require('./inquiryController');
 router.route('/search/students')
     .get(authenticate, checkRole(['admin', 'staff']), inquiryController.searchStudents);
 
-router.route('/search/staff')
-    .get(authenticate, checkRole(['admin', 'staff']), inquiryController.searchStaff);
+router.route('/search/accounts')
+    .get(authenticate, checkRole(['admin', 'staff']), inquiryController.searchAccounts);
 
 // ─── CRUD routes
 router.route('/')

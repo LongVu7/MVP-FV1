@@ -17,7 +17,7 @@
       <Button label="Back to List" icon="pi pi-arrow-left" @click="$router.push('/students')" />
     </div>
 
-    <div v-else class="section-card">
+    <div v-else-if="student" class="section-card">
       <h2>Student Information</h2>
       <StudentForm
         :student="student"

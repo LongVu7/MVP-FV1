@@ -4,14 +4,17 @@ import * as api from '@/helpers/inquiryHelper'
 export function useInquiry() {
   const inquiries = ref([])
   const inquiry = ref(null)
+  const pagination = ref(null)
   const loading = ref(false)
   const error = ref(null)
 
-  const fetchInquiries = async () => {
+  const fetchInquiries = async (params = {}) => {
     loading.value = true
     error.value = null
     try {
-      inquiries.value = await api.getAllInquiries()
+      const response = await api.getAllInquiries(params)
+      inquiries.value = response.data
+      pagination.value = response.pagination
     } catch (err) {
       error.value = err.response?.data?.details || err.message
       throw err
@@ -107,6 +110,7 @@ export function useInquiry() {
   return {
     inquiries,
     inquiry,
+    pagination,
     loading,
     error,
     fetchInquiries,

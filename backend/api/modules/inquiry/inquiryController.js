@@ -6,15 +6,22 @@ const handleError = (res, error) => {
   res.status(status).json({ error: error.message, ...(status === 500 && { details: error.message }) });
 };
 
+const { parsePagination } = require('../../utils/pagination');
+
 // ─── List all inquiries
 const getAllInquiries = async (req, res) => {
   try {
-    const inquiries = await inquiryService.getAllInquiries();
+    const { page, limit, skip } = parsePagination(req.query);
+    const search = req.query.search || '';
+
+    const { inquiries, pagination } = await inquiryService.getAllInquiries({ page, limit, skip, search });
+
     res.status(200).json({
       message: 'Inquiries retrieved successfully',
       requestedByRole: req.user?.roleName,
       requestedByAccountId: req.user?.accountId,
-      inquiries
+      data: inquiries,
+      pagination
     });
   } catch (error) {
     handleError(res, error);
@@ -164,7 +171,7 @@ const searchStudents = async (req, res) => {
 };
 
 // ─── Search staff accounts (for assignment UI)
-const searchStaff = async (req, res) => {
+const searchAccounts = async (req, res) => {
   try {
     const { q } = req.query;
 
@@ -172,7 +179,7 @@ const searchStaff = async (req, res) => {
       return res.status(400).json({ error: "Query parameter 'q' is required" });
     }
 
-    const results = await inquiryService.searchStaff(q);
+    const results = await inquiryService.searchAccounts(q);
     res.status(200).json({
       message: 'Staff search results',
       requestedByRole: req.user?.roleName,
@@ -194,5 +201,5 @@ module.exports = {
   unassignStudentFromInquiry,
   assignAccountToInquiry,
   searchStudents,
-  searchStaff
+  searchAccounts
 };

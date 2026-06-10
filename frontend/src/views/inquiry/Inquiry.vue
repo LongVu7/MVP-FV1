@@ -3,34 +3,70 @@
     <div class="page-header">
       <div class="header-left">
         <h1><i class="pi pi-ticket"></i> Inquiry Management</h1>
-        <Tag :value="`${inquiryCount} inquiries`" severity="info" rounded />
+        <Tag :value="`${pagination?.totalCount || 0} inquiries`" severity="info" rounded />
       </div>
       <div class="header-actions">
         <Button label="New Inquiry" icon="pi pi-plus" @click="$router.push('/inquiries/new')" />
       </div>
     </div>
 
-    <InquiryList />
+    <InquiryList 
+      :inquiries="inquiries"
+      :loading="loading"
+      :pagination="pagination"
+      @page-change="onPageChange"
+      @search="onSearch"
+      @delete="onDelete"
+    />
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import InquiryList from '@/components/inquiry/InquiryList.vue'
 import { useInquiry } from '@/composables/useInquiry'
+import { useToast } from 'primevue/usetoast'
 
-const { inquiries, fetchInquiries } = useInquiry()
-const inquiryCount = computed(() => inquiries.value.length)
+const { inquiries, pagination, loading, fetchInquiries, deleteInquiry } = useInquiry()
+const toast = useToast()
+
+const currentParams = ref({ page: 1, limit: 20, search: '' })
 
 onMounted(async () => {
-  try {
-    await fetchInquiries()
-  } catch (e) {
-    // handled
-  }
+  await loadData()
 })
+
+const loadData = async () => {
+  try {
+    await fetchInquiries(currentParams.value)
+  } catch (e) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to load inquiries', life: 5000 })
+  }
+}
+
+const onPageChange = async ({ page, limit }) => {
+  currentParams.value.page = page
+  currentParams.value.limit = limit
+  await loadData()
+}
+
+const onSearch = async (searchQuery) => {
+  currentParams.value.search = searchQuery
+  currentParams.value.page = 1
+  await loadData()
+}
+
+const onDelete = async (id) => {
+  try {
+    await deleteInquiry(id)
+    toast.add({ severity: 'success', summary: 'Deleted', detail: 'Inquiry deleted', life: 3000 })
+    await loadData()
+  } catch (e) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete inquiry', life: 5000 })
+  }
+}
 </script>
 
 <style scoped>

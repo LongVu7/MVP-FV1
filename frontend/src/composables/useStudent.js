@@ -3,15 +3,18 @@ import * as api from '@/helpers/studentHelper'
 
 export function useStudent() {
   const students = ref([])
+  const pagination = ref(null)
   const student = ref(null)
   const loading = ref(false)
   const error = ref(null)
 
-  const fetchStudents = async () => {
+  const fetchStudents = async (params = {}) => {
     loading.value = true
     error.value = null
     try {
-      students.value = await api.getAllStudents()
+      const response = await api.getAllStudents(params)
+      students.value = response.data
+      pagination.value = response.pagination
     } catch (err) {
       error.value = err.response?.data?.details || err.message
       throw err
@@ -80,6 +83,7 @@ export function useStudent() {
 
   return {
     students,
+    pagination,
     student,
     loading,
     error,

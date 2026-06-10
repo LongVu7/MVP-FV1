@@ -2,9 +2,9 @@ import api from './helper.js'
 
 const prefix = '/inquiries'
 
-export const getAllInquiries = async () => {
-  const response = await api.get(`${prefix}/`)
-  return response.data.inquiries
+export const getAllInquiries = async ({ page = 1, limit = 20, search = '' } = {}) => {
+  const response = await api.get(`${prefix}/`, { params: { page, limit, search } })
+  return response.data
 }
 
 export const getInquiryById = async (id) => {
@@ -27,10 +27,6 @@ export const deleteInquiry = async (id) => {
   return response.data
 }
 
-export const searchStudents = async (query) => {
-  const response = await api.get(`${prefix}/search/students`, { params: { q: query } })
-  return response.data.results
-}
 
 export const unassignStudent = async (inquiryId, studentId) => {
   const response = await api.delete(`${prefix}/${inquiryId}/assign-student`, { data: { studentId } })
@@ -42,7 +38,12 @@ export const assignStudent = async (inquiryId, studentId) => {
   return response.data
 }
 
-export const searchStaff = async (query) => {
-  const response = await api.get(`${prefix}/search/staff`, { params: { q: query } })
+export const searchAccounts = async (query) => {
+  const response = await api.get(`${prefix}/search/accounts`, { params: { q: query } })
+  return response.data.results
+}
+
+export const searchStudents = async (query) => {
+  const response = await api.get(`${prefix}/search/students`, { params: { q: query } })
   return response.data.results
 }
