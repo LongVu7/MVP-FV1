@@ -1,5 +1,6 @@
 const prisma = require('../../../config/db');
 const xlsx = require('xlsx');
+const { buildPaginationMeta } = require('../../utils/pagination');
 
 
 
@@ -13,11 +14,6 @@ const createStudent = async (data) => {
       }
     });
   } catch (error) {
-    // if (error.code === 'P2002' && String(error.meta?.target).includes('email')) {
-    //   const err = new Error(`Student with email "${data.email}" already exists`);
-    //   err.status = 409;
-    //   throw err;
-    // }
 
     if (error.code === 'P2002') {
       const err = new Error(
@@ -32,7 +28,6 @@ const createStudent = async (data) => {
   }
 };
 
-const { buildPaginationMeta } = require('../../utils/pagination');
 
 // ─── Get all students
 const getAllStudents = async ({ page, limit, skip, search }) => {
@@ -100,81 +95,128 @@ const deleteStudent = async (id) => {
   await prisma.student.delete({ where: { id: Number(id) } });
 };
 
-// ─── Import students from parsed file buffers
-// Receives array of { path, originalname } file objects and a confirm flag.
-// Returns analysis result (if not confirmed) or import counts (if confirmed).
-const importStudents = async (files, isConfirm) => {
-  const allStudents = [];
-  const fileRowMapping = [];
+// ─── Import students analysis
+const analyzeImport = async (parsedStudents) => {
+  const duplicates = [];
+  const mobileMap = new Map();
 
-  // 1. Parse all files
-  for (const file of files) {
-    const workbook = xlsx.readFile(file.path);
-    const sheetName = workbook.SheetNames[0];
-    const sheet = workbook.Sheets[sheetName];
-    const data = xlsx.utils.sheet_to_json(sheet);
-
-    data.forEach((row, index) => {
-      if (row.birthDate && typeof row.birthDate === 'number') {
-        row.birthDate = new Date(Math.round((row.birthDate - 25569) * 86400 * 1000));
+  // 1. In-file duplicate detection
+  parsedStudents.forEach((student) => {
+    if (student.mobile) {
+      if (mobileMap.has(student.mobile)) {
+        mobileMap.get(student.mobile).push(student);
+      } else {
+        mobileMap.set(student.mobile, [student]);
       }
-      allStudents.push(row);
-      fileRowMapping.push({ fileName: file.originalname, rowNumber: index + 2 });
-    });
-  }
+    }
+  });
 
-  // 2. Identify duplicates by email
-  const emailsToCheck = allStudents.map(s => s.email).filter(Boolean);
-  let existingEmails = new Set();
-
-  if (emailsToCheck.length > 0) {
-    const existing = await prisma.student.findMany({
-      where: { email: { in: emailsToCheck } },
-      select: { email: true }
-    });
-    existingEmails = new Set(existing.map(s => s.email));
-  }
-
-  // 3. Build duplicates report
-  const duplicates = allStudents
-    .map((student, idx) => ({ student, mapping: fileRowMapping[idx] }))
-    .filter(({ student }) => student.email && existingEmails.has(student.email))
-    .map(({ student, mapping }) => ({
-      email: student.email,
-      fullName: student.fullName,
-      fileName: mapping.fileName,
-      rowNumber: mapping.rowNumber,
-      duplicatedColumn: 'email'
-    }));
-
-  if (!isConfirm) {
-    return {
-      confirmed: false,
-      totalParsed: allStudents.length,
-      duplicateCount: duplicates.length,
-      duplicates
-    };
-  }
-
-  // 4. Upsert all records
-  let insertedCount = 0;
-  let updatedCount = 0;
-
-  for (const studentData of allStudents) {
-    if (studentData.email) {
-      await prisma.student.upsert({
-        where: { email: studentData.email },
-        update: studentData,
-        create: studentData
+  for (const [mobile, studentsWithMobile] of mobileMap.entries()) {
+    if (studentsWithMobile.length > 1) {
+      studentsWithMobile.forEach(student => {
+        duplicates.push({
+          mobile: student.mobile,
+          fullName: student.fullName,
+          fileName: student._mapping?.fileName,
+          rowNumber: student._mapping?.rowNumber,
+          duplicatedType: 'file',
+          message: 'Duplicate mobile number found within the uploaded files.'
+        });
       });
-      existingEmails.has(studentData.email) ? updatedCount++ : insertedCount++;
-    } else {
-      await prisma.student.create({ data: studentData });
-      insertedCount++;
     }
   }
 
-  return { confirmed: true, insertedCount, updatedCount };
+  // 2. Database duplicate detection
+  const mobilesToCheck = Array.from(mobileMap.keys());
+  let existingMobiles = new Set();
+
+  if (mobilesToCheck.length > 0) {
+    const existing = await prisma.student.findMany({
+      where: { mobile: { in: mobilesToCheck } },
+      select: { mobile: true }
+    });
+    existingMobiles = new Set(existing.map(s => s.mobile));
+  }
+
+  parsedStudents.forEach(student => {
+    if (student.mobile && existingMobiles.has(student.mobile)) {
+      duplicates.push({
+        mobile: student.mobile,
+        fullName: student.fullName,
+        fileName: student._mapping?.fileName,
+        rowNumber: student._mapping?.rowNumber,
+        duplicatedType: 'db',
+        message: 'Mobile number already exists in the database. Record will be updated.'
+      });
+    }
+  });
+
+  return {
+    totalParsed: parsedStudents.length,
+    duplicateCount: duplicates.length,
+    duplicates,
+    parsedStudents
+  };
+};
+
+// ─── Process confirmed import
+const processImport = async (students) => {
+  // 1. Re-validate
+  const mobileSet = new Set();
+  const validStudents = [];
+
+  for (let i = 0; i < students.length; i++) {
+    const s = students[i];
+    if (!s.mobile) {
+      const err = new Error(`Row ${i + 1} (${s.fullName || 'Unknown'}): Mobile number is required.`);
+      err.status = 400;
+      throw err;
+    }
+
+    if (mobileSet.has(s.mobile)) {
+      const err = new Error(`Duplicate mobile number (${s.mobile}) found in the confirmation payload.`);
+      err.status = 400;
+      throw err;
+    }
+    mobileSet.add(s.mobile);
+
+    // Clean up non-db fields before saving
+    const { _mapping, ...dbData } = s;
+    validStudents.push(dbData);
+  }
+
+  // 2. Perform Transaction
+  const existingRecords = await prisma.student.findMany({
+    where: { mobile: { in: Array.from(mobileSet) } },
+    select: { mobile: true }
+  });
+  const existingMobiles = new Set(existingRecords.map(r => r.mobile));
+
+  let insertedCount = 0;
+  let updatedCount = 0;
+
+  const transactionOperations = validStudents.map(studentData => {
+    if (existingMobiles.has(studentData.mobile)) {
+      updatedCount++;
+    } else {
+      insertedCount++;
+    }
+    
+    // Convert string to Date if needed
+    if (studentData.birthDate) {
+      studentData.birthDate = new Date(studentData.birthDate);
+    }
+    
+    return prisma.student.upsert({
+      where: { mobile: studentData.mobile },
+      update: studentData,
+      create: studentData
+    });
+  });
+
+  await prisma.$transaction(transactionOperations);
+
+  return { insertedCount, updatedCount };
 };
 
 module.exports = {
@@ -183,5 +225,6 @@ module.exports = {
   getStudentById,
   updateStudent,
   deleteStudent,
-  importStudents
-};
+  analyzeImport,
+  processImport
+}; 

@@ -1,7 +1,7 @@
 
 <template>
-  <div class="dashboard">
-    <div class="dashboard-header">
+  <div class="home">
+    <div class="home-header">
       <h1>Welcome to Admissions CRM</h1>
       <p class="subtitle">Manage student records, track inquiries, and optimize your recruitment workflow.</p>
     </div>
@@ -99,16 +99,16 @@ onMounted(async () => {
 
 
 <style scoped>
-.dashboard {
+.home {
   padding: 2rem;
   max-width: 1100px;
 }
 
-.dashboard-header {
+.home-header {
   margin-bottom: 2rem;
 }
 
-.dashboard-header h1 {
+.home-header h1 {
   font-size: 1.75rem;
   font-weight: 700;
   margin: 0 0 0.5rem 0;
@@ -239,7 +239,7 @@ onMounted(async () => {
 }
 
 @media (max-width: 640px) {
-  .dashboard {
+  .home {
     padding: 1rem;
   }
 

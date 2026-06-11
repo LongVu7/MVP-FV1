@@ -1,5 +1,6 @@
 const fs = require('fs');
 const studentService = require('./studentService');
+const { parseExcelFiles } = require('../../utils/excelParser');
 
 // Helper: translate service errors to HTTP responses
 const handleError = (res, error) => {
@@ -85,37 +86,26 @@ const deleteStudent = async (req, res) => {
   }
 };
 
-const importStudents = async (req, res) => {
+const previewImport = async (req, res) => {
   try {
     if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'No files uploaded' });
     }
 
-    const isConfirm = req.body.confirm === 'true' || req.body.confirm === true;
-    const result = await studentService.importStudents(req.files, isConfirm);
+    const parsedStudents = parseExcelFiles(req.files);
 
     // Clean up uploaded files after processing
     req.files.forEach(f => {
       if (fs.existsSync(f.path)) fs.unlinkSync(f.path);
     });
 
-    if (!result.confirmed) {
-      return res.status(200).json({
-        message: 'Analysis complete. Please confirm to proceed with UPSERT.',
-        totalParsed: result.totalParsed,
-        duplicateCount: result.duplicateCount,
-        duplicates: result.duplicates,
-        requiresConfirmation: true
-      });
-    }
+    const analysis = await studentService.analyzeImport(parsedStudents);
 
     res.status(200).json({
-      message: 'Import successful',
-      insertedCount: result.insertedCount,
-      updatedCount: result.updatedCount
+      message: 'Analysis complete. Please review data before confirming.',
+      ...analysis
     });
   } catch (error) {
-    // Clean up files on error
     if (req.files) {
       req.files.forEach(f => {
         if (fs.existsSync(f.path)) fs.unlinkSync(f.path);
@@ -125,11 +115,32 @@ const importStudents = async (req, res) => {
   }
 };
 
+const confirmImport = async (req, res) => {
+  try {
+    const { students } = req.body;
+    
+    if (!students || !Array.isArray(students) || students.length === 0) {
+      return res.status(400).json({ error: 'No student data provided for import' });
+    }
+
+    const result = await studentService.processImport(students);
+
+    res.status(200).json({
+      message: 'Import successful',
+      insertedCount: result.insertedCount,
+      updatedCount: result.updatedCount
+    });
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
 module.exports = {
   createStudent,
   getAllStudents,
   updateStudent,
   deleteStudent,
-  importStudents,
+  previewImport,
+  confirmImport,
   getStudentById
 };

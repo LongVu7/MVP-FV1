@@ -90,17 +90,39 @@ const router = createRouter({
 
 import { useAuthStore } from '@/stores/auth'
 
-router.beforeEach((to, from, next) => {
-  const authStore = useAuthStore()
+// router.beforeEach((to, from, next) => {
+//   const authStore = useAuthStore()
   
+//   if (to.path !== '/login' && !authStore.isLoggedIn) {
+//     next('/login')
+
+//   } else if (to.path === '/login' && authStore.isLoggedIn) {
+//     next('/')
+
+//   } else if (to.matched.some(record => record.meta.requiresAdmin) && authStore.user?.roleName !== 'admin') {
+//     next('/')
+    
+//   } else {
+//     next()
+//   }
+// })
+
+router.beforeEach((to) => {
+  const authStore = useAuthStore()
+
   if (to.path !== '/login' && !authStore.isLoggedIn) {
-    next('/login')
-  } else if (to.path === '/login' && authStore.isLoggedIn) {
-    next('/')
-  } else if (to.matched.some(record => record.meta.requiresAdmin) && authStore.user?.roleName !== 'admin') {
-    next('/')
-  } else {
-    next()
+    return '/login'
+  }
+
+  if (to.path === '/login' && authStore.isLoggedIn) {
+    return '/'
+  }
+
+  if (
+    to.matched.some(record => record.meta.requiresAdmin) &&
+    authStore.user?.roleName?.toLowerCase() !== 'admin'
+  ) {
+    return '/'
   }
 })
 

@@ -57,7 +57,7 @@ const sidebarCollapsed = ref(false)
 
 const navItems = computed(() => {
   const items = [
-    { label: 'Dashboard', icon: 'pi pi-home', to: '/' },
+    { label: 'Home', icon: 'pi pi-home', to: '/' },
     { label: 'Students', icon: 'pi pi-graduation-cap', to: '/students' },
     { label: 'Inquiries', icon: 'pi pi-ticket', to: '/inquiries' }
   ]

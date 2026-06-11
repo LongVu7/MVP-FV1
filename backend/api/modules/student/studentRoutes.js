@@ -11,8 +11,11 @@ router.route('/')
     .get(authenticate, checkRole(['admin', 'staff']), studentController.getAllStudents)
     .post(authenticate, checkRole(['staff', 'admin']), validateBody(createStudentSchema), studentController.createStudent);
 
-router.route('/import')
-    .post(authenticate, checkRole(['staff', 'admin']), upload.array('files'), studentController.importStudents);
+router.route('/import/preview')
+    .post(authenticate, checkRole(['staff', 'admin']), upload.array('files'), studentController.previewImport);
+
+router.route('/import/confirm')
+    .post(authenticate, checkRole(['staff', 'admin']), studentController.confirmImport);
 
 router.route('/:id')
     .get(authenticate, checkRole(['admin']), validateParams(idParamSchema), studentController.getStudentById)

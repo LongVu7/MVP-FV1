@@ -30,70 +30,69 @@ model Inquiry {
 
   assignedTo Account? @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
 
-  studentId Int? @unique @map("student_id")
-  student Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  studentId Int?     @unique @map("student_id")
+  student   Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
 
   @@index([createdAt])
   @@map("inquiry")
 }
 
 enum LeadSource {
-    online
-    direct
-    database
-    referal
-    internal
-    onlineMass
-    resonance
-    other
+  online
+  direct
+  database
+  referal
+  internal
+  onlineMass
+  resonance
+  other
 }
 
 enum StatusGeneral {
-    new
-    assigned
-    inProcess
-    converted
-    dead
+  new
+  assigned
+  inProcess
+  converted
+  dead
 }
 
 enum StatusDetail {
-    interested
-    considered
-    contactLater
-    kbm
-    notContacted
-    applied
+  interested
+  considered
+  contactLater
+  kbm
+  notContacted
+  applied
 }
 
 enum FirstContactSource {
-    tele
-    walkIn
-    online
-    incomingPhone
+  tele
+  walkIn
+  online
+  incomingPhone
 }
 
 enum DataSource {
-    webGame
-    holland
-    roadShowCity
-    roadShowProvince
-    acquireCity
-    acquireProvince
-    cityInquiry
-    provinceInquiry
-    partnership
-    income
-    openDayInquiry
-    eventInquiry
-    activeContact
+  webGame
+  holland
+  roadShowCity
+  roadShowProvince
+  acquireCity
+  acquireProvince
+  cityInquiry
+  provinceInquiry
+  partnership
+  income
+  openDayInquiry
+  eventInquiry
+  activeContact
 }
 
 enum Regional {
-    kv1
-    kv2
-    kv3
-    kv4
-    kv5
-    kv6
+  kv1
+  kv2
+  kv3
+  kv4
+  kv5
+  kv6
 }
-

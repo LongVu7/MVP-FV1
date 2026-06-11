@@ -27,17 +27,21 @@ export const deleteStudent = async (id) => {
   return response.data
 }
 
-export const importStudents = async (files, confirm = false) => {
+export const previewImport = async (files) => {
   const formData = new FormData()
   files.forEach((file) => {
     formData.append('files', file)
   })
-  formData.append('confirm', confirm.toString())
 
-  const response = await api.post(`${prefix}/import`, formData, {
+  const response = await api.post(`${prefix}/import/preview`, formData, {
     headers: {
       'Content-Type': 'multipart/form-data'
     }
   })
+  return response.data
+}
+
+export const confirmImport = async (students) => {
+  const response = await api.post(`${prefix}/import/confirm`, { students })
   return response.data
 }

@@ -10,11 +10,20 @@ const gpaNumber = z.coerce
   .max(10, 'gpa must be <= 10')
   .optional();
 
+const mobileString = z.preprocess(
+  (val) => (val === '' ? undefined : val),
+  z.string()
+    .length(10, 'Mobile number must be exactly 10 digits long')
+    .startsWith('0', 'Mobile number must start with 0')
+    .regex(/^\d+$/, 'Mobile number must contain only numbers')
+    .optional()
+);
+
 const createStudentSchema = z.object({
   fullName: z.string().min(1, 'fullName is required').max(255),
   gender: z.string().max(20).optional(),
   email: z.email('email must be a valid email address').max(255).optional(),
-  mobile: z.string().max(20).optional(),
+  mobile: mobileString,
   otherPhone: z.string().max(20).optional(),
   birthDate: dateString.optional(),
   gpa: gpaNumber,
@@ -27,7 +36,7 @@ const updateStudentSchema = z.object({
   fullName: z.string().min(1).max(255).optional(),
   gender: z.string().max(20).optional(),
   email: z.email('email must be a valid email address').max(255).optional(),
-  mobile: z.string().max(20).optional(),
+  mobile: mobileString,
   otherPhone: z.string().max(20).optional(),
   birthDate: dateString.optional(),
   gpa: gpaNumber.optional(),

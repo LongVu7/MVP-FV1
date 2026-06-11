@@ -23,6 +23,7 @@
       <div class="form-field">
         <label for="sf-mobile">Mobile</label>
         <InputText id="sf-mobile" v-model="form.mobile" placeholder="Phone number" fluid />
+        <small v-if="errors.mobile" class="form-error">{{ errors.mobile }}</small>
       </div>
     </div>
 
@@ -110,6 +111,11 @@ export default {
       if (!this.form.fullName || !this.form.fullName.trim()) e.fullName = 'Full name is required'
       if (this.form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email)) e.email = 'Invalid email format'
       if (this.form.gpa != null && (this.form.gpa < 0 || this.form.gpa > 10)) e.gpa = 'GPA must be between 0 and 10'
+      if (this.form.mobile) {
+        if (!/^0\d{9}$/.test(this.form.mobile)) {
+          e.mobile = 'Mobile number must be exactly 10 digits long and start with 0';
+        }
+      }
       this.errors = e
       return Object.keys(e).length === 0
     },

@@ -1,13 +1,13 @@
 // !--- Student table ---! //
 model Student {
-  id Int @id @default(autoincrement())
+  id       Int    @id @default(autoincrement())
   fullName String @map("full_name") @db.VarChar(255)
 
   gender String? @db.VarChar(20)
 
-  email String? @unique @db.VarChar(255)
+  email String? @db.VarChar(255)
 
-  mobile String? @db.VarChar(20)
+  mobile String? @unique @db.VarChar(20)
 
   otherPhone String? @map("other_phone") @db.VarChar(20)
 

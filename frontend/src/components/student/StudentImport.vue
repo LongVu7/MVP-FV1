@@ -1,29 +1,80 @@
 <template>
   <div class="section-card">
     <h2>Import from Excel</h2>
-    <div class="import-info">
-      <i class="pi pi-info-circle"></i>
-      <p>Upload one or more Excel files (<code>.xlsx</code>, <code>.xls</code>) containing student data. The system will analyze duplicates before importing.</p>
+
+    <!-- Upload -->
+    <div v-if="step === 1">
+      <div class="import-info">
+        <i class="pi pi-info-circle"></i>
+        <p>Upload one or more Excel files (<code>.xlsx</code>, <code>.xls</code>) containing student data. The system will analyze duplicates before importing.</p>
+      </div>
+      <FileUpload
+        name="excelFiles"
+        accept=".xlsx, .xls"
+        :multiple="true"
+        :maxFileSize="10000000"
+        chooseLabel="Choose Excel Files"
+        :auto="false"
+        customUpload
+        ref="fileUpload"
+        @uploader="onUpload"
+        :disabled="isUploading"
+      >
+        <template #empty>
+          <div class="upload-empty">
+            <i class="pi pi-file-excel"></i>
+            <span>Drag and drop files here to upload.</span>
+          </div>
+        </template>
+      </FileUpload>
     </div>
-    <FileUpload
-      name="excelFiles"
-      accept=".xlsx, .xls"
-      :multiple="true"
-      :maxFileSize="10000000"
-      chooseLabel="Choose Excel Files"
-      :auto="false"
-      customUpload
-      ref="fileUpload"
-      @uploader="onUpload"
-      :disabled="isUploading"
-    >
-      <template #empty>
-        <div class="upload-empty">
-          <i class="pi pi-file-excel"></i>
-          <span>Drag and drop files here to upload.</span>
-        </div>
-      </template>
-    </FileUpload>
+
+    <!-- Review -->
+    <div v-if="step === 2">
+      <div class="review-header">
+        <h3>Review Import Data</h3>
+        <p>Total Records: {{ parsedData.length }} | Duplicates Detected: {{ duplicateCount }}</p>
+      </div>
+
+      <Message v-if="duplicateCount > 0" severity="warn" :closable="false">
+        Found {{ duplicateCount }} duplicate(s) based on mobile numbers. Records with existing database mobiles will be updated. Be careful with duplicates within the uploaded files themselves. Click on a mobile number to edit it.
+      </Message>
+
+      <DataTable 
+        :value="parsedData" 
+        dataKey="mobile"
+        editMode="cell"
+        @cell-edit-complete="onCellEditComplete"
+        :paginator="true"
+        :rows="10"
+        class="p-datatable-sm mt-3 review-table"
+      >
+        <Column field="fullName" header="Full Name" style="width: 25%"></Column>
+        <Column field="mobile" header="Mobile" style="width: 25%">
+          <template #editor="{ data, field }">
+            <InputText v-model="data[field]" autofocus />
+          </template>
+          <template #body="{ data }">
+            <span :class="{'duplicate-text': isDuplicate(data.mobile)}">
+              {{ data.mobile || 'MISSING' }}
+              <i v-if="isDuplicate(data.mobile)" class="pi pi-exclamation-triangle ml-1" title="Duplicate Mobile"></i>
+            </span>
+          </template>
+        </Column>
+        <Column field="email" header="Email" style="width: 25%"></Column>
+        <Column field="_mapping.fileName" header="Source File" style="width: 20%"></Column>
+        <Column header="Actions" style="width: 5%">
+          <template #body="{ index }">
+            <Button icon="pi pi-trash" severity="danger" text rounded aria-label="Cancel" @click="removeRow(index)" />
+          </template>
+        </Column>
+      </DataTable>
+
+      <div class="action-buttons">
+        <Button label="Cancel" icon="pi pi-times" severity="secondary" @click="cancelImport" />
+        <Button label="Confirm Import" icon="pi pi-check" severity="success" @click="submitConfirm" :loading="isConfirming" />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -31,14 +82,25 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import FileUpload from 'primevue/fileupload'
+import DataTable from 'primevue/datatable'
+import Column from 'primevue/column'
+import Button from 'primevue/button'
+import InputText from 'primevue/inputtext'
+import Message from 'primevue/message'
 import { useToast } from 'primevue/usetoast'
-import { importStudents } from '@/helpers/studentHelper'
+import { previewImport, confirmImport } from '@/helpers/studentHelper'
 
 const router = useRouter()
 const toast = useToast()
 
+const step = ref(1)
 const fileUpload = ref(null)
 const isUploading = ref(false)
+const isConfirming = ref(false)
+
+const parsedData = ref([])
+const duplicates = ref([])
+const duplicateCount = ref(0)
 
 const onUpload = async (event) => {
   const files = event.files
@@ -46,23 +108,58 @@ const onUpload = async (event) => {
 
   isUploading.value = true
   try {
-    // Step 1: Analyze
-    const analysis = await importStudents(files, false)
-
-    if (analysis.duplicateCount > 0) {
-      toast.add({ severity: 'warn', summary: 'Duplicates Found', detail: `${analysis.duplicateCount} duplicate(s) detected. They will be updated on import.`, life: 5000 })
-    }
-
-    // Step 2: Confirm import
-    const result = await importStudents(files, true)
-    toast.add({ severity: 'success', summary: 'Import Successful', detail: `Inserted: ${result.insertedCount}, Updated: ${result.updatedCount}`, life: 5000 })
-    router.push('/students')
+    const analysis = await previewImport(files)
+    
+    parsedData.value = analysis.parsedStudents || []
+    duplicates.value = analysis.duplicates || []
+    duplicateCount.value = analysis.duplicateCount || 0
+    
+    step.value = 2
   } catch (error) {
-    const detail = error.response?.data?.details || error.message || 'Upload failed'
-    toast.add({ severity: 'error', summary: 'Import Failed', detail, life: 5000 })
+    const detail = error.response?.data?.details || error.response?.data?.error || error.message || 'Upload failed'
+    toast.add({ severity: 'error', summary: 'Preview Failed', detail, life: 5000 })
     if (fileUpload.value) fileUpload.value.clear()
   } finally {
     isUploading.value = false
+  }
+}
+
+const onCellEditComplete = (event) => {
+  let { data, newValue, field } = event
+  if (newValue !== null && newValue.trim().length > 0) {
+    data[field] = newValue.trim()
+  } else {
+    event.preventDefault()
+  }
+}
+
+const isDuplicate = (mobile) => {
+  if (!mobile) return false
+  return duplicates.value.some(d => d.mobile === mobile)
+}
+
+const removeRow = (index) => {
+  parsedData.value.splice(index, 1)
+}
+
+const cancelImport = () => {
+  step.value = 1
+  parsedData.value = []
+  duplicates.value = []
+  duplicateCount.value = 0
+}
+
+const submitConfirm = async () => {
+  isConfirming.value = true
+  try {
+    const result = await confirmImport(parsedData.value)
+    toast.add({ severity: 'success', summary: 'Import Successful', detail: `Inserted: ${result.insertedCount}, Updated: ${result.updatedCount}`, life: 5000 })
+    router.push('/students')
+  } catch (error) {
+    const detail = error.response?.data?.details || error.response?.data?.error || error.message || 'Import failed'
+    toast.add({ severity: 'error', summary: 'Import Failed', detail, life: 5000 })
+  } finally {
+    isConfirming.value = false
   }
 }
 </script>
@@ -126,5 +223,38 @@ const onUpload = async (event) => {
 .upload-empty i {
   font-size: 2rem;
   color: var(--p-green-400);
+}
+
+.review-header {
+  margin-bottom: 1rem;
+}
+
+.review-header h3 {
+  margin: 0 0 0.5rem 0;
+}
+
+.review-header p {
+  margin: 0;
+  color: var(--p-text-muted-color);
+  font-weight: 500;
+}
+
+.duplicate-text {
+  color: #ef4444;
+  font-weight: bold;
+}
+
+.action-buttons {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.ml-1 {
+  margin-left: 0.25rem;
+}
+.mt-3 {
+  margin-top: 1rem;
 }
 </style>
