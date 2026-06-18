@@ -1,0 +1,16 @@
+model School {
+  id         Int     @id @default(autoincrement())
+  name       String  @db.VarChar(255)
+  schoolType String? @map("school_type") @db.VarChar(50)
+
+  cityId Int  @map("city_id")
+  city   City @relation(fields: [cityId], references: [id])
+
+  students Student[]
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz()
+
+  @@index([cityId])
+  @@map("school")
+}

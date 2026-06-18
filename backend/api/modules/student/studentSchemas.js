@@ -24,11 +24,11 @@ const createStudentSchema = z.object({
   gender: z.string().max(20).optional(),
   email: z.email('email must be a valid email address').max(255).optional(),
   mobile: mobileString,
-  otherPhone: z.string().max(20).optional(),
+  otherPhone: mobileString,
   birthDate: dateString.optional(),
   gpa: gpaNumber,
   englishCertificate: z.string().max(255).optional(),
-  parentPhone: z.string().max(20).optional(),
+  parentPhone: mobileString,
   primaryAddressCity: z.string().max(255).optional()
 }).strict();
 
@@ -37,18 +37,35 @@ const updateStudentSchema = z.object({
   gender: z.string().max(20).optional(),
   email: z.email('email must be a valid email address').max(255).optional(),
   mobile: mobileString,
-  otherPhone: z.string().max(20).optional(),
+  otherPhone: mobileString,
   birthDate: dateString.optional(),
   gpa: gpaNumber.optional(),
   englishCertificate: z.string().max(255).optional(),
-  parentPhone: z.string().max(20).optional(),
+  parentPhone: mobileString,
   primaryAddressCity: z.string().max(255).optional()
 }).strict().refine(
   (data) => Object.keys(data).length > 0,
   { message: 'Request body cannot be empty' }
 );
 
-module.exports = { createStudentSchema, updateStudentSchema };
+const importStudentSchema = z.object({
+  fullName: z.string().min(1, 'fullName is required').max(255),
+  gender: z.string().max(20).optional(),
+  email: z.preprocess((val) => (val === '' ? undefined : val), z.email('email must be a valid email address').max(255).optional()),
+  mobile: mobileString,
+  otherPhone: mobileString,
+  birthDate: dateString.optional(),
+  gpa: gpaNumber.optional(),
+  englishCertificate: z.string().max(255).optional(),
+  parentPhone: mobileString,
+  primaryAddressCity: z.string().max(255).optional()
+}).passthrough();
+
+const importStudentsPayloadSchema = z.object({
+  students: z.array(importStudentSchema).min(1, 'At least one student must be provided for import')
+});
+
+module.exports = { createStudentSchema, updateStudentSchema, importStudentsPayloadSchema };
 
 // const updateStudentSchema = z.object({
 //   fullName: z.string().min(1).max(255).optional(),

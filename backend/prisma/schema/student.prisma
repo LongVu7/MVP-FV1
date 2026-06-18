@@ -21,6 +21,9 @@ model Student {
 
   primaryAddressCity String? @map("primary_address_city") @db.VarChar(255)
 
+  schoolId Int?    @map("school_id")
+  school   School? @relation(fields: [schoolId], references: [id])
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
 
   updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz()
@@ -28,5 +31,6 @@ model Student {
   inquiry Inquiry?
 
   @@index([mobile])
+  @@index([schoolId])
   @@map("student")
 }
