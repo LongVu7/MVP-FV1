@@ -29,7 +29,8 @@ const createStudentSchema = z.object({
   gpa: gpaNumber,
   englishCertificate: z.string().max(255).optional(),
   parentPhone: mobileString,
-  primaryAddressCity: z.string().max(255).optional()
+  primaryAddressCity: z.string().max(255).optional(),
+  schoolId: z.number().int().positive('schoolId must be a positive integer').optional()
 }).strict();
 
 const updateStudentSchema = z.object({
@@ -42,7 +43,8 @@ const updateStudentSchema = z.object({
   gpa: gpaNumber.optional(),
   englishCertificate: z.string().max(255).optional(),
   parentPhone: mobileString,
-  primaryAddressCity: z.string().max(255).optional()
+  primaryAddressCity: z.string().max(255).optional(),
+  schoolId: z.number().int().positive('schoolId must be a positive integer').optional()
 }).strict().refine(
   (data) => Object.keys(data).length > 0,
   { message: 'Request body cannot be empty' }
@@ -58,7 +60,8 @@ const importStudentSchema = z.object({
   gpa: gpaNumber.optional(),
   englishCertificate: z.string().max(255).optional(),
   parentPhone: mobileString,
-  primaryAddressCity: z.string().max(255).optional()
+  primaryAddressCity: z.string().max(255).optional(),
+  schoolId: z.coerce.number().int().positive('schoolId must be a positive integer').optional()
 }).passthrough();
 
 const importStudentsPayloadSchema = z.object({

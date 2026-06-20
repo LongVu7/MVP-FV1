@@ -10,6 +10,8 @@ const accountRoutes = require('./api/modules/account/accountRoutes');
 const userGroupRoutes = require('./api/modules/group/userGroupRoutes');
 const roleRoutes = require('./api/modules/role/roleRoutes');
 const authRoutes = require('./api/modules/auth/authRoutes');
+const cityRoutes = require('./api/modules/city/cityRoutes');
+const schoolRoutes = require('./api/modules/school/schoolRoutes');
 
 const app = express();
 const port = process.env.PORT || 3003;
@@ -33,6 +35,8 @@ app.use('/api/inquiries', inquiryRoutes);
 app.use('/api/accounts', accountRoutes);
 app.use('/api/groups', userGroupRoutes);
 app.use('/api/roles', roleRoutes);
+app.use('/api/cities', cityRoutes);
+app.use('/api/schools', schoolRoutes);
 
 app.listen(port);
 

@@ -76,6 +76,21 @@ const router = createRouter({
       meta: { requiresAdmin: true }
     },
     {
+      path: '/schools',
+      name: 'schools',
+      component: () => import('../views/school/School.vue'),
+    },
+    {
+      path: '/schools/new',
+      name: 'school-new',
+      component: () => import('../views/school/SchoolNew.vue'),
+    },
+    {
+      path: '/schools/:id',
+      name: 'school-detail',
+      component: () => import('../views/school/SchoolDetail.vue'),
+    },
+    {
       path: '/login',
       name: 'login',
       component: () => import('../views/LoginView.vue'),

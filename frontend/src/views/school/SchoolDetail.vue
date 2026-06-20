@@ -1,29 +1,29 @@
 <template>
-  <div class="student-detail">
+  <div class="school-detail">
     <div class="page-header">
-      <h1>Edit Student</h1>
-      <Button label="Back to List" severity="secondary" icon="pi pi-arrow-left" @click="$router.push('/students')" />
+      <h1>Edit School</h1>
+      <Button label="Back to List" severity="secondary" icon="pi pi-arrow-left" @click="$router.push('/schools')" />
     </div>
 
     <div v-if="loading" class="loading-state">
       <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
-      <p>Loading student data...</p>
+      <p>Loading school data...</p>
     </div>
 
     <div v-else-if="notFound" class="empty-state">
       <i class="pi pi-exclamation-triangle"></i>
-      <h3>Student Not Found</h3>
-      <p>The student you are looking for does not exist.</p>
-      <Button label="Back to List" icon="pi pi-arrow-left" @click="$router.push('/students')" />
+      <h3>School Not Found</h3>
+      <p>The school you are looking for does not exist.</p>
+      <Button label="Back to List" icon="pi pi-arrow-left" @click="$router.push('/schools')" />
     </div>
 
-    <div v-else-if="student" class="section-card">
-      <h2>Student Information</h2>
-      <StudentForm
-        :student="student"
+    <div v-else-if="school" class="section-card">
+      <h2>School Information</h2>
+      <SchoolForm
+        :school="school"
         :isSubmitting="isSubmitting"
-        buttonText="Update Student"
-        @submit="updateExistingStudent"
+        buttonText="Update School"
+        @submit="updateExistingSchool"
       />
     </div>
   </div>
@@ -32,15 +32,15 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import StudentForm from '@/components/student/StudentForm.vue'
+import SchoolForm from '@/components/school/SchoolForm.vue'
 import Button from 'primevue/button'
 import { useToast } from 'primevue/usetoast'
-import { useStudent } from '@/composables/useStudent'
+import { useSchool } from '@/composables/useSchool'
 
 const router = useRouter()
 const route = useRoute()
 const toast = useToast()
-const { student, loading, error, fetchStudentById, updateStudent } = useStudent()
+const { school, loading, fetchSchoolById, updateSchool } = useSchool()
 
 const notFound = ref(false)
 const isSubmitting = ref(false)
@@ -48,24 +48,21 @@ const isSubmitting = ref(false)
 onMounted(async () => {
   const id = route.params.id
   try {
-    const data = await fetchStudentById(id)
-    if (data.birthDate) student.value.birthDate = new Date(data.birthDate)
-    if (data.gpa != null) student.value.gpa = Number(data.gpa)
-    if (data.schoolId) student.value.schoolId = data.schoolId
+    await fetchSchoolById(id)
   } catch (err) {
     notFound.value = true
   }
 })
 
-const updateExistingStudent = async (payload) => {
+const updateExistingSchool = async (payload) => {
   isSubmitting.value = true
   try {
     const id = route.params.id
-    await updateStudent(id, payload)
-    toast.add({ severity: 'success', summary: 'Updated', detail: `Student "${payload.fullName}" updated successfully`, life: 3000 })
-    router.push('/students')
+    await updateSchool(id, payload)
+    toast.add({ severity: 'success', summary: 'Updated', detail: `School "${payload.name}" updated successfully`, life: 3000 })
+    router.push('/schools')
   } catch (error) {
-    const detail = error.response?.data?.error || error.response?.data?.details || error.message || 'Failed to update student'
+    const detail = error.response?.data?.error || error.response?.data?.details || error.message || 'Failed to update school'
     toast.add({ severity: 'error', summary: 'Error', detail, life: 5000 })
   } finally {
     isSubmitting.value = false
@@ -74,7 +71,7 @@ const updateExistingStudent = async (payload) => {
 </script>
 
 <style scoped>
-.student-detail {
+.school-detail {
   padding: 1.5rem 2rem;
   max-width: 900px;
 }

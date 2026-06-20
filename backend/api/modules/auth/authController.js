@@ -60,7 +60,7 @@ const getMe = (req, res) => {
       id: req.user.id,
       email: req.user.email,
       fullName: req.user.fullName,
-      roleName: req.user.role?.name || null
+      roleName: req.user.roleName
     }
   });
 };

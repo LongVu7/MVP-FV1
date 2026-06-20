@@ -44,6 +44,7 @@ const getAllStudents = async ({ page, limit, skip, search }) => {
       where,
       skip,
       take: limit,
+      include: { school: { select: { id: true, name: true, city: { select: { id: true, name: true } } } } },
       orderBy: { createdAt: 'desc' }
     }),
     prisma.student.count({ where })
@@ -58,7 +59,8 @@ const getAllStudents = async ({ page, limit, skip, search }) => {
 // ─── Get student by ID
 const getStudentById = async (id) => {
   const student = await prisma.student.findUnique({
-    where: { id: Number(id) }
+    where: { id: Number(id) },
+    include: { school: { select: { id: true, name: true, city: { select: { id: true, name: true } } } } }
   });
 
   if (!student) {
@@ -71,7 +73,7 @@ const getStudentById = async (id) => {
 };
 
 // ─── Update a student
-const updateStudent = async (id, { fullName, gender, email, mobile, otherPhone, parentPhone, birthDate, gpa, englishCertificate, primaryAddressCity }) => {
+const updateStudent = async (id, { fullName, gender, email, mobile, otherPhone, parentPhone, birthDate, gpa, englishCertificate, primaryAddressCity, schoolId }) => {
   return prisma.student.update({
     where: { id: Number(id) },
     data: {
@@ -85,6 +87,7 @@ const updateStudent = async (id, { fullName, gender, email, mobile, otherPhone, 
       gpa,
       englishCertificate,
       primaryAddressCity,
+      schoolId,
       updatedAt: new Date()
     }
   });

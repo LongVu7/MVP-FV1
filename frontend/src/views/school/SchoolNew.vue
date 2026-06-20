@@ -1,61 +1,50 @@
 <template>
-  <div class="student-new-view">
+  <div class="school-new-view">
     <div class="page-header">
-      <h1>Add New Student</h1>
-      <Button label="Back to List" severity="secondary" icon="pi pi-arrow-left" @click="$router.push('/students')" />
+      <h1>Add New School</h1>
+      <Button label="Back to List" severity="secondary" icon="pi pi-arrow-left" @click="$router.push('/schools')" />
     </div>
 
     <div class="section-card">
-      <h2>Student Information</h2>
-      <StudentForm
-        :student="studentTemplate"
+      <h2>School Information</h2>
+      <SchoolForm
+        :school="schoolTemplate"
         :isSubmitting="isSubmitting"
-        buttonText="Create Student"
-        @submit="createNewStudent"
+        buttonText="Create School"
+        @submit="createNewSchool"
       />
     </div>
-
-    <StudentImport />
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import StudentForm from '@/components/student/StudentForm.vue'
-import StudentImport from '@/components/student/StudentImport.vue'
+import SchoolForm from '@/components/school/SchoolForm.vue'
 import Button from 'primevue/button'
 import { useToast } from 'primevue/usetoast'
-import { useStudent } from '@/composables/useStudent'
+import { useSchool } from '@/composables/useSchool'
 
 const router = useRouter()
 const toast = useToast()
-const { createStudent } = useStudent()
+const { createSchool } = useSchool()
 
 const isSubmitting = ref(false)
 
-const studentTemplate = ref({
-  fullName: '',
-  gender: null,
-  email: '',
-  mobile: '',
-  otherPhone: '',
-  birthDate: null,
-  gpa: null,
-  englishCertificate: '',
-  parentPhone: '',
-  primaryAddressCity: '',
-  schoolId: null
+const schoolTemplate = ref({
+  name: '',
+  cityId: null,
+  schoolType: null
 })
 
-const createNewStudent = async (payload) => {
+const createNewSchool = async (payload) => {
   isSubmitting.value = true
   try {
-    await createStudent(payload)
-    toast.add({ severity: 'success', summary: 'Created', detail: `Student "${payload.fullName}" created successfully`, life: 3000 })
-    router.push('/students')
+    await createSchool(payload)
+    toast.add({ severity: 'success', summary: 'Created', detail: `School "${payload.name}" created successfully`, life: 3000 })
+    router.push('/schools')
   } catch (error) {
-    const detail = error.response?.data?.error || error.response?.data?.details || error.message || 'Failed to create student'
+    const detail = error.response?.data?.error || error.response?.data?.details || error.message || 'Failed to create school'
     toast.add({ severity: 'error', summary: 'Error', detail, life: 5000 })
   } finally {
     isSubmitting.value = false
@@ -64,7 +53,7 @@ const createNewStudent = async (payload) => {
 </script>
 
 <style scoped>
-.student-new-view {
+.school-new-view {
   padding: 1.5rem 2rem;
   max-width: 900px;
 }

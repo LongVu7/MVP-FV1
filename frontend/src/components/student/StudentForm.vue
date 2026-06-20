@@ -63,6 +63,19 @@
       </div>
     </div>
 
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="sf-schoolCity">School City</label>
+        <Select id="sf-schoolCity" v-model="selectedCityId" :options="cities" optionLabel="name" optionValue="id"
+          placeholder="Select city" :loading="loadingCities" filter showClear fluid @change="onCityChange" />
+      </div>
+      <div class="form-field">
+        <label for="sf-school">School</label>
+        <Select id="sf-school" v-model="form.schoolId" :options="schools" optionLabel="name" optionValue="id"
+          placeholder="Select school" :loading="loadingSchools" :disabled="!selectedCityId" filter showClear fluid />
+      </div>
+    </div>
+
     <div class="form-actions" v-if="!hideSubmit">
       <Button type="submit" :label="buttonText" icon="pi pi-check" :loading="isSubmitting" />
     </div>
@@ -75,6 +88,7 @@ import InputNumber from 'primevue/inputnumber'
 import Select from 'primevue/select'
 import DatePicker from 'primevue/datepicker'
 import Button from 'primevue/button'
+import { useSchoolOptions } from '@/composables/useSchoolOptions'
 
 export default {
   name: 'StudentForm',
@@ -86,10 +100,15 @@ export default {
     hideSubmit: { type: Boolean, default: false }
   },
   emits: ['submit'],
+  setup() {
+    const { cities, schools, loadingCities, loadingSchools, fetchCities, fetchSchools } = useSchoolOptions()
+    return { cities, schools, loadingCities, loadingSchools, fetchCities, fetchSchools }
+  },
   data() {
     return {
       form: { ...this.student },
       errors: {},
+      selectedCityId: null,
       genderOptions: [
         { label: 'Male', value: 'Male' },
         { label: 'Female', value: 'Female' }
@@ -101,11 +120,32 @@ export default {
       handler(newVal) {
         this.form = { ...newVal }
         this.errors = {}
+        // Restore city selection when editing an existing student with school data
+        if (newVal.school?.city?.id) {
+          this.selectedCityId = newVal.school.city.id
+          this.fetchSchools(this.selectedCityId)
+        }
       },
       deep: true
     }
   },
+  created() {
+    this.fetchCities()
+    // If editing student with existing school, load the school's city dropdown
+    if (this.student.school?.city?.id) {
+      this.selectedCityId = this.student.school.city.id
+      this.fetchSchools(this.selectedCityId)
+    }
+  },
   methods: {
+    onCityChange() {
+      this.form.schoolId = null
+      if (this.selectedCityId) {
+        this.fetchSchools(this.selectedCityId)
+      } else {
+        this.schools = []
+      }
+    },
     validate() {
       const e = {}
       if (!this.form.fullName || !this.form.fullName.trim()) e.fullName = 'Full name is required'
@@ -122,7 +162,7 @@ export default {
     getPayload() {
       const payload = {}
       for (const [key, value] of Object.entries(this.form)) {
-        if (key === 'id' || key === 'createdAt' || key === 'updatedAt') continue
+        if (key === 'id' || key === 'createdAt' || key === 'updatedAt' || key === 'school') continue
         if (value !== '' && value !== null && value !== undefined) {
           payload[key] = value
         }
