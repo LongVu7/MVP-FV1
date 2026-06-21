@@ -21,7 +21,7 @@
         <div class="card-header">
           <h2><i class="pi pi-info-circle"></i> Inquiry Details</h2>
         </div>
-        <InquiryForm v-model="inquiryForm" />
+        <InquiryForm v-model="inquiryForm" :initialSourceDataId="initialSourceDataId" />
       </div>
 
       <InquiryStudentAssign 
@@ -75,6 +75,7 @@ const selectedStaff = ref(null)
 const loading = ref(true)
 const notFound = ref(false)
 const isSubmitting = ref(false)
+const initialSourceDataId = ref(null)
 
 onMounted(async () => {
   try {
@@ -87,8 +88,10 @@ onMounted(async () => {
       priority: data.priority || '',
       description: data.description || '',
       dataReceived: data.dataReceived ? new Date(data.dataReceived) : null,
-      dataSource: data.dataSource || null
+      dataSource: data.dataSource || null,
+      sourceDataId: data.sourceDataId || null
     }
+    initialSourceDataId.value = data.sourceDataId || null
     linkedStudent.value = data.student || null
     if (data.assignedTo) {
       selectedStaff.value = data.assignedTo

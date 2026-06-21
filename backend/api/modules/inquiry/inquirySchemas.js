@@ -28,6 +28,7 @@ const inquiryFields = {
   dataReceived: dateString.optional(),
   groupTele: z.string().max(50).optional(),
   assignedToId: z.number().int('assignedToId must be an integer').optional(),
+  sourceDataId: z.number().int('sourceDataId must be an integer').optional(),
   studentId: z.number().int('studentId must be an integer').optional(),
   student: createStudentSchema.optional()
 };
@@ -45,7 +46,8 @@ const updateInquirySchema = z.object({
   dataSource: inquiryFields.dataSource,
   regional: inquiryFields.regional,
   groupTele: inquiryFields.groupTele,
-  assignedToId: z.number().int().nullable().optional()
+  assignedToId: z.number().int().nullable().optional(),
+  sourceDataId: z.number().int().nullable().optional()
 }).strict().refine((data) => Object.keys(data).length > 0, {
   message: 'Request body cannot be empty'
 });

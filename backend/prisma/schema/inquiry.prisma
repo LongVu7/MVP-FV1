@@ -20,6 +20,9 @@ model Inquiry {
 
   dataSource String? @map("data_source") @db.VarChar(255)
 
+  sourceDataId Int?        @map("source_data_id")
+  sourceData   SourceData? @relation(fields: [sourceDataId], references: [id])
+
   regional String? @db.VarChar(10)
 
   groupTele String? @map("group_tele") @db.VarChar(50)
@@ -34,6 +37,7 @@ model Inquiry {
   student   Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
 
   @@index([createdAt])
+  @@index([sourceDataId])
   @@map("inquiry")
 }
 
@@ -96,3 +100,4 @@ enum Regional {
   kv5
   kv6
 }
+

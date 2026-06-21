@@ -12,6 +12,7 @@ const roleRoutes = require('./api/modules/role/roleRoutes');
 const authRoutes = require('./api/modules/auth/authRoutes');
 const cityRoutes = require('./api/modules/city/cityRoutes');
 const schoolRoutes = require('./api/modules/school/schoolRoutes');
+const sourceDataRoutes = require('./api/modules/sourceData/sourceDataRoutes');
 
 const app = express();
 const port = process.env.PORT || 3003;
@@ -37,6 +38,7 @@ app.use('/api/groups', userGroupRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/cities', cityRoutes);
 app.use('/api/schools', schoolRoutes);
+app.use('/api/source-data', sourceDataRoutes);
 
 app.listen(port);
 

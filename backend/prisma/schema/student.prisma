@@ -15,7 +15,7 @@ model Student {
 
   gpa Decimal? @db.Decimal(4, 2)
 
-  englishCertificate String? @map("english_certificate") @db.VarChar(255)
+  englishCertificate EnglishCertificate? @map("english_certificate")
 
   parentPhone String? @map("parent_phone") @db.VarChar(20)
 
@@ -33,4 +33,18 @@ model Student {
   @@index([mobile])
   @@index([schoolId])
   @@map("student")
+}
+
+
+enum EnglishCertificate {
+  IELTS
+  TOEFL
+  TOEIC
+  VSTEP
+  APTIS
+  LINGUASKILL
+  PEIC
+  CAMBRIDGE_EXAM
+  PTE
+  other
 }

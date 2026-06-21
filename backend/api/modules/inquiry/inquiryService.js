@@ -12,14 +12,18 @@ const inquiryInclude = {
   student: true,
   assignedTo: {
     select: { id: true, fullName: true, email: true }
+  },
+  sourceData: {
+    select: { id: true, name: true, level: true }
   }
 };
 
 
-const buildInquiryData = ({ assignedToId, dataReceived, ...rest }) => ({
+const buildInquiryData = ({ assignedToId, sourceDataId, dataReceived, ...rest }) => ({
   ...rest,
   ...(dataReceived  && { dataReceived: new Date(dataReceived) }),
-  ...(assignedToId  && { assignedTo: { connect: { id: parseInt(assignedToId, 10) } } })
+  ...(assignedToId  && { assignedTo: { connect: { id: parseInt(assignedToId, 10) } } }),
+  ...(sourceDataId  && { sourceData: { connect: { id: parseInt(sourceDataId, 10) } } })
 });
 
 
@@ -122,11 +126,27 @@ const _createAlone = async (inquiryData) => {
 
 // ─── Update inquiry
 const updateInquiry = async (id, updateData) => {
+  const { sourceDataId, assignedToId, ...rest } = updateData;
+
   const data = {
-    ...updateData,
+    ...rest,
     updatedAt: new Date(),
-    ...(updateData.dataReceived && { dataReceived: new Date(updateData.dataReceived) })
+    ...(rest.dataReceived && { dataReceived: new Date(rest.dataReceived) })
   };
+
+  // Handle assignedToId: connect or disconnect
+  if (assignedToId !== undefined) {
+    data.assignedTo = assignedToId
+      ? { connect: { id: parseInt(assignedToId, 10) } }
+      : { disconnect: true };
+  }
+
+  // Handle sourceDataId: connect or disconnect
+  if (sourceDataId !== undefined) {
+    data.sourceData = sourceDataId
+      ? { connect: { id: parseInt(sourceDataId, 10) } }
+      : { disconnect: true };
+  }
 
   return prisma.inquiry.update({
     where: { id: parseInt(id, 10) },

@@ -60,7 +60,8 @@ const inquiryForm = ref({
   priority: '',
   description: '',
   dataReceived: null,
-  dataSource: null
+  dataSource: null,
+  sourceDataId: null
 })
 
 const isSubmitting = ref(false)
