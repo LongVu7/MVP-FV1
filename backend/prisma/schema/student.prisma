@@ -13,16 +13,15 @@ model Student {
 
   birthDate DateTime? @map("birth_date") @db.Date
 
-  gpa Decimal? @db.Decimal(4, 2)
-
-  englishCertificate EnglishCertificate? @map("english_certificate")
-
   parentPhone String? @map("parent_phone") @db.VarChar(20)
 
   primaryAddressCity String? @map("primary_address_city") @db.VarChar(255)
 
   schoolId Int?    @map("school_id")
   school   School? @relation(fields: [schoolId], references: [id])
+
+  specializedRegisterId Int?                @unique @map("specialized_register_id")
+  specializedRegister   SpecializedRegister? @relation(fields: [specializedRegisterId], references: [id])
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
 
@@ -33,18 +32,4 @@ model Student {
   @@index([mobile])
   @@index([schoolId])
   @@map("student")
-}
-
-
-enum EnglishCertificate {
-  IELTS
-  TOEFL
-  TOEIC
-  VSTEP
-  APTIS
-  LINGUASKILL
-  PEIC
-  CAMBRIDGE_EXAM
-  PTE
-  other
 }

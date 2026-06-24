@@ -50,8 +50,17 @@ onMounted(async () => {
   try {
     const data = await fetchStudentById(id)
     if (data.birthDate) student.value.birthDate = new Date(data.birthDate)
-    if (data.gpa != null) student.value.gpa = Number(data.gpa)
     if (data.schoolId) student.value.schoolId = data.schoolId
+    if (!student.value.specializedRegister) {
+      student.value.specializedRegister = {}
+    } else {
+      if (student.value.specializedRegister.gpa != null) {
+        student.value.specializedRegister.gpa = Number(student.value.specializedRegister.gpa)
+      }
+      if (student.value.specializedRegister.programScore != null) {
+        student.value.specializedRegister.programScore = Number(student.value.specializedRegister.programScore)
+      }
+    }
   } catch (err) {
     notFound.value = true
   }

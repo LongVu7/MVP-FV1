@@ -157,7 +157,7 @@ const submitConfirm = async () => {
     router.push('/students')
   } catch (error) {
     const detail = error.response?.data?.details || error.response?.data?.error || error.message || 'Import failed'
-    toast.add({ severity: 'error', summary: error.response?.data?.details, detail, life: 5000 })
+    toast.add({ severity: 'error', summary: error.response?.data?.error || 'Import Failed', detail, life: 5000 })
   } finally {
     isConfirming.value = false
   }

@@ -1,0 +1,30 @@
+// !--- Specialized Register table ---! //
+model SpecializedRegister {
+  id                 Int                  @id @default(autoincrement())
+  interestedMajor    String?              @map("interested_major") @db.VarChar(255)
+  specificMajor      String?              @map("specific_major") @db.VarChar(255)
+  admissionYear      Int?                 @map("admission_year")
+  englishCertificate EnglishCertificate?  @map("english_certificate")
+  gpa                Decimal?             @db.Decimal(4, 2)
+  programScore       Decimal?             @map("program_score") @db.Decimal(5, 2)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz()
+
+  student Student?
+
+  @@map("specialized_register")
+}
+
+enum EnglishCertificate {
+  IELTS
+  TOEFL
+  TOEIC
+  VSTEP
+  APTIS
+  LINGUASKILL
+  PEIC
+  CAMBRIDGE_EXAM
+  PTE
+  other
+}

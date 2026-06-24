@@ -41,11 +41,17 @@ const studentTemplate = ref({
   mobile: '',
   otherPhone: '',
   birthDate: null,
-  gpa: null,
-  englishCertificate: '',
   parentPhone: '',
   primaryAddressCity: '',
-  schoolId: null
+  schoolId: null,
+  specializedRegister: {
+    interestedMajor: '',
+    specificMajor: '',
+    admissionYear: null,
+    englishCertificate: null,
+    gpa: null,
+    programScore: null
+  }
 })
 
 const createNewStudent = async (payload) => {

@@ -6,12 +6,19 @@ const { buildPaginationMeta } = require('../../utils/pagination');
 
 // ─── Create a student
 const createStudent = async (data) => {
+  const { specializedRegister, ...studentData } = data;
   try {
     return await prisma.student.create({
       data: {
-        ...data,
-        birthDate: data.birthDate ? new Date(data.birthDate) : undefined
-      }
+        ...studentData,
+        birthDate: studentData.birthDate ? new Date(studentData.birthDate) : undefined,
+        ...(specializedRegister && {
+          specializedRegister: {
+            create: specializedRegister
+          }
+        })
+      },
+      include: { specializedRegister: true }
     });
   } catch (error) {
 
@@ -44,7 +51,10 @@ const getAllStudents = async ({ page, limit, skip, search }) => {
       where,
       skip,
       take: limit,
-      include: { school: { select: { id: true, name: true, city: { select: { id: true, name: true } } } } },
+      include: { 
+        school: { select: { id: true, name: true, city: { select: { id: true, name: true } } } },
+        specializedRegister: true
+      },
       orderBy: { createdAt: 'desc' }
     }),
     prisma.student.count({ where })
@@ -60,7 +70,10 @@ const getAllStudents = async ({ page, limit, skip, search }) => {
 const getStudentById = async (id) => {
   const student = await prisma.student.findUnique({
     where: { id: Number(id) },
-    include: { school: { select: { id: true, name: true, city: { select: { id: true, name: true } } } } }
+    include: { 
+      school: { select: { id: true, name: true, city: { select: { id: true, name: true } } } },
+      specializedRegister: true
+    }
   });
 
   if (!student) {
@@ -73,29 +86,40 @@ const getStudentById = async (id) => {
 };
 
 // ─── Update a student
-const updateStudent = async (id, { fullName, gender, email, mobile, otherPhone, parentPhone, birthDate, gpa, englishCertificate, primaryAddressCity, schoolId }) => {
+const updateStudent = async (id, data) => {
+  const { specializedRegister, ...studentData } = data;
   return prisma.student.update({
     where: { id: Number(id) },
     data: {
-      fullName,
-      gender,
-      email,
-      mobile,
-      otherPhone,
-      parentPhone,
-      birthDate,
-      gpa,
-      englishCertificate,
-      primaryAddressCity,
-      schoolId,
-      updatedAt: new Date()
-    }
+      ...studentData,
+      updatedAt: new Date(),
+      ...(specializedRegister !== undefined && {
+        specializedRegister: {
+          upsert: {
+            create: specializedRegister,
+            update: specializedRegister
+          }
+        }
+      })
+    },
+    include: { specializedRegister: true }
   });
 };
 
 // ─── Delete a student
 const deleteStudent = async (id) => {
+  const student = await prisma.student.findUnique({
+    where: { id: Number(id) },
+    select: { specializedRegisterId: true }
+  });
+
   await prisma.student.delete({ where: { id: Number(id) } });
+
+  if (student?.specializedRegisterId) {
+    await prisma.specializedRegister.delete({
+      where: { id: student.specializedRegisterId }
+    });
+  }
 };
 
 // ─── Import students analysis
@@ -103,7 +127,7 @@ const analyzeImport = async (parsedStudents) => {
   const duplicates = [];
   const mobileMap = new Map();
 
-  // 1. In-file duplicate detection
+  // Check duplicate mobile numbers in the uploaded files
   parsedStudents.forEach((student) => {
     if (student.mobile) {
       if (mobileMap.has(student.mobile)) {
@@ -129,7 +153,7 @@ const analyzeImport = async (parsedStudents) => {
     }
   }
 
-  // 2. Database duplicate detection
+  // Check duplicate mobile numbers in the database
   const mobilesToCheck = Array.from(mobileMap.keys());
   let existingMobiles = new Set();
 
@@ -199,21 +223,39 @@ const processImport = async (students) => {
   let updatedCount = 0;
 
   const transactionOperations = validStudents.map(studentData => {
-    if (existingMobiles.has(studentData.mobile)) {
+    const { specializedRegister, ...dbData } = studentData;
+    if (existingMobiles.has(dbData.mobile)) {
       updatedCount++;
     } else {
       insertedCount++;
     }
     
     // Convert string to Date if needed
-    if (studentData.birthDate) {
-      studentData.birthDate = new Date(studentData.birthDate);
+    if (dbData.birthDate) {
+      dbData.birthDate = new Date(dbData.birthDate);
     }
     
     return prisma.student.upsert({
-      where: { mobile: studentData.mobile },
-      update: studentData,
-      create: studentData
+      where: { mobile: dbData.mobile },
+      update: {
+        ...dbData,
+        ...(specializedRegister && {
+          specializedRegister: {
+            upsert: {
+              create: specializedRegister,
+              update: specializedRegister
+            }
+          }
+        })
+      },
+      create: {
+        ...dbData,
+        ...(specializedRegister && {
+          specializedRegister: {
+            create: specializedRegister
+          }
+        })
+      }
     });
   });
 

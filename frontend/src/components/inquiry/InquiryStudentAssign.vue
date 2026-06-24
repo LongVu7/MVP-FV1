@@ -133,9 +133,15 @@ const newStudentForm = ref({
   otherPhone: '',
   parentPhone: '',
   birthDate: null,
-  gpa: null,
-  englishCertificate: '',
-  primaryAddressCity: ''
+  primaryAddressCity: '',
+  specializedRegister: {
+    interestedMajor: '',
+    specificMajor: '',
+    admissionYear: null,
+    englishCertificate: null,
+    gpa: null,
+    programScore: null
+  }
 })
 
 watch(
