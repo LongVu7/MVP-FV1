@@ -60,7 +60,8 @@ const navItems = computed(() => {
     { label: 'Home', icon: 'pi pi-home', to: '/' },
     { label: 'Students', icon: 'pi pi-graduation-cap', to: '/students' },
     { label: 'Inquiries', icon: 'pi pi-ticket', to: '/inquiries' },
-    { label: 'Schools', icon: 'pi pi-building', to: '/schools' }
+    { label: 'Schools', icon: 'pi pi-building', to: '/schools' },
+    { label: 'Campaigns', icon: 'pi pi-send', to: '/campaigns' }
   ]
   if (authStore.user?.roleName === 'admin') {
     items.push({ label: 'Accounts', icon: 'pi pi-users', to: '/accounts' })

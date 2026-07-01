@@ -91,6 +91,21 @@ const router = createRouter({
       component: () => import('../views/school/SchoolDetail.vue'),
     },
     {
+      path: '/campaigns',
+      name: 'campaigns',
+      component: () => import('../views/campaign/CampaignList.vue'),
+    },
+    {
+      path: '/campaigns/new',
+      name: 'campaign-new',
+      component: () => import('../views/campaign/CampaignNew.vue'),
+    },
+    {
+      path: '/campaigns/:id',
+      name: 'campaign-detail',
+      component: () => import('../views/campaign/CampaignDetail.vue'),
+    },
+    {
       path: '/login',
       name: 'login',
       component: () => import('../views/LoginView.vue'),

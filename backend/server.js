@@ -13,13 +13,14 @@ const authRoutes = require('./api/modules/auth/authRoutes');
 const cityRoutes = require('./api/modules/city/cityRoutes');
 const schoolRoutes = require('./api/modules/school/schoolRoutes');
 const sourceDataRoutes = require('./api/modules/sourceData/sourceDataRoutes');
+const campaignRoutes = require('./api/modules/campaign/campaignRoutes');
 
 const app = express();
 const port = process.env.PORT || 3003;
 
 
 app.use(cors({
-  origin: 'http://localhost:8080',
+  origin: ['http://localhost:8080', 'http://localhost:5173'],
   credentials: true
 }));
 
@@ -39,6 +40,7 @@ app.use('/api/roles', roleRoutes);
 app.use('/api/cities', cityRoutes);
 app.use('/api/schools', schoolRoutes);
 app.use('/api/source-data', sourceDataRoutes);
+app.use('/api/campaigns', campaignRoutes);
 
 app.listen(port);
 
@@ -47,3 +49,4 @@ app.use((req, res) => {
 });
 
 console.log(`Server started on port ${port}`);
+

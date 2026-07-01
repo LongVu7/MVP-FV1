@@ -36,6 +36,9 @@ model Inquiry {
   studentId Int?     @unique @map("student_id")
   student   Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
 
+  campaignRecipients CampaignRecipient[]
+
+
   @@index([createdAt])
   @@index([sourceDataId])
   @@map("inquiry")
