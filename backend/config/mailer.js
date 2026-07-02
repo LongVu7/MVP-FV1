@@ -38,13 +38,20 @@ const createTransporter = async () => {
 };
 
 const sendMail = async ({ to, subject, html }) => {
-  const emailTransporter = await createTransporter();
-  return emailTransporter.sendMail({
-    from: process.env.SMTP_FROM || process.env.SMTP_USER,
-    to,
-    subject,
-    html,
-  });
+  try {
+    const emailTransporter = await createTransporter();
+    const result = await emailTransporter.sendMail({
+      from: process.env.SMTP_FROM || process.env.SMTP_USER,
+      to,
+      subject,
+      html,
+    });
+    console.log(`✅ Email sent successfully to ${to}. Message ID: ${result.messageId}`);
+    return result;
+  } catch (error) {
+    console.error(`❌ Failed to send email to ${to}:`, error.message);
+    throw error;
+  }
 };
 
 module.exports = { sendMail };
