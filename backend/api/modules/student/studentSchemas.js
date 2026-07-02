@@ -48,14 +48,14 @@ const createStudentSchema = z.object({
     required_error: 'fullName is required',
     invalid_type_error: 'fullName must be a string'
   }).min(1, 'fullName is required').max(255),
-  gender: z.string().max(20).optional(),
-  email: z.email('email must be a valid email address').max(255).optional(),
+  gender: z.string().max(20).nullable().optional(),
+  email: z.email('email must be a valid email address').max(255).nullable().optional(),
   mobile: mobileString,
   otherPhone: mobileString,
-  birthDate: dateString.optional(),
+  birthDate: dateString.nullable().optional(),
   parentPhone: mobileString,
-  primaryAddressCity: z.string().max(255).optional(),
-  schoolId: z.number().int().positive('schoolId must be a positive integer').optional(),
+  primaryAddressCity: z.string().max(255).nullable().optional(),
+  schoolId: z.number().int().positive('schoolId must be a positive integer').nullable().optional(),
   specializedRegister: specializedRegisterSchema.optional()
 }).strict();
 
