@@ -34,7 +34,7 @@ const specializedRegisterSchema = z.object({
     (val) => (val === '' || val === null ? null : (val === undefined ? undefined : Number(val))),
     z.number().int().nullable().optional()
   ),
-  englishCertificate: z.nativeEnum(EnglishCertificate).nullable().optional(),
+  englishCertificate: z.enum(EnglishCertificate).nullable().optional(),
   gpa: gpaNumber,
   programScore: z.preprocess(
     (val) => (val === '' || val === null ? null : (val === undefined ? undefined : Number(val))),
