@@ -126,7 +126,7 @@ export default {
     return {
       form: { 
         ...this.student,
-        specializedRegister: { ...(this.student.specializedRegister || {}) }
+        specializedRegister: { ...this.student.specializedRegister }
       },
       errors: {},
       selectedCityId: null,
@@ -153,7 +153,7 @@ export default {
       handler(newVal) {
         this.form = { 
           ...newVal,
-          specializedRegister: { ...(newVal.specializedRegister || {}) }
+          specializedRegister: { ...newVal.specializedRegister }
         }
         this.errors = {}
         // Restore city selection when editing an existing student with school data

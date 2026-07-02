@@ -77,11 +77,11 @@ const accountCount = ref(0)
 
 onMounted(async () => {
   try {
-    const students = await getAllStudents()
-    studentCount.value = students.length
+    const studentsRes = await getAllStudents()
+    studentCount.value = studentsRes.pagination?.total || 0
 
-    const inquiries = await getAllInquiries()
-    inquiryCount.value = inquiries.length
+    const inquiriesRes = await getAllInquiries()
+    inquiryCount.value = inquiriesRes.pagination?.total || 0
 
     const accounts = await getAllAccounts()
     accountCount.value = accounts.length
