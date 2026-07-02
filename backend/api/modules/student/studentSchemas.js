@@ -6,7 +6,7 @@ const dateString = z.string().refine((val) => !isNaN(Date.parse(val)), {
 
 
 
-const { EnglishCertificate } = require('@prisma/client');
+const { EnglishCertificate, GPA, ProgramScore } = require('@prisma/client');
 
 const mobileString = z.preprocess(
   (val) => (val === '' || val === null ? null : val),
@@ -14,15 +14,6 @@ const mobileString = z.preprocess(
     .length(10, 'Mobile number must be exactly 10 digits long')
     .startsWith('0', 'Mobile number must start with 0')
     .regex(/^\d+$/, 'Mobile number must contain only numbers')
-    .nullable()
-    .optional()
-);
-
-const gpaNumber = z.preprocess(
-  (val) => (val === '' || val === null ? null : (val === undefined ? undefined : Number(val))),
-  z.number({ invalid_type_error: 'gpa must be a number' })
-    .min(0, 'gpa must be >= 0')
-    .max(10, 'gpa must be <= 10')
     .nullable()
     .optional()
 );
@@ -35,11 +26,8 @@ const specializedRegisterSchema = z.object({
     z.number().int().nullable().optional()
   ),
   englishCertificate: z.enum(EnglishCertificate).nullable().optional(),
-  gpa: gpaNumber,
-  programScore: z.preprocess(
-    (val) => (val === '' || val === null ? null : (val === undefined ? undefined : Number(val))),
-    z.number().nullable().optional()
-  )
+  gpa: z.enum(GPA).nullable().optional(),
+  programScore: z.enum(ProgramScore).nullable().optional()
 }).strict();
 
 

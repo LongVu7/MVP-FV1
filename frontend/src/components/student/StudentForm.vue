@@ -63,8 +63,7 @@
     <div class="form-grid">
       <div class="form-field">
         <label for="sf-gpa">GPA</label>
-        <InputNumber id="sf-gpa" v-model="form.specializedRegister.gpa" :min="0" :max="10" :minFractionDigits="0" :maxFractionDigits="2" placeholder="0.00" :invalid="!!errors.gpa" fluid />
-        <small v-if="errors.gpa" class="form-error">{{ errors.gpa }}</small>
+        <Select id="sf-gpa" v-model="form.specializedRegister.gpa" :options="gpaOptions" optionLabel="label" optionValue="value" placeholder="Select GPA" showClear fluid />
       </div>
       <div class="form-field">
         <label for="sf-englishCert">English Certificate</label>
@@ -86,7 +85,7 @@
     <div class="form-grid">
       <div class="form-field">
         <label for="sf-programScore">Program Score</label>
-        <InputNumber id="sf-programScore" v-model="form.specializedRegister.programScore" :min="0" :max="40" :minFractionDigits="0" :maxFractionDigits="2" placeholder="0.00" fluid />
+        <Select id="sf-programScore" v-model="form.specializedRegister.programScore" :options="programScoreOptions" optionLabel="label" optionValue="value" placeholder="Select Program Score" showClear fluid />
       </div>
       <div class="form-field">
         <label for="sf-admissionYear">Admission Year</label>
@@ -145,6 +144,28 @@ export default {
         { label: 'Cambridge Exam', value: 'CAMBRIDGE_EXAM' },
         { label: 'PTE', value: 'PTE' },
         { label: 'Other', value: 'other' }
+      ],
+      gpaOptions: [
+        { label: 'Lower 21', value: 'LOWER_21' },
+        { label: 'Grade 11: 21 - 23', value: 'GRADE_11_FROM_21_TO_23' },
+        { label: 'Grade 12 (Curriculum 2): 24 - 25', value: 'GRADE_12_CUR_2_FROM_24_TO_25' },
+        { label: 'Grade 12: 21 - 23', value: 'GRADE_12_FROM_21_TO_23' },
+        { label: 'Grade 11: 24 - 26', value: 'GRADE_11_FROM_24_TO_26' },
+        { label: 'Grade 12: 24 - 26', value: 'GRADE_12_FROM_24_TO_26' },
+        { label: 'Grade 11: Higher 26', value: 'GRADE_11_HIGHER_26' },
+        { label: 'Grade 12 (Curriculum 1): Higher 26', value: 'GRADE_12_CUR_1_HIGHER_26' },
+        { label: 'Grade 12: Higher 26', value: 'GRADE_12_HIGHER_26' }
+      ],
+      programScoreOptions: [
+        { label: 'Math G11: Higher 7', value: 'MATH_G11_HIGHER_7' },
+        { label: 'Math G11 (Cur 1): Higher 7', value: 'MATH_G11_CUR1_HIGHER_7' },
+        { label: 'Math G12: Higher 7', value: 'MATH_G12_HIGHER_7' },
+        { label: 'Physics G11: Higher 7', value: 'PHY_G11_HIGHER_7' },
+        { label: 'Physics G12 (Cur 1): Higher 7', value: 'PHY_G12_CUR1_HIGHER_7' },
+        { label: 'Physics G12: Higher 7', value: 'PHY_G12_HIGHER_7' },
+        { label: 'Chemistry G11: Higher 7', value: 'CHEM_G11_HIGHER_7' },
+        { label: 'Chemistry G12 (Cur 1): Higher 7', value: 'CHEM_G12_CUR1_HIGHER_7' },
+        { label: 'Chemistry G12: Higher 7', value: 'CHEM_G12_HIGHER_7' }
       ]
     }
   },
@@ -186,9 +207,6 @@ export default {
       const e = {}
       if (!this.form.fullName || !this.form.fullName.trim()) e.fullName = 'Full name is required'
       if (this.form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email)) e.email = 'Invalid email format'
-      
-      const gpa = this.form.specializedRegister?.gpa;
-      if (gpa != null && (gpa < 0 || gpa > 10)) e.gpa = 'GPA must be between 0 and 10'
       
       if (this.form.mobile) {
         if (!/^0\d{9}$/.test(this.form.mobile)) {

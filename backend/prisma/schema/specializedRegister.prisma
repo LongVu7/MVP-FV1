@@ -5,8 +5,8 @@ model SpecializedRegister {
   specificMajor      String?              @map("specific_major") @db.VarChar(255)
   admissionYear      Int?                 @map("admission_year")
   englishCertificate EnglishCertificate?  @map("english_certificate")
-  gpa                Decimal?             @db.Decimal(4, 2)
-  programScore       Decimal?             @map("program_score") @db.Decimal(5, 2)
+  gpa                GPA?                 @map("gpa")
+  programScore       ProgramScore?        @map("program_score")
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz()
