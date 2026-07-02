@@ -1,0 +1,55 @@
+// !--- Specialized Register table ---! //
+model SpecializedRegister {
+  id                 Int                  @id @default(autoincrement())
+  interestedMajor    String?              @map("interested_major") @db.VarChar(255)
+  specificMajor      String?              @map("specific_major") @db.VarChar(255)
+  admissionYear      Int?                 @map("admission_year")
+  englishCertificate EnglishCertificate?  @map("english_certificate")
+  gpa                Decimal?             @db.Decimal(4, 2)
+  programScore       Decimal?             @map("program_score") @db.Decimal(5, 2)
+
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz()
+
+  student Student?
+
+  @@map("specialized_register")
+}
+
+enum EnglishCertificate {
+  IELTS
+  TOEFL
+  TOEIC
+  VSTEP
+  APTIS
+  LINGUASKILL
+  PEIC
+  CAMBRIDGE_EXAM
+  PTE
+  other
+}
+
+enum GPA {
+  LOWER_21
+  GRADE_11_FROM_21_TO_23
+  GRADE_12_CUR_2_FROM_24_TO_25
+  GRADE_12_FROM_21_TO_23
+  GRADE_11_FROM_24_TO_26
+  GRADE_12_FROM_24_TO_26
+  GRADE_11_HIGHER_26
+  GRADE_12_CUR_1_HIGHER_26
+  GRADE_12_HIGHER_26
+}
+
+enum ProgramScore {
+  MATH_G11_HIGHER_7
+  MATH_G11_CUR1_HIGHER_7
+  MATH_G12_HIGHER_7
+  PHY_G11_HIGHER_7
+  PHY_G12_CUR1_HIGHER_7
+  PHY_G12_HIGHER_7
+  CHEM_G11_HIGHER_7
+  CHEM_G12_CUR1_HIGHER_7
+  CHEM_G12_HIGHER_7
+  
+}

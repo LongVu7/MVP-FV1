@@ -17,7 +17,7 @@
       <Button label="Back to List" icon="pi pi-arrow-left" @click="$router.push('/students')" />
     </div>
 
-    <div v-else class="section-card">
+    <div v-else-if="student" class="section-card">
       <h2>Student Information</h2>
       <StudentForm
         :student="student"
@@ -29,56 +29,55 @@
   </div>
 </template>
 
-<script>
-import StudentForm from '../../components/StudentForm.vue'
+<script setup>
+import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import StudentForm from '@/components/student/StudentForm.vue'
 import Button from 'primevue/button'
 import { useToast } from 'primevue/usetoast'
-import { getStudentById, updateStudent } from '@/helpers/studentHelper'
+import { useStudent } from '@/composables/useStudent'
 
-export default {
-  name: 'StudentDetailView',
-  components: { StudentForm, Button },
-  setup() {
-    const toast = useToast()
-    return { toast }
-  },
-  data() {
-    return {
-      student: null,
-      loading: true,
-      notFound: false,
-      isSubmitting: false
-    }
-  },
-  async mounted() {
-    const id = this.$route.params.id
-    try {
-      const data = await getStudentById(id)
-      // Convert birthDate string to Date object for DatePicker
-      if (data.birthDate) data.birthDate = new Date(data.birthDate)
-      if (data.gpa != null) data.gpa = Number(data.gpa)
-      this.student = data
-    } catch (error) {
-      this.notFound = true
-    } finally {
-      this.loading = false
-    }
-  },
-  methods: {
-    async updateExistingStudent(payload) {
-      this.isSubmitting = true
-      try {
-        const id = this.$route.params.id
-        await updateStudent(id, payload)
-        this.toast.add({ severity: 'success', summary: 'Updated', detail: `Student "${payload.fullName}" updated successfully`, life: 3000 })
-        this.$router.push('/students')
-      } catch (error) {
-        const detail = error.response?.data?.details || error.message || 'Failed to update student'
-        this.toast.add({ severity: 'error', summary: 'Error', detail, life: 5000 })
-      } finally {
-        this.isSubmitting = false
+const router = useRouter()
+const route = useRoute()
+const toast = useToast()
+const { student, loading, error, fetchStudentById, updateStudent } = useStudent()
+
+const notFound = ref(false)
+const isSubmitting = ref(false)
+
+onMounted(async () => {
+  const id = route.params.id
+  try {
+    const data = await fetchStudentById(id)
+    if (data.birthDate) student.value.birthDate = new Date(data.birthDate)
+    if (data.schoolId) student.value.schoolId = data.schoolId
+    if (!student.value.specializedRegister) {
+      student.value.specializedRegister = {}
+    } else {
+      if (student.value.specializedRegister.gpa != null) {
+        student.value.specializedRegister.gpa = Number(student.value.specializedRegister.gpa)
+      }
+      if (student.value.specializedRegister.programScore != null) {
+        student.value.specializedRegister.programScore = Number(student.value.specializedRegister.programScore)
       }
     }
+  } catch (err) {
+    notFound.value = true
+  }
+})
+
+const updateExistingStudent = async (payload) => {
+  isSubmitting.value = true
+  try {
+    const id = route.params.id
+    await updateStudent(id, payload)
+    toast.add({ severity: 'success', summary: 'Updated', detail: `Student "${payload.fullName}" updated successfully`, life: 3000 })
+    router.push('/students')
+  } catch (error) {
+    const detail = error.response?.data?.error || error.response?.data?.details || error.message || 'Failed to update student'
+    toast.add({ severity: 'error', summary: 'Error', detail, life: 5000 })
+  } finally {
+    isSubmitting.value = false
   }
 }
 </script>

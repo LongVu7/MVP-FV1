@@ -1,52 +1,47 @@
-import axios from 'axios'
+import api from './helper.js'
 
-// Base Axios instance for student API calls
-const api = axios.create({
-  baseURL: '/api/students',
-  headers: {
-    'Content-Type': 'application/json',
-    // Phase 1: role-based auth via header (no JWT yet)
-    role: 'admin'
-  }
-})
+const prefix = '/students'
 
-export const getAllStudents = async () => {
-  const response = await api.get('/')
-  return response.data.students
+export const getAllStudents = async ({ page = 1, limit = 20, search = '' } = {}) => {
+  const response = await api.get(`${prefix}/`, { params: { page, limit, search } })
+  return response.data
 }
 
 export const getStudentById = async (id) => {
-  const response = await api.get(`/${id}`)
+  const response = await api.get(`${prefix}/${id}`)
   return response.data.data
 }
 
 export const createStudent = async (studentData) => {
-  const response = await api.post('/', studentData)
+  const response = await api.post(`${prefix}/`, studentData)
   return response.data
 }
 
 export const updateStudent = async (id, studentData) => {
-  const response = await api.put(`/${id}`, studentData)
+  const response = await api.put(`${prefix}/${id}`, studentData)
   return response.data
 }
 
 export const deleteStudent = async (id) => {
-  const response = await api.delete(`/${id}`)
+  const response = await api.delete(`${prefix}/${id}`)
   return response.data
 }
 
-export const importStudents = async (files, confirm = false) => {
+export const previewImport = async (files) => {
   const formData = new FormData()
   files.forEach((file) => {
     formData.append('files', file)
   })
-  formData.append('confirm', confirm.toString())
 
-  const response = await api.post('/import', formData, {
+  const response = await api.post(`${prefix}/import/preview`, formData, {
     headers: {
-      'Content-Type': 'multipart/form-data',
-      role: 'admin'
+      'Content-Type': 'multipart/form-data'
     }
   })
+  return response.data
+}
+
+export const confirmImport = async (students) => {
+  const response = await api.post(`${prefix}/import/confirm`, { students })
   return response.data
 }

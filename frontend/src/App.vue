@@ -1,28 +1,9 @@
-<script setup>
-import { ref } from 'vue'
-import { RouterLink, RouterView, useRoute } from 'vue-router'
-import Toast from 'primevue/toast'
-import Button from 'primevue/button'
-
-const route = useRoute()
-const sidebarCollapsed = ref(false)
-
-const navItems = [
-  { label: 'Dashboard', icon: 'pi pi-home', to: '/' },
-  { label: 'Students', icon: 'pi pi-graduation-cap', to: '/students' }
-]
-
-function toggleSidebar() {
-  sidebarCollapsed.value = !sidebarCollapsed.value
-}
-</script>
-
 <template>
   <Toast position="top-right" />
 
-  <div class="app-layout" :class="{ 'sidebar-collapsed': sidebarCollapsed }">
+  <div class="app-layout" :class="{ 'sidebar-collapsed': sidebarCollapsed, 'no-sidebar': isLoginPage }">
     <!-- Sidebar -->
-    <aside class="sidebar">
+    <aside class="sidebar" v-if="!isLoginPage">
       <div class="sidebar-header">
         <div class="brand" v-show="!sidebarCollapsed">
           <i class="pi pi-building"></i>
@@ -41,14 +22,15 @@ function toggleSidebar() {
       </nav>
 
       <div class="sidebar-footer" v-show="!sidebarCollapsed">
-        <div class="user-info">
+        <div class="user-info" v-if="authStore.user">
           <div class="avatar">
             <i class="pi pi-user"></i>
           </div>
           <div class="user-details">
-            <span class="user-name">Admin User</span>
-            <span class="user-role">Administrator</span>
+            <span class="user-name">{{ authStore.user.fullName || 'User' }}</span>
+            <span class="user-role">{{ authStore.user.roleName || 'Staff' }}</span>
           </div>
+          <Button icon="pi pi-sign-out" text rounded severity="danger" size="small" v-tooltip.top="'Logout'" @click="handleLogout" style="margin-left: auto;" />
         </div>
       </div>
     </aside>
@@ -60,10 +42,59 @@ function toggleSidebar() {
   </div>
 </template>
 
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { RouterLink, RouterView, useRoute, useRouter } from 'vue-router'
+import Toast from 'primevue/toast'
+import Button from 'primevue/button'
+import { useAuthStore } from '@/stores/auth'
+
+const route = useRoute()
+const router = useRouter()
+const authStore = useAuthStore()
+const sidebarCollapsed = ref(false)
+
+const navItems = computed(() => {
+  const items = [
+    { label: 'Home', icon: 'pi pi-home', to: '/' },
+    { label: 'Students', icon: 'pi pi-graduation-cap', to: '/students' },
+    { label: 'Inquiries', icon: 'pi pi-ticket', to: '/inquiries' },
+    { label: 'Schools', icon: 'pi pi-building', to: '/schools' },
+    { label: 'Campaigns', icon: 'pi pi-send', to: '/campaigns' }
+  ]
+  if (authStore.user?.roleName === 'admin') {
+    items.push({ label: 'Accounts', icon: 'pi pi-users', to: '/accounts' })
+    items.push({ label: 'Groups', icon: 'pi pi-folder', to: '/groups' })
+  }
+  return items
+})
+
+function toggleSidebar() {
+  sidebarCollapsed.value = !sidebarCollapsed.value
+}
+
+async function handleLogout() {
+  await authStore.logout()
+  router.push('/login')
+}
+
+const isLoginPage = computed(() => route.path === '/login')
+
+onMounted(() => {
+  authStore.checkAuth()
+})
+</script>
+
+
 <style scoped>
 .app-layout {
   display: flex;
   min-height: 100vh;
+}
+
+.no-sidebar .main-content {
+  margin-left: 0 !important;
 }
 
 /* Sidebar */

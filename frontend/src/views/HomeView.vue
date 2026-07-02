@@ -1,7 +1,7 @@
 
 <template>
-  <div class="dashboard">
-    <div class="dashboard-header">
+  <div class="home">
+    <div class="home-header">
       <h1>Welcome to Admissions CRM</h1>
       <p class="subtitle">Manage student records, track inquiries, and optimize your recruitment workflow.</p>
     </div>
@@ -22,24 +22,29 @@
       </div>
 
       <!-- Inquiries Card -->
-      <div class="stat-card stat-card--disabled">
+      <div class="stat-card" @click="router.push('/inquiries')">
         <div class="stat-icon stat-icon--inquiries">
           <i class="pi pi-ticket"></i>
         </div>
         <div class="stat-body">
-          <span class="stat-value">—</span>
+          <span class="stat-value" :class="{ loading: loading }">
+            {{ loading ? '...' : inquiryCount }}
+          </span>
           <span class="stat-label">Open Inquiries</span>
         </div>
+        <i class="pi pi-arrow-right stat-arrow"></i>
       </div>
 
       <!-- Staff Card -->
-      <div class="stat-card stat-card--disabled">
+      <div class="stat-card" @click="router.push('/accounts')">
         <div class="stat-icon stat-icon--staff">
           <i class="pi pi-users"></i>
         </div>
         <div class="stat-body">
-          <span class="stat-value">—</span>
-          <span class="stat-label">Active Staff</span>
+          <span class="stat-value" :class="{ loading: loading }">
+            {{ loading ? '...' : accountCount }}
+          </span>
+          <span class="stat-label">Total Accounts</span>
         </div>
       </div>
     </div>
@@ -61,17 +66,29 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
 import { getAllStudents } from '@/helpers/studentHelper'
+import { getAllInquiries } from '@/helpers/inquiryHelper'
+import { getAllAccounts } from '@/helpers/accountHelper'
 
 const router = useRouter()
-const studentCount = ref(0)
 const loading = ref(true)
+const studentCount = ref(0)
+const inquiryCount = ref(0)
+const accountCount = ref(0)
 
 onMounted(async () => {
   try {
     const students = await getAllStudents()
     studentCount.value = students.length
+
+    const inquiries = await getAllInquiries()
+    inquiryCount.value = inquiries.length
+
+    const accounts = await getAllAccounts()
+    accountCount.value = accounts.length
   } catch {
     studentCount.value = 0
+    inquiryCount.value = 0
+    accountCount.value = 0
   } finally {
     loading.value = false
   }
@@ -82,16 +99,16 @@ onMounted(async () => {
 
 
 <style scoped>
-.dashboard {
+.home {
   padding: 2rem;
   max-width: 1100px;
 }
 
-.dashboard-header {
+.home-header {
   margin-bottom: 2rem;
 }
 
-.dashboard-header h1 {
+.home-header h1 {
   font-size: 1.75rem;
   font-weight: 700;
   margin: 0 0 0.5rem 0;
@@ -222,7 +239,7 @@ onMounted(async () => {
 }
 
 @media (max-width: 640px) {
-  .dashboard {
+  .home {
     padding: 1rem;
   }
 

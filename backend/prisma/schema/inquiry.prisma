@@ -20,44 +20,87 @@ model Inquiry {
 
   dataSource String? @map("data_source") @db.VarChar(255)
 
+  sourceDataId Int?        @map("source_data_id")
+  sourceData   SourceData? @relation(fields: [sourceDataId], references: [id])
+
+  regional String? @db.VarChar(10)
+
+  groupTele String? @map("group_tele") @db.VarChar(50)
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
 
   updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz()
 
   assignedTo Account? @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
 
-  students Student[]
+  studentId Int?     @unique @map("student_id")
+  student   Student? @relation(fields: [studentId], references: [id], onDelete: SetNull)
 
+  campaignRecipients CampaignRecipient[]
+
+
+  @@index([createdAt])
+  @@index([sourceDataId])
   @@map("inquiry")
 }
 
 enum LeadSource {
-    online
-    direct
-    database
-    referal 
-    internal
-    online_mass
-    resonance
-    other
+  online
+  direct
+  database
+  referal
+  internal
+  onlineMass
+  resonance
+  other
 }
 
 enum StatusGeneral {
-    new
-    assigned
-    in_process
-    converted
-    dead
+  new
+  assigned
+  inProcess
+  converted
+  dead
 }
 
 enum StatusDetail {
-    interested
-    considered
-    contact_later
-    KBM
-    not_contacted
-    applied
+  interested
+  considered
+  contactLater
+  kbm
+  notContacted
+  applied
 }
 
+enum FirstContactSource {
+  tele
+  walkIn
+  online
+  incomingPhone
+}
 
+enum DataSource {
+  webGame
+  holland
+  roadShowCity
+  roadShowProvince
+  acquireCity
+  acquireProvince
+  cityInquiry
+  provinceInquiry
+  partnership
+  income
+  openDayInquiry
+  eventInquiry
+  activeContact
+}
+
+enum Regional {
+  kv1
+  kv2
+  kv3
+  kv4
+  kv5
+  kv6
+}
 

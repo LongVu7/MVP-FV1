@@ -1,17 +1,52 @@
-// Assume that the user is already authenticated for this development phase.
-const checkRole = (allowedRoles) => {
-  return (req, res, next) => {
-    const userRole = req.headers['role'];
+const jwt = require('jsonwebtoken');
+const prisma = require('../config/db');
+
+// ─── Verify JWT from cookie and load user
+const authenticate = async (req, res, next) => {
+  const token = req.cookies.token;
+
+  if (!token) {
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const account = await prisma.account.findUnique({
+      where: { id: decoded.id },
+      select: {
+        id: true,
+        email: true,
+        fullName: true,
+        isActive: true,
+        role: { select: { name: true } }
+      }
+    });
+
+    if (!account || !account.isActive) {
+      return res.status(401).json({ error: 'Account not found or deactivated' });
+    }
 
     req.user = {
-      accountId: 1, 
-      roleName: userRole || 'unauthenticated'
+      accountId: account.id,
+      email: account.email,
+      fullName: account.fullName,
+      roleName: account.role?.name || null
     };
 
-    if (!userRole || !allowedRoles.includes(userRole)) {
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+};
+
+// ─── Check if user has one of the allowed roles
+const checkRole = (allowedRoles) => {
+  return (req, res, next) => {
+    if (!req.user || !allowedRoles.includes(req.user.roleName)) {
       return res.status(403).json({ 
         message: "Forbidden: You do not have the correct role to perform this action.",
-        yourRole: userRole || "None provided",
+        yourRole: req.user?.roleName || "None",
         allowedRoles: allowedRoles
       });
     }
@@ -20,5 +55,6 @@ const checkRole = (allowedRoles) => {
 };
 
 module.exports = {
+  authenticate,
   checkRole
 };
