@@ -6,12 +6,17 @@ const { buildPaginationMeta } = require('../../utils/pagination');
 
 // ─── Create a student
 const createStudent = async (data) => {
-  const { specializedRegister, ...studentData } = data;
+  const { specializedRegister, schoolId, ...studentData } = data;
   try {
     return await prisma.student.create({
       data: {
         ...studentData,
         birthDate: studentData.birthDate ? new Date(studentData.birthDate) : undefined,
+        ...(schoolId ? {
+          school: {
+            connect: { id: schoolId }
+          }
+        } : {}),
         ...(specializedRegister && {
           specializedRegister: {
             create: specializedRegister
@@ -87,12 +92,18 @@ const getStudentById = async (id) => {
 
 // ─── Update a student
 const updateStudent = async (id, data) => {
-  const { specializedRegister, ...studentData } = data;
+  const { specializedRegister, schoolId, ...studentData } = data;
+  
+  const schoolUpdate = schoolId === null 
+    ? { disconnect: true } 
+    : (schoolId ? { connect: { id: schoolId } } : undefined);
+
   return prisma.student.update({
     where: { id: Number(id) },
     data: {
       ...studentData,
       updatedAt: new Date(),
+      ...(schoolUpdate && { school: schoolUpdate }),
       ...(specializedRegister !== undefined && {
         specializedRegister: {
           upsert: {
@@ -227,6 +238,7 @@ const processImport = async (students) => {
     const { 
       specializedRegister: existingSR, 
       gpa, englishCertificate, interestedMajor, specificMajor, admissionYear, programScore,
+      schoolId,
       ...dbData 
     } = studentData;
 
@@ -250,10 +262,15 @@ const processImport = async (students) => {
       dbData.birthDate = new Date(dbData.birthDate);
     }
     
+    const schoolUpdate = schoolId === null 
+      ? { disconnect: true } 
+      : (schoolId ? { connect: { id: schoolId } } : undefined);
+
     return prisma.student.upsert({
       where: { mobile: dbData.mobile },
       update: {
         ...dbData,
+        ...(schoolUpdate && { school: schoolUpdate }),
         ...(specializedRegister && {
           specializedRegister: {
             upsert: {
@@ -265,6 +282,11 @@ const processImport = async (students) => {
       },
       create: {
         ...dbData,
+        ...(schoolId ? {
+          school: {
+            connect: { id: schoolId }
+          }
+        } : {}),
         ...(specializedRegister && {
           specializedRegister: {
             create: specializedRegister
