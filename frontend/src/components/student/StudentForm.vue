@@ -202,7 +202,10 @@ export default {
       const payload = {}
       for (const [key, value] of Object.entries(this.form)) {
         if (key === 'id' || key === 'createdAt' || key === 'updatedAt' || key === 'school' || key === 'specializedRegister') continue
-        if (value !== '' && value !== null && value !== undefined) {
+        
+        if (value === '' || value === null) {
+          payload[key] = null
+        } else if (value !== undefined) {
           payload[key] = value
         }
       }
@@ -211,7 +214,9 @@ export default {
       if (this.form.specializedRegister) {
         const srPayload = {}
         for (const [key, value] of Object.entries(this.form.specializedRegister)) {
-          if (value !== '' && value !== null && value !== undefined) {
+          if (value === '' || value === null) {
+            srPayload[key] = null
+          } else if (value !== undefined) {
             srPayload[key] = value
           }
         }
