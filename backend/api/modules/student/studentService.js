@@ -223,7 +223,22 @@ const processImport = async (students) => {
   let updatedCount = 0;
 
   const transactionOperations = validStudents.map(studentData => {
-    const { specializedRegister, ...dbData } = studentData;
+    // Separate SpecializedRegister fields from Student fields
+    const { 
+      specializedRegister: existingSR, 
+      gpa, englishCertificate, interestedMajor, specificMajor, admissionYear, programScore,
+      ...dbData 
+    } = studentData;
+
+    // Merge any loose SR fields with the existing nested object
+    const srFields = { gpa, englishCertificate, interestedMajor, specificMajor, admissionYear, programScore };
+    // Remove undefined keys
+    Object.keys(srFields).forEach(k => srFields[k] === undefined && delete srFields[k]);
+    
+    const specializedRegister = Object.keys(srFields).length > 0 
+      ? { ...existingSR, ...srFields } 
+      : existingSR;
+
     if (existingMobiles.has(dbData.mobile)) {
       updatedCount++;
     } else {
