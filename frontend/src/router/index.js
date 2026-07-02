@@ -106,6 +106,16 @@ const router = createRouter({
       component: () => import('../views/campaign/CampaignDetail.vue'),
     },
     {
+      path: '/reports',
+      name: 'reports',
+      component: () => import('../views/report/ReportList.vue'),
+    },
+    {
+      path: '/reports/new',
+      name: 'report-new',
+      component: () => import('../views/report/ReportNew.vue'),
+    },
+    {
       path: '/login',
       name: 'login',
       component: () => import('../views/LoginView.vue'),

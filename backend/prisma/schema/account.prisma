@@ -16,6 +16,7 @@ model Account {
   campaignsOwned   Campaign[] @relation("CampaignOwner")
   campaignsCreated Campaign[] @relation("CampaignCreator")
   templatesCreated CampaignTemplate[]
+  errorReports     ErrorReport[]
 
 
   @@map("account")

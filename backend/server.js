@@ -15,6 +15,7 @@ const cityRoutes = require('./api/modules/city/cityRoutes');
 const schoolRoutes = require('./api/modules/school/schoolRoutes');
 const sourceDataRoutes = require('./api/modules/sourceData/sourceDataRoutes');
 const campaignRoutes = require('./api/modules/campaign/campaignRoutes');
+const errorReportRoutes = require('./api/modules/errorReport/errorReportRoutes');
 
 const app = express();
 const port = process.env.PORT || 3003;
@@ -42,6 +43,7 @@ app.use('/api/cities', cityRoutes);
 app.use('/api/schools', schoolRoutes);
 app.use('/api/source-data', sourceDataRoutes);
 app.use('/api/campaigns', campaignRoutes);
+app.use('/api/error-reports', errorReportRoutes);
 
 app.listen(port);
 
