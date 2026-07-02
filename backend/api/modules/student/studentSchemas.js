@@ -19,7 +19,7 @@ const mobileString = z.preprocess(
 );
 
 const gpaNumber = z.preprocess(
-  (val) => (val === '' || val === null ? null : Number(val)),
+  (val) => (val === '' || val === null ? null : (val === undefined ? undefined : Number(val))),
   z.number({ invalid_type_error: 'gpa must be a number' })
     .min(0, 'gpa must be >= 0')
     .max(10, 'gpa must be <= 10')
@@ -31,13 +31,13 @@ const specializedRegisterSchema = z.object({
   interestedMajor: z.string().max(255).nullable().optional(),
   specificMajor: z.string().max(255).nullable().optional(),
   admissionYear: z.preprocess(
-    (val) => (val === '' || val === null ? null : Number(val)),
+    (val) => (val === '' || val === null ? null : (val === undefined ? undefined : Number(val))),
     z.number().int().nullable().optional()
   ),
   englishCertificate: z.nativeEnum(EnglishCertificate).nullable().optional(),
   gpa: gpaNumber,
   programScore: z.preprocess(
-    (val) => (val === '' || val === null ? null : Number(val)),
+    (val) => (val === '' || val === null ? null : (val === undefined ? undefined : Number(val))),
     z.number().nullable().optional()
   )
 }).strict();
@@ -88,7 +88,7 @@ const importStudentSchema = z.object({
   parentPhone: mobileString,
   primaryAddressCity: z.string().max(255).optional(),
   schoolId: z.preprocess(
-    (val) => (val === '' || val === null ? null : Number(val)),
+    (val) => (val === '' || val === null ? null : (val === undefined ? undefined : Number(val))),
     z.number().int().positive('schoolId must be a positive integer').nullable().optional()
   ),
   specializedRegister: specializedRegisterSchema.optional()
