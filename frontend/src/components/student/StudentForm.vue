@@ -55,6 +55,7 @@
       <div class="form-field">
         <label for="sf-school">School</label>
         <Select id="sf-school" v-model="form.schoolId" :options="schools" optionLabel="name" optionValue="id" placeholder="Select school" :loading="loadingSchools" :disabled="!selectedCityId" filter showClear fluid />
+        <small v-if="warnings.school" class="form-warning"><i class="pi pi-exclamation-triangle"></i> {{ warnings.school }}</small>
       </div>
     </div>
 
@@ -128,6 +129,7 @@ export default {
         specializedRegister: { ...this.student.specializedRegister }
       },
       errors: {},
+      warnings: {},
       selectedCityId: null,
       genderOptions: [
         { label: 'Male', value: 'Male' },
@@ -205,6 +207,7 @@ export default {
     },
     validate() {
       const e = {}
+      const w = {}
       if (!this.form.fullName || !this.form.fullName.trim()) e.fullName = 'Full name is required'
       if (this.form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email)) e.email = 'Invalid email format'
       
@@ -213,7 +216,14 @@ export default {
           e.mobile = 'Mobile number must be exactly 10 digits long and start with 0';
         }
       }
+
+      // Warn if city selected but no school picked
+      if (this.selectedCityId && !this.form.schoolId) {
+        w.school = 'You selected a school city but no school. The city filter won\'t be saved without a school selection.'
+      }
+
       this.errors = e
+      this.warnings = w
       return Object.keys(e).length === 0
     },
     getPayload() {
@@ -293,6 +303,14 @@ export default {
 
 .required {
   color: var(--p-red-400);
+}
+
+.form-warning {
+  color: var(--p-orange-500);
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
 }
 
 .form-error {
