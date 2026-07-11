@@ -217,10 +217,13 @@ export default {
       return Object.keys(e).length === 0
     },
     getPayload() {
+      // Allowlist: only include fields that the backend Zod schemas accept
+      const allowedStudentFields = ['fullName', 'gender', 'email', 'mobile', 'otherPhone', 'birthDate', 'parentPhone', 'primaryAddressCity', 'schoolId']
+      const allowedSRFields = ['interestedMajor', 'specificMajor', 'admissionYear', 'englishCertificate', 'gpa', 'programScore']
+
       const payload = {}
-      for (const [key, value] of Object.entries(this.form)) {
-        if (key === 'id' || key === 'createdAt' || key === 'updatedAt' || key === 'school' || key === 'specializedRegister' || key === 'specializedRegisterId' || key === 'inquiry') continue
-        
+      for (const key of allowedStudentFields) {
+        const value = this.form[key]
         if (value === '' || value === null) {
           payload[key] = null
         } else if (value !== undefined) {
@@ -231,8 +234,8 @@ export default {
       // Handle specializedRegister
       if (this.form.specializedRegister) {
         const srPayload = {}
-        for (const [key, value] of Object.entries(this.form.specializedRegister)) {
-          if (key === 'id') continue
+        for (const key of allowedSRFields) {
+          const value = this.form.specializedRegister[key]
           if (value === '' || value === null) {
             srPayload[key] = null
           } else if (value !== undefined) {

@@ -53,13 +53,6 @@ onMounted(async () => {
     if (data.schoolId) student.value.schoolId = data.schoolId
     if (!student.value.specializedRegister) {
       student.value.specializedRegister = {}
-    } else {
-      if (student.value.specializedRegister.gpa != null) {
-        student.value.specializedRegister.gpa = Number(student.value.specializedRegister.gpa)
-      }
-      if (student.value.specializedRegister.programScore != null) {
-        student.value.specializedRegister.programScore = Number(student.value.specializedRegister.programScore)
-      }
     }
   } catch (err) {
     notFound.value = true

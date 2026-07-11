@@ -102,6 +102,7 @@ const updateStudent = async (id, data) => {
     where: { id: Number(id) },
     data: {
       ...studentData,
+      birthDate: studentData.birthDate ? new Date(studentData.birthDate) : studentData.birthDate,
       updatedAt: new Date(),
       ...(schoolUpdate && { school: schoolUpdate }),
       ...(specializedRegister !== undefined && {
