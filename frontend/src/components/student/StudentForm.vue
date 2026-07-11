@@ -219,7 +219,7 @@ export default {
     getPayload() {
       const payload = {}
       for (const [key, value] of Object.entries(this.form)) {
-        if (key === 'id' || key === 'createdAt' || key === 'updatedAt' || key === 'school' || key === 'specializedRegister') continue
+        if (key === 'id' || key === 'createdAt' || key === 'updatedAt' || key === 'school' || key === 'specializedRegister' || key === 'specializedRegisterId' || key === 'inquiry') continue
         
         if (value === '' || value === null) {
           payload[key] = null
@@ -232,6 +232,7 @@ export default {
       if (this.form.specializedRegister) {
         const srPayload = {}
         for (const [key, value] of Object.entries(this.form.specializedRegister)) {
+          if (key === 'id') continue
           if (value === '' || value === null) {
             srPayload[key] = null
           } else if (value !== undefined) {
