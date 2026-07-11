@@ -19,8 +19,8 @@ const mobileString = z.preprocess(
 );
 
 const specializedRegisterSchema = z.object({
-  interestedMajor: z.string().max(255).nullable().optional(),
-  specificMajor: z.string().max(255).nullable().optional(),
+  interestedMajorId: z.number().int().positive('interestedMajorId must be a positive integer').nullable().optional(),
+  specificMajorId: z.number().int().positive('specificMajorId must be a positive integer').nullable().optional(),
   admissionYear: z.preprocess(
     (val) => (val === '' || val === null ? null : (val === undefined ? undefined : Number(val))),
     z.number().int().nullable().optional()

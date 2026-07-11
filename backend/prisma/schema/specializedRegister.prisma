@@ -1,8 +1,10 @@
 // !--- Specialized Register table ---! //
 model SpecializedRegister {
   id                 Int                  @id @default(autoincrement())
-  interestedMajor    String?              @map("interested_major") @db.VarChar(255)
-  specificMajor      String?              @map("specific_major") @db.VarChar(255)
+  interestedMajorId  Int?                 @map("interested_major_id")
+  interestedMajor    MajorData?           @relation("InterestedMajor", fields: [interestedMajorId], references: [id])
+  specificMajorId    Int?                 @map("specific_major_id")
+  specificMajor      MajorData?           @relation("SpecificMajor", fields: [specificMajorId], references: [id])
   admissionYear      Int?                 @map("admission_year")
   englishCertificate EnglishCertificate?  @map("english_certificate")
   gpa                GPA?                 @map("gpa")

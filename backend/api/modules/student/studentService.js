@@ -23,7 +23,14 @@ const createStudent = async (data) => {
           }
         })
       },
-      include: { specializedRegister: true }
+      include: {
+        specializedRegister: {
+          include: {
+            interestedMajor: { select: { id: true, name: true } },
+            specificMajor: { select: { id: true, name: true } }
+          }
+        }
+      }
     });
   } catch (error) {
 
@@ -58,7 +65,12 @@ const getAllStudents = async ({ page, limit, skip, search }) => {
       take: limit,
       include: { 
         school: { select: { id: true, name: true, city: { select: { id: true, name: true } } } },
-        specializedRegister: true
+        specializedRegister: {
+          include: {
+            interestedMajor: { select: { id: true, name: true } },
+            specificMajor: { select: { id: true, name: true } }
+          }
+        }
       },
       orderBy: { createdAt: 'desc' }
     }),
@@ -77,7 +89,12 @@ const getStudentById = async (id) => {
     where: { id: Number(id) },
     include: { 
       school: { select: { id: true, name: true, city: { select: { id: true, name: true } } } },
-      specializedRegister: true
+      specializedRegister: {
+        include: {
+          interestedMajor: { select: { id: true, name: true } },
+          specificMajor: { select: { id: true, name: true } }
+        }
+      }
     }
   });
 
@@ -114,7 +131,14 @@ const updateStudent = async (id, data) => {
         }
       })
     },
-    include: { specializedRegister: true }
+    include: {
+      specializedRegister: {
+        include: {
+          interestedMajor: { select: { id: true, name: true } },
+          specificMajor: { select: { id: true, name: true } }
+        }
+      }
+    }
   });
 };
 

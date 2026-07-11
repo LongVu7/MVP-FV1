@@ -75,11 +75,18 @@
     <div class="form-grid">
       <div class="form-field">
         <label for="sf-interestedMajor">Interested Major</label>
-        <InputText id="sf-interestedMajor" v-model="form.specializedRegister.interestedMajor" placeholder="e.g. IT, Business" fluid />
+        <Select id="sf-interestedMajor" v-model="form.specializedRegister.interestedMajorId"
+          :options="interestedMajors" optionLabel="name" optionValue="id"
+          placeholder="Select major" :loading="loadingInterested"
+          filter showClear fluid @change="onInterestedMajorChange" />
       </div>
       <div class="form-field">
         <label for="sf-specificMajor">Specific Major</label>
-        <InputText id="sf-specificMajor" v-model="form.specializedRegister.specificMajor" placeholder="e.g. Software Engineering" fluid />
+        <Select id="sf-specificMajor" v-model="form.specializedRegister.specificMajorId"
+          :options="specificMajors" optionLabel="name" optionValue="id"
+          placeholder="Select specific major" :loading="loadingSpecific"
+          :disabled="!form.specializedRegister.interestedMajorId"
+          filter showClear fluid />
       </div>
     </div>
 
@@ -107,6 +114,7 @@ import Select from 'primevue/select'
 import DatePicker from 'primevue/datepicker'
 import Button from 'primevue/button'
 import { useSchoolOptions } from '@/composables/useSchoolOptions'
+import { useMajorOptions } from '@/composables/useMajorOptions'
 
 export default {
   name: 'StudentForm',
@@ -120,7 +128,11 @@ export default {
   emits: ['submit'],
   setup() {
     const { cities, schools, loadingCities, loadingSchools, fetchCities, fetchSchools } = useSchoolOptions()
-    return { cities, schools, loadingCities, loadingSchools, fetchCities, fetchSchools }
+    const { interestedMajors, specificMajors, loadingInterested, loadingSpecific, fetchInterestedMajors, fetchSpecificMajors } = useMajorOptions()
+    return { 
+      cities, schools, loadingCities, loadingSchools, fetchCities, fetchSchools,
+      interestedMajors, specificMajors, loadingInterested, loadingSpecific, fetchInterestedMajors, fetchSpecificMajors
+    }
   },
   data() {
     return {
@@ -173,7 +185,7 @@ export default {
   },
   watch: {
     student: {
-      handler(newVal) {
+      async handler(newVal) {
         this.form = { 
           ...newVal,
           specializedRegister: { ...newVal.specializedRegister }
@@ -183,17 +195,33 @@ export default {
         if (newVal.school?.city?.id) {
           this.selectedCityId = newVal.school.city.id
           this.fetchSchools(this.selectedCityId)
+        } else {
+          this.selectedCityId = null
+          this.schools = []
+        }
+
+        // Restore majors
+        if (newVal.specializedRegister?.interestedMajorId) {
+          this.fetchSpecificMajors(newVal.specializedRegister.interestedMajorId)
+        } else {
+          this.specificMajors = []
         }
       },
       deep: true
     }
   },
-  created() {
+  async created() {
     this.fetchCities()
     // If editing student with existing school, load the school's city dropdown
     if (this.student.school?.city?.id) {
       this.selectedCityId = this.student.school.city.id
       this.fetchSchools(this.selectedCityId)
+    }
+
+    // Fetch interested majors
+    await this.fetchInterestedMajors()
+    if (this.form.specializedRegister?.interestedMajorId) {
+      this.fetchSpecificMajors(this.form.specializedRegister.interestedMajorId)
     }
   },
   methods: {
@@ -203,6 +231,13 @@ export default {
         this.fetchSchools(this.selectedCityId)
       } else {
         this.schools = []
+      }
+    },
+    onInterestedMajorChange() {
+      this.form.specializedRegister.specificMajorId = null
+      this.specificMajors = []
+      if (this.form.specializedRegister.interestedMajorId) {
+        this.fetchSpecificMajors(this.form.specializedRegister.interestedMajorId)
       }
     },
     validate() {
@@ -229,7 +264,7 @@ export default {
     getPayload() {
       // Allowlist: only include fields that the backend Zod schemas accept
       const allowedStudentFields = ['fullName', 'gender', 'email', 'mobile', 'otherPhone', 'birthDate', 'parentPhone', 'primaryAddressCity', 'schoolId']
-      const allowedSRFields = ['interestedMajor', 'specificMajor', 'admissionYear', 'englishCertificate', 'gpa', 'programScore']
+      const allowedSRFields = ['interestedMajorId', 'specificMajorId', 'admissionYear', 'englishCertificate', 'gpa', 'programScore']
 
       const payload = {}
       for (const key of allowedStudentFields) {
