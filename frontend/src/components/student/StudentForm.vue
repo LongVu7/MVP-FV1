@@ -49,13 +49,14 @@
 
     <div class="form-grid">
       <div class="form-field">
-        <label for="sf-schoolCity">School City</label>
-        <Select id="sf-schoolCity" v-model="selectedCityId" :options="cities" optionLabel="name" optionValue="id" placeholder="Select city" :loading="loadingCities" filter showClear fluid @change="onCityChange" />
+        <label for="sf-schoolCity">School City <span class="required">*</span></label>
+        <Select id="sf-schoolCity" v-model="selectedCityId" :options="cities" optionLabel="name" optionValue="id" placeholder="Select city" :loading="loadingCities" :invalid="!!errors.schoolCity" filter showClear fluid @change="onCityChange" />
+        <small v-if="errors.schoolCity" class="form-error">{{ errors.schoolCity }}</small>
       </div>
       <div class="form-field">
-        <label for="sf-school">School</label>
-        <Select id="sf-school" v-model="form.schoolId" :options="schools" optionLabel="name" optionValue="id" placeholder="Select school" :loading="loadingSchools" :disabled="!selectedCityId" filter showClear fluid />
-        <small v-if="warnings.school" class="form-warning"><i class="pi pi-exclamation-triangle"></i> {{ warnings.school }}</small>
+        <label for="sf-school">School <span class="required">*</span></label>
+        <Select id="sf-school" v-model="form.schoolId" :options="schools" optionLabel="name" optionValue="id" placeholder="Select school" :loading="loadingSchools" :disabled="!selectedCityId" :invalid="!!errors.school" filter showClear fluid />
+        <small v-if="errors.school" class="form-error">{{ errors.school }}</small>
       </div>
     </div>
 
@@ -242,7 +243,6 @@ export default {
     },
     validate() {
       const e = {}
-      const w = {}
       if (!this.form.fullName || !this.form.fullName.trim()) e.fullName = 'Full name is required'
       if (this.form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email)) e.email = 'Invalid email format'
       
@@ -252,13 +252,18 @@ export default {
         }
       }
 
-      // Warn if city selected but no school picked
-      if (this.selectedCityId && !this.form.schoolId) {
-        w.school = 'You selected a school city but no school. The city filter won\'t be saved without a school selection.'
+      // School city and school are both required
+      if (!this.selectedCityId && !this.form.schoolId) {
+        e.schoolCity = 'School city is required'
+        e.school = 'School is required'
+      } else if (this.selectedCityId && !this.form.schoolId) {
+        e.school = 'Please select a school for the chosen city'
+      } else if (!this.selectedCityId && this.form.schoolId) {
+        e.schoolCity = 'School city is required when a school is selected'
       }
 
       this.errors = e
-      this.warnings = w
+      this.warnings = {}
       return Object.keys(e).length === 0
     },
     getPayload() {

@@ -43,7 +43,7 @@ const createStudentSchema = z.object({
   birthDate: dateString.nullable().optional(),
   parentPhone: mobileString,
   primaryAddressCity: z.string().max(255).nullable().optional(),
-  schoolId: z.number().int().positive('schoolId must be a positive integer').nullable().optional(),
+  schoolId: z.number().int().positive('schoolId must be a positive integer'),
   specializedRegister: specializedRegisterSchema.optional()
 }).strict();
 
@@ -56,7 +56,7 @@ const updateStudentSchema = z.object({
   birthDate: dateString.nullable().optional(),
   parentPhone: mobileString,
   primaryAddressCity: z.string().max(255).nullable().optional(),
-  schoolId: z.number().int().positive('schoolId must be a positive integer').nullable().optional(),
+  schoolId: z.number().int().positive('schoolId must be a positive integer'),
   specializedRegister: specializedRegisterSchema.optional()
 }).strict().refine(
   (data) => Object.keys(data).length > 0,
