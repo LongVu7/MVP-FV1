@@ -48,7 +48,7 @@ const getAllInquiries = async ({ page, limit, skip, search }) => {
     ];
   }
 
-  const [inquiries, totalCount] = await Promise.all([
+  const [inquiries, totalCount] = await prisma.$transaction([
     prisma.inquiry.findMany({
       where,
       skip,

@@ -81,10 +81,9 @@ onMounted(async () => {
   try {
     const data = await fetchInquiryById(route.params.id)
     inquiryForm.value = {
+      statusInteraction: data.statusInteraction || null,
       statusGeneral: data.statusGeneral || null,
       statusDetail: data.statusDetail || null,
-      leadSource: data.leadSource || null,
-      firstContactSource: data.firstContactSource || null,
       priority: data.priority || '',
       description: data.description || '',
       dataReceived: data.dataReceived ? new Date(data.dataReceived) : null,
@@ -111,11 +110,14 @@ const submitGlobal = async () => {
     return
   }
 
-  // Build inquiry payload
+  // Build inquiry payload — include null for nullable fields so backend can clear them
   const payload = {}
+  const nullableFields = ['statusInteraction', 'statusGeneral', 'statusDetail', 'dataSource', 'sourceDataId', 'dataReceived', 'regional', 'groupTele']
   for (const [key, value] of Object.entries(inquiryForm.value)) {
     if (value !== '' && value !== null && value !== undefined) {
       payload[key] = value
+    } else if (nullableFields.includes(key)) {
+      payload[key] = null
     }
   }
 

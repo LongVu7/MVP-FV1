@@ -34,7 +34,24 @@ const getChildrenById = async (req, res) => {
   }
 };
 
+// ─── Get source data by ID (for edit view initialization)
+const getSourceDataById = async (req, res) => {
+  try {
+    const data = await sourceDataService.getSourceDataById(req.params.id);
+    if (!data) {
+      return res.status(404).json({ error: 'Source data not found' });
+    }
+    res.status(200).json({
+      message: 'Source data retrieved successfully',
+      data
+    });
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
 module.exports = {
   getRootOptions,
-  getChildrenById
+  getChildrenById,
+  getSourceDataById
 };

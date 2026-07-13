@@ -4,13 +4,11 @@ model Inquiry {
 
   assignedToId Int? @map("assigned_to_id")
 
+  statusInteraction String? @map("status_interaction") @db.VarChar(100)
+
   statusGeneral String? @map("status_general") @db.VarChar(100)
 
   statusDetail String? @map("status_detail") @db.VarChar(255)
-
-  leadSource String? @map("lead_source") @db.VarChar(255)
-
-  firstContactSource String? @map("first_contact_source") @db.VarChar(255)
 
   priority String? @db.VarChar(50)
 
@@ -42,41 +40,6 @@ model Inquiry {
   @@index([createdAt])
   @@index([sourceDataId])
   @@map("inquiry")
-}
-
-enum LeadSource {
-  online
-  direct
-  database
-  referal
-  internal
-  onlineMass
-  resonance
-  other
-}
-
-enum StatusGeneral {
-  new
-  assigned
-  inProcess
-  converted
-  dead
-}
-
-enum StatusDetail {
-  interested
-  considered
-  contactLater
-  kbm
-  notContacted
-  applied
-}
-
-enum FirstContactSource {
-  tele
-  walkIn
-  online
-  incomingPhone
 }
 
 enum DataSource {

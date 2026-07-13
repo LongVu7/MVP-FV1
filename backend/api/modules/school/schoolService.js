@@ -7,7 +7,7 @@ const getAllSchools = async ({ page, limit, skip, cityId, search }) => {
   if (cityId) where.cityId = Number(cityId);
   if (search) where.name = { contains: search, mode: 'insensitive' };
 
-  const [schools, totalCount] = await Promise.all([
+  const [schools, totalCount] = await prisma.$transaction([
     prisma.school.findMany({
       where,
       skip,
@@ -123,7 +123,7 @@ const deleteSchool = async (id) => {
 
 // ─── Statistics
 const getStatistics = async () => {
-  const [totalSchools, totalStudents, schoolsByCity] = await Promise.all([
+  const [totalSchools, totalStudents, schoolsByCity] = await prisma.$transaction([
     prisma.school.count(),
     prisma.student.count(),
     prisma.city.findMany({

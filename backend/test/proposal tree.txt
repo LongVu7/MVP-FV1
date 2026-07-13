@@ -1,0 +1,39 @@
+statusInteraction       statusGeneral           	statusDetail
+pending                 pending  
+wrong number 		wrong number
+future			future		
+interacted		payment completed
+			application completed		payment scheduled
+							following
+							cancelled
+			considering			application scheduled
+							following
+							cancelled
+			interested			prefers FE
+							prefers public uni
+							prefers colleges
+							prefers abroad
+							awaiting GPA
+							awaiting English test
+							awaiting family approval	
+							low interesting
+							awaiting cut-off scores  
+							undecided career path
+							tuition fee concerns
+							just exploring
+			scheduled callback
+not interacted 		no answer
+			unreachable
+not interested		not interested			chose FE
+							chose public uni
+							chose another international uni
+							chose colleges
+							chose studying abroad
+							not eligible	
+							major not suitable
+							English proficiency concerns
+							location concerns
+							not a target applicant
+							stay at current school
+							reason unknown
+							

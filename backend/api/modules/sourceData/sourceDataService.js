@@ -18,7 +18,22 @@ const getChildrenById = async (id) => {
   });
 };
 
+// ─── Get source data by ID (includes hierarchy for edit view)
+const getSourceDataById = async (id) => {
+  return prisma.sourceData.findUnique({
+    where: { id: Number(id) },
+    include: {
+      parent: {
+        include: {
+          parent: true
+        }
+      }
+    }
+  });
+};
+
 module.exports = {
   getRootOptions,
-  getChildrenById
+  getChildrenById,
+  getSourceDataById
 };

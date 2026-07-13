@@ -53,9 +53,9 @@
           <span v-else class="null-text">—</span>
         </template>
       </Column>
-      <Column field="leadSource" header="Lead Source" sortable style="width: 130px">
+      <Column field="statusInteraction" header="Interaction" sortable style="width: 130px">
         <template #body="{ data }">
-          <span v-if="data.leadSource">{{ data.leadSource }}</span>
+          <Tag v-if="data.statusInteraction" :value="data.statusInteraction" :severity="interactionSeverity(data.statusInteraction)" />
           <span v-else class="null-text">—</span>
         </template>
       </Column>
@@ -153,6 +153,11 @@ const formatDate = (dateStr) => {
 const statusSeverity = (status) => {
   const map = { new: 'info', assigned: 'warn', inProcess: 'warn', converted: 'success', dead: 'danger' }
   return map[status] || 'secondary'
+}
+
+const interactionSeverity = (interaction) => {
+  const map = { pending: 'warn', wrongNumber: 'danger', future: 'info', interacted: 'success', notInteracted: 'secondary', notInterested: 'danger' }
+  return map[interaction] || 'secondary'
 }
 </script>
 

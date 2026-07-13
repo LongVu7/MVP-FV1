@@ -12,5 +12,8 @@ router.route('/')
 router.route('/:id/children')
     .get(authenticate, checkRole(['admin', 'staff']), validateParams(idParamSchema), sourceDataController.getChildrenById);
 
+router.route('/:id')
+    .get(authenticate, checkRole(['admin', 'staff']), validateParams(idParamSchema), sourceDataController.getSourceDataById);
+
 module.exports = router;
     

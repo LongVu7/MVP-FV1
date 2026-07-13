@@ -6,20 +6,15 @@ const dateString = z.string().refine((val) => !isNaN(Date.parse(val)), {
 });
 
 const { 
-  StatusGeneral,
-  StatusDetail,
-  LeadSource,
-  FirstContactSource,
   DataSource,
   Regional
 } = require('@prisma/client');
 
 
 const inquiryFields = {
-  statusGeneral: z.enum(StatusGeneral).optional(),
-  statusDetail: z.enum(StatusDetail).optional(),
-  leadSource: z.enum(LeadSource).optional(),
-  firstContactSource: z.enum(FirstContactSource).optional(),
+  statusInteraction: z.string().max(100).optional(),
+  statusGeneral: z.string().max(100).optional(),
+  statusDetail: z.string().max(255).optional(),
   dataSource: z.enum(DataSource).optional(),
   regional: z.enum(Regional).optional(),
   
@@ -36,16 +31,15 @@ const inquiryFields = {
 const createInquirySchema = z.object(inquiryFields).strict();
 
 const updateInquirySchema = z.object({
-  statusGeneral: inquiryFields.statusGeneral,
-  statusDetail: inquiryFields.statusDetail,
-  leadSource: inquiryFields.leadSource,
-  firstContactSource: inquiryFields.firstContactSource,
+  statusInteraction: z.string().max(100).nullable().optional(),
+  statusGeneral: z.string().max(100).nullable().optional(),
+  statusDetail: z.string().max(255).nullable().optional(),
   priority: inquiryFields.priority,
   description: inquiryFields.description,
-  dataReceived: inquiryFields.dataReceived,
-  dataSource: inquiryFields.dataSource,
-  regional: inquiryFields.regional,
-  groupTele: inquiryFields.groupTele,
+  dataReceived: dateString.nullable().optional(),
+  dataSource: z.enum(DataSource).nullable().optional(),
+  regional: z.enum(Regional).nullable().optional(),
+  groupTele: z.string().max(50).nullable().optional(),
   assignedToId: z.number().int().nullable().optional(),
   sourceDataId: z.number().int().nullable().optional()
 }).strict().refine((data) => Object.keys(data).length > 0, {
