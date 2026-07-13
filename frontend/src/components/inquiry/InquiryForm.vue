@@ -5,12 +5,7 @@ import Textarea from 'primevue/textarea'
 import Select from 'primevue/select'
 import DatePicker from 'primevue/datepicker'
 import { useSourceData } from '@/composables/useSourceData'
-import {
-  getInteractionOptions,
-  getGeneralOptions,
-  getDetailOptions,
-  hasDetailOptions
-} from '@/helpers/statusTreeConfig'
+import { useStatusTree } from '@/composables/useStatusTree'
 
 const props = defineProps({
   modelValue: { type: Object, required: true },
@@ -32,26 +27,15 @@ const selectedSourceDetail = shallowRef(null)
 const selectedApproachMethod = shallowRef(null)
 
 // ─── Status cascade options (derived from modelValue)
-const interactionOptions = getInteractionOptions()
+const interactionRef = computed(() => props.modelValue.statusInteraction)
+const generalRef = computed(() => props.modelValue.statusGeneral)
 
-const generalOptions = computed(() => {
-  const interaction = props.modelValue.statusInteraction
-  return interaction ? getGeneralOptions(interaction) : []
-})
-
-const detailOptions = computed(() => {
-  const { statusInteraction, statusGeneral } = props.modelValue
-  return (statusInteraction && statusGeneral)
-    ? getDetailOptions(statusInteraction, statusGeneral)
-    : []
-})
-
-const showDetailDropdown = computed(() => {
-  const { statusInteraction, statusGeneral } = props.modelValue
-  return (statusInteraction && statusGeneral)
-    ? hasDetailOptions(statusInteraction, statusGeneral)
-    : false
-})
+const {
+  interactionOptions,
+  generalOptions,
+  detailOptions,
+  showDetailDropdown
+} = useStatusTree(interactionRef, generalRef)
 
 // ─── Static options
 const dataSourceOptions = [
