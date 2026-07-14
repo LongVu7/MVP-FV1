@@ -1,10 +1,11 @@
 <script setup>
-import { shallowRef, computed, watch, onMounted } from 'vue'
+import { shallowRef, computed, watch, onMounted, nextTick } from 'vue'
 import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
 import Select from 'primevue/select'
 import DatePicker from 'primevue/datepicker'
 import { useSourceData } from '@/composables/useSourceData'
+import { getSourceDataById } from '@/helpers/sourceDataHelper'
 import { useStatusTree } from '@/composables/useStatusTree'
 
 const props = defineProps({
@@ -113,11 +114,9 @@ watch(selectedApproachMethod, (newVal) => {
 // ─── Restore source data selections when editing
 async function restoreSelections(sourceDataId) {
   isRestoring = true
-  const api = (await import('@/helpers/helper.js')).default
 
   try {
-    const response = await api.get(`/source-data/${sourceDataId}`)
-    const node = response.data.data
+    const node = await getSourceDataById(sourceDataId)
 
     if (node.level === 'source') {
       selectedSource.value = node.id
@@ -131,8 +130,7 @@ async function restoreSelections(sourceDataId) {
       await fetchApproachMethods(selectedSourceDetail.value)
     } else if (node.level === 'approachMethod') {
       if (node.parent) {
-        const parentResponse = await api.get(`/source-data/${node.parent.id}`)
-        const parentNode = parentResponse.data.data
+        const parentNode = await getSourceDataById(node.parent.id)
         if (parentNode.parent) {
           selectedSource.value = parentNode.parent.id
           await fetchSourceDetails(selectedSource.value)
@@ -145,12 +143,8 @@ async function restoreSelections(sourceDataId) {
   } catch {
     // Silently fail — dropdown simply won't be pre-populated
   } finally {
-    // Use nextTick to ensure watchers run before we unset the flag
-    import('vue').then(({ nextTick }) => {
-      nextTick(() => {
-        isRestoring = false
-      })
-    })
+    await nextTick()
+    isRestoring = false
   }
 }
 

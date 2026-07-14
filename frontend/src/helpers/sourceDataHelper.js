@@ -11,3 +11,8 @@ export const getChildrenById = async (id) => {
   const response = await api.get(`${prefix}/${id}/children`)
   return response.data.data
 }
+
+export const getSourceDataById = async (id) => {
+  const response = await api.get(`${prefix}/${id}`)
+  return response.data.data
+}
