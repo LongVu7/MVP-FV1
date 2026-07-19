@@ -5,7 +5,8 @@ model Role {
 
   description String?
 
-  accounts Account[]
+  accounts    Account[]
+  permissions RolePermission[]
 
   @@map("role")
 }

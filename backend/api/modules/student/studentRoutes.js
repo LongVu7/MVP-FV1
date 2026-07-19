@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate, checkRole } = require('../../../middleware/auth');
+const { authenticate } = require('../../../middleware/auth');
+const authorize = require('../../../middleware/authorize');
 const { validateBody, validateParams } = require('../../../middleware/validate');
 const { idParamSchema } = require('../../../schemas/commonSchemas');
 const { createStudentSchema, updateStudentSchema, importStudentsPayloadSchema } = require('./studentSchemas');
@@ -8,18 +9,18 @@ const upload = require('../../../middleware/upload');
 const studentController = require('./studentController');
 
 router.route('/')
-    .get(authenticate, checkRole(['admin', 'staff']), studentController.getAllStudents)
-    .post(authenticate, checkRole(['staff', 'admin']), validateBody(createStudentSchema), studentController.createStudent);
+    .get(authenticate, authorize('student.read'), studentController.getAllStudents)
+    .post(authenticate, authorize('student.create'), validateBody(createStudentSchema), studentController.createStudent);
 
 router.route('/import/preview')
-    .post(authenticate, checkRole(['staff', 'admin']), upload.array('files'), studentController.previewImport);
+    .post(authenticate, authorize('student.create'), upload.array('files'), studentController.previewImport);
 
 router.route('/import/confirm')
-    .post(authenticate, checkRole(['staff', 'admin']), validateBody(importStudentsPayloadSchema), studentController.confirmImport);
+    .post(authenticate, authorize('student.create'), validateBody(importStudentsPayloadSchema), studentController.confirmImport);
 
 router.route('/:id')
-    .get(authenticate, checkRole(['admin']), validateParams(idParamSchema), studentController.getStudentById)
-    .put(authenticate, validateParams(idParamSchema), validateBody(updateStudentSchema), studentController.updateStudent)
-    .delete(authenticate, validateParams(idParamSchema), studentController.deleteStudent);
+    .get(authenticate, authorize('student.read'), validateParams(idParamSchema), studentController.getStudentById)
+    .put(authenticate, authorize('student.update'), validateParams(idParamSchema), validateBody(updateStudentSchema), studentController.updateStudent)
+    .delete(authenticate, authorize('student.delete'), validateParams(idParamSchema), studentController.deleteStudent);
 
 module.exports = router;

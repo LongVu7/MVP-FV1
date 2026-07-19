@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate, checkRole } = require('../../../middleware/auth');
+const { authenticate } = require('../../../middleware/auth');
+const authorize = require('../../../middleware/authorize');
 const cityController = require('./cityController');
 
 router.route('/')
-    .get(authenticate, checkRole(['admin', 'staff']), cityController.getAllCities);
+    .get(authenticate, authorize('city.read'), cityController.getAllCities);
 
 module.exports = router;

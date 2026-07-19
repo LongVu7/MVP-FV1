@@ -1,4 +1,5 @@
 const prisma = require('../../../config/db');
+const { buildInquiryScope } = require('../../../authorization/scope/inquiryScope');
 
 // ─── Error factory
 const handleError = (message, status) => {
@@ -39,13 +40,16 @@ const fetchInquiry = (txOrPrisma, id) =>
 const { buildPaginationMeta } = require('../../utils/pagination');
 
 // ─── List all inquiries
-const getAllInquiries = async ({ page, limit, skip, search }) => {
-  const where = {};
+const getAllInquiries = async ({ page, limit, skip, search, user }) => {
+  const scope = await buildInquiryScope(user);
+  const where = { ...scope };
+
   if (search) {
-    where.OR = [
+    const searchCondition = [
       { description: { contains: search, mode: 'insensitive' } },
       { student: { fullName: { contains: search, mode: 'insensitive' } } }
     ];
+    where.AND = [...(where.AND || []), { OR: searchCondition }];
   }
 
   const [inquiries, totalCount] = await prisma.$transaction([
@@ -78,8 +82,10 @@ const getInquiryById = async (id) => {
  *   2. create a new student inline
  *   3. Create with inquiry only
  */
-const createInquiry = async ({ studentId, student, assignedToId, ...inquiryFields }) => {
-  const inquiryData = buildInquiryData({ assignedToId, ...inquiryFields });
+const createInquiry = async ({ studentId, student, assignedToId, ...inquiryFields }, user) => {
+  // Auto-assign to creator if no explicit assignment
+  const creatorAssignedToId = assignedToId || user.accountId;
+  const inquiryData = buildInquiryData({ assignedToId: creatorAssignedToId, ...inquiryFields });
 
   if (studentId)         return _createWithExistingStudent(inquiryData, studentId);
   if (student?.fullName) return _createWithNewStudent(inquiryData, student);

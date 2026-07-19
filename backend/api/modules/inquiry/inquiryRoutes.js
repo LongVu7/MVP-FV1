@@ -1,34 +1,39 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate, checkRole } = require('../../../middleware/auth');
+const { authenticate } = require('../../../middleware/auth');
+const authorize = require('../../../middleware/authorize');
 const { validateBody, validateParams } = require('../../../middleware/validate');
 const { idParamSchema } = require('../../../schemas/commonSchemas');
 const { createInquirySchema, updateInquirySchema, assignStudentSchema, assignAccountSchema } = require('./inquirySchemas');
+const { resolveInquiryOwnership } = require('../../../authorization/scope/inquiryScope');
 const inquiryController = require('./inquiryController');
 
-// ─── Search routes 
+
+
+const withOwnership = { ownership: { resolver: resolveInquiryOwnership } };
+// ─── Search routes
 router.route('/search/students')
-    .get(authenticate, checkRole(['admin', 'staff']), inquiryController.searchStudents);
+    .get(authenticate, authorize('inquiry.read'), inquiryController.searchStudents);
 
 router.route('/search/accounts')
-    .get(authenticate, checkRole(['admin', 'staff']), inquiryController.searchAccounts);
+    .get(authenticate, authorize('inquiry.assign'), inquiryController.searchAccounts);
 
 // ─── CRUD routes
 router.route('/')
-    .get(authenticate, checkRole(['admin', 'staff']), inquiryController.getAllInquiries)
-    .post(authenticate, checkRole(['admin', 'staff']), validateBody(createInquirySchema), inquiryController.createInquiry);
+    .get(authenticate, authorize('inquiry.read'), inquiryController.getAllInquiries)
+    .post(authenticate, authorize('inquiry.create'), validateBody(createInquirySchema), inquiryController.createInquiry);
 
 router.route('/:id')
-    .get(authenticate, checkRole(['admin', 'staff']), validateParams(idParamSchema), inquiryController.getInquiryById)
-    .put(authenticate, checkRole(['admin', 'staff']), validateParams(idParamSchema), validateBody(updateInquirySchema), inquiryController.updateInquiry)
-    .delete(authenticate, checkRole(['admin', 'staff']), validateParams(idParamSchema), inquiryController.deleteInquiry);
+    .get(authenticate, authorize('inquiry.read', withOwnership), validateParams(idParamSchema), inquiryController.getInquiryById)
+    .put(authenticate, authorize('inquiry.update', withOwnership), validateParams(idParamSchema), validateBody(updateInquirySchema), inquiryController.updateInquiry)
+    .delete(authenticate, authorize('inquiry.delete', withOwnership), validateParams(idParamSchema), inquiryController.deleteInquiry);
 
 // ─── Assignment routes
 router.route('/:id/assign-student')
-    .put(authenticate, checkRole(['admin', 'staff']), validateParams(idParamSchema), validateBody(assignStudentSchema), inquiryController.assignStudentToInquiry)
-    .delete(authenticate, checkRole(['admin', 'staff']), validateParams(idParamSchema), validateBody(assignStudentSchema), inquiryController.unassignStudentFromInquiry);
+    .put(authenticate, authorize('inquiry.update', withOwnership), validateParams(idParamSchema), validateBody(assignStudentSchema), inquiryController.assignStudentToInquiry)
+    .delete(authenticate, authorize('inquiry.update', withOwnership), validateParams(idParamSchema), validateBody(assignStudentSchema), inquiryController.unassignStudentFromInquiry);
 
 router.route('/:id/assign-account')
-    .put(authenticate, checkRole(['admin', 'staff']), validateParams(idParamSchema), validateBody(assignAccountSchema), inquiryController.assignAccountToInquiry);
+    .put(authenticate, authorize('inquiry.assign'), validateParams(idParamSchema), validateBody(assignAccountSchema), inquiryController.assignAccountToInquiry);
 
 module.exports = router;

@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate, checkRole } = require('../../../middleware/auth');
+const { authenticate } = require('../../../middleware/auth');
+const authorize = require('../../../middleware/authorize');
 const { validateBody, validateParams } = require('../../../middleware/validate');
 const { idParamSchema } = require('../../../schemas/commonSchemas');
 const { campaignSchema, updateCampaignSchema, activitySchema, updateActivitySchema, activityRecipientSchema, campaignTemplateSchema } = require('./campaignSchemas');
@@ -8,33 +9,33 @@ const campaignController = require('./campaignController');
 
 // ─── Campaign Template routes ───
 router.route('/templates')
-    .get(authenticate, checkRole(['admin', 'staff']), campaignController.listTemplates)
-    .post(authenticate, checkRole(['admin', 'staff']), validateBody(campaignTemplateSchema), campaignController.createTemplate);
+    .get(authenticate, authorize('campaign.read'), campaignController.listTemplates)
+    .post(authenticate, authorize('campaign.create'), validateBody(campaignTemplateSchema), campaignController.createTemplate);
 
 // ─── CRUD routes for Campaigns ───
 router.route('/')
-    .get(authenticate, checkRole(['admin', 'staff']), campaignController.listCampaigns)
-    .post(authenticate, checkRole(['admin', 'staff']), validateBody(campaignSchema), campaignController.createCampaign);
+    .get(authenticate, authorize('campaign.read'), campaignController.listCampaigns)
+    .post(authenticate, authorize('campaign.create'), validateBody(campaignSchema), campaignController.createCampaign);
 
 router.route('/:id')
-    .get(authenticate, checkRole(['admin', 'staff']), validateParams(idParamSchema), campaignController.getCampaignById)
-    .put(authenticate, checkRole(['admin', 'staff']), validateParams(idParamSchema), validateBody(updateCampaignSchema), campaignController.updateCampaign)
-    .delete(authenticate, checkRole(['admin', 'staff']), validateParams(idParamSchema), campaignController.deleteCampaign);
+    .get(authenticate, authorize('campaign.read'), validateParams(idParamSchema), campaignController.getCampaignById)
+    .put(authenticate, authorize('campaign.update'), validateParams(idParamSchema), validateBody(updateCampaignSchema), campaignController.updateCampaign)
+    .delete(authenticate, authorize('campaign.delete'), validateParams(idParamSchema), campaignController.deleteCampaign);
 
 // ─── Activity routes (nested under campaign) ───
 router.route('/:id/activities')
-    .post(authenticate, checkRole(['admin', 'staff']), validateParams(idParamSchema), validateBody(activitySchema), campaignController.createActivity);
+    .post(authenticate, authorize('campaign.create'), validateParams(idParamSchema), validateBody(activitySchema), campaignController.createActivity);
 
 router.route('/:id/activities/:activityId')
-    .put(authenticate, checkRole(['admin', 'staff']), validateBody(updateActivitySchema), campaignController.updateActivity)
-    .delete(authenticate, checkRole(['admin', 'staff']), campaignController.deleteActivity);
+    .put(authenticate, authorize('campaign.update'), validateBody(updateActivitySchema), campaignController.updateActivity)
+    .delete(authenticate, authorize('campaign.delete'), campaignController.deleteActivity);
 
 // ─── Activity Recipients ───
 router.route('/:id/activities/:activityId/recipients')
-    .post(authenticate, checkRole(['admin', 'staff']), validateBody(activityRecipientSchema), campaignController.addRecipients);
+    .post(authenticate, authorize('campaign.update'), validateBody(activityRecipientSchema), campaignController.addRecipients);
 
 // ─── Send Activity (email) ───
 router.route('/:id/activities/:activityId/send')
-    .post(authenticate, checkRole(['admin', 'staff']), campaignController.sendActivity);
+    .post(authenticate, authorize('campaign.update'), campaignController.sendActivity);
 
 module.exports = router;

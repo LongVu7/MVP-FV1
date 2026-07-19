@@ -1,24 +1,24 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate, checkRole } = require('../../../middleware/auth');
+const { authenticate } = require('../../../middleware/auth');
+const authorize = require('../../../middleware/authorize');
 const userGroupController = require('./userGroupController');
-const roleController = require('../role/roleController');
 
 // ─── CRUD routes
 router.route('/')
-    .get(authenticate, checkRole(['admin']), userGroupController.getAllGroups)
-    .post(authenticate, checkRole(['admin']), userGroupController.createGroup);
+    .get(authenticate, authorize('group.read'), userGroupController.getAllGroups)
+    .post(authenticate, authorize('group.create'), userGroupController.createGroup);
 
 router.route('/:id')
-    .get(authenticate, checkRole(['admin']), userGroupController.getGroupById)
-    .put(authenticate, checkRole(['admin']), userGroupController.updateGroup)
-    .delete(authenticate, checkRole(['admin']), userGroupController.deleteGroup);
+    .get(authenticate, authorize('group.read'), userGroupController.getGroupById)
+    .put(authenticate, authorize('group.update'), userGroupController.updateGroup)
+    .delete(authenticate, authorize('group.delete'), userGroupController.deleteGroup);
 
 // ─── Group members management
 router.route('/:id/add-member')
-    .put(authenticate, checkRole(['admin']), userGroupController.addMemberToGroup);
+    .put(authenticate, authorize('group.update'), userGroupController.addMemberToGroup);
 
 router.route('/:id/remove-member')
-    .put(authenticate, checkRole(['admin']), userGroupController.removeMemberFromGroup);
+    .put(authenticate, authorize('group.update'), userGroupController.removeMemberFromGroup);
 
 module.exports = router;

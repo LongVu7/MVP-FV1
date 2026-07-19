@@ -23,7 +23,14 @@ const authenticate = async (req, res, next) => {
         email: true,
         fullName: true,
         isActive: true,
-        role: { select: { name: true } }
+        role: {
+          select: {
+            name: true,
+            permissions: {
+              select: { permission: { select: { code: true } } }
+            }
+          }
+        }
       }
     });
 
@@ -35,7 +42,10 @@ const authenticate = async (req, res, next) => {
       accountId: account.id,
       email: account.email,
       fullName: account.fullName,
-      roleName: account.role?.name || null
+      roleName: account.role?.name || null,
+      permissions: new Set(
+        (account.role?.permissions || []).map(rp => rp.permission.code)
+      )
     };
 
     next();

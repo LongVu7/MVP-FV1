@@ -58,7 +58,7 @@ const logout = (req, res) => {
 const getMe = (req, res) => {
   res.status(200).json({
     user: {
-      id: req.user.id,
+      id: req.user.accountId,
       email: req.user.email,
       fullName: req.user.fullName,
       roleName: req.user.roleName
@@ -66,4 +66,35 @@ const getMe = (req, res) => {
   });
 };
 
-module.exports = { login, logout, getMe };
+// ─── Refresh token (re-issue JWT with current role from DB)
+const refreshToken = (req, res) => {
+  const payload = {
+    id: req.user.accountId,
+    email: req.user.email,
+    roleName: req.user.roleName
+  };
+
+  const token = jwt.sign(payload, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN || '45m'
+  });
+
+  res.cookie('token', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'none',
+    maxAge: 45 * 60 * 1000
+  });
+
+  res.status(200).json({
+    message: 'Token refreshed',
+    token,
+    user: {
+      id: req.user.accountId,
+      email: req.user.email,
+      fullName: req.user.fullName,
+      roleName: req.user.roleName
+    }
+  });
+};
+
+module.exports = { login, logout, getMe, refreshToken };

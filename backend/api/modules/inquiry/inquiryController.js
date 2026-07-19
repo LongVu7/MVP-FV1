@@ -14,7 +14,7 @@ const getAllInquiries = async (req, res) => {
     const { page, limit, skip } = parsePagination(req.query);
     const search = req.query.search || '';
 
-    const { inquiries, pagination } = await inquiryService.getAllInquiries({ page, limit, skip, search });
+    const { inquiries, pagination } = await inquiryService.getAllInquiries({ page, limit, skip, search, user: req.user });
 
     res.status(200).json({
       message: 'Inquiries retrieved successfully',
@@ -31,7 +31,7 @@ const getAllInquiries = async (req, res) => {
 // ─── Get specific inquiry
 const getInquiryById = async (req, res) => {
   try {
-    const data = await inquiryService.getInquiryById(req.params.id);
+    const data = req.resource || await inquiryService.getInquiryById(req.params.id);
     res.status(200).json({
       message: 'Inquiry retrieved successfully',
       requestedByRole: req.user?.roleName,
@@ -46,7 +46,7 @@ const getInquiryById = async (req, res) => {
 // ─── Create inquiry
 const createInquiry = async (req, res) => {
   try {
-    const data = await inquiryService.createInquiry(req.body);
+    const data = await inquiryService.createInquiry(req.body, req.user);
     res.status(201).json({
       message: 'Inquiry created successfully',
       requestedByRole: req.user?.roleName,
