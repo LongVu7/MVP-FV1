@@ -12,6 +12,7 @@ model Account {
   role          Role?       @relation(fields: [roleId], references: [id], onDelete: SetNull)
   group         UserGroup?  @relation(fields: [groupId], references: [id], onDelete: SetNull)
   leadingGroups UserGroup[] @relation("GroupLeader")
+  groupsCreated UserGroup[] @relation("GroupCreator")
   inquiries     Inquiry[]
   campaignsOwned   Campaign[] @relation("CampaignOwner")
   campaignsCreated Campaign[] @relation("CampaignCreator")

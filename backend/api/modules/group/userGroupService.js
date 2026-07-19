@@ -1,4 +1,5 @@
 const prisma = require('../../../config/db');
+const { buildGroupScope } = require('../../../authorization/scope/groupScope');
 
 // Shared include shapes
 const groupInclude = {
@@ -26,8 +27,10 @@ const groupIncludeWithRole = {
 };
 
 // ─── List all groups
-const getAllGroups = async () => {
+const getAllGroups = async (user) => {
+  const scope = buildGroupScope(user);
   const groups = await prisma.userGroup.findMany({
+    where: scope,
     orderBy: { id: 'desc' },
     include: groupInclude
   });
@@ -52,7 +55,7 @@ const getGroupById = async (id) => {
 };
 
 // ─── Create group
-const createGroup = async (name, groupLeaderId) => {
+const createGroup = async (name, groupLeaderId, user) => {
   if (!name?.trim()) {
     const err = new Error('Group name is required');
     err.status = 400;
@@ -71,7 +74,11 @@ const createGroup = async (name, groupLeaderId) => {
   }
 
   return prisma.userGroup.create({
-    data: { name: name.trim(), groupLeaderId: leaderId },
+    data: { 
+      name: name.trim(),
+      ...(leaderId && { groupLeader: { connect: { id: leaderId } } }),
+      ...(user.accountId && { createdBy: { connect: { id: user.accountId } } })
+    },
     include: groupInclude
   });
 };
@@ -96,7 +103,11 @@ const updateGroup = async (id, { name, groupLeaderId }) => {
 
   const updateData = {};
   if (name !== undefined) updateData.name = name.trim();
-  if (groupLeaderId !== undefined) updateData.groupLeaderId = groupLeaderId ? Number(groupLeaderId) : null;
+  if (groupLeaderId !== undefined) {
+    updateData.groupLeader = groupLeaderId 
+      ? { connect: { id: Number(groupLeaderId) } } 
+      : { disconnect: true };
+  }
 
   return prisma.userGroup.update({
     where: { id: Number(id) },
@@ -204,3 +215,4 @@ module.exports = {
   addMemberToGroup,
   removeMemberFromGroup
 };
+

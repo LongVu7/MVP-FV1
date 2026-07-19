@@ -8,10 +8,9 @@ const { createInquirySchema, updateInquirySchema, assignStudentSchema, assignAcc
 const { resolveInquiryOwnership } = require('../../../authorization/scope/inquiryScope');
 const inquiryController = require('./inquiryController');
 
-
-
 const withOwnership = { ownership: { resolver: resolveInquiryOwnership } };
-// ─── Search routes
+
+//Search routes
 router.route('/search/students')
     .get(authenticate, authorize('inquiry.read'), inquiryController.searchStudents);
 

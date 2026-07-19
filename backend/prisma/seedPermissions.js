@@ -77,6 +77,8 @@ const rolePermissions = {
     'major_data.read',
     'campaign.read', 'campaign.create', 'campaign.update', 'campaign.delete',
     'error_report.read', 'error_report.create',
+    'group.read', 'group.create', 'group.update', 'group.delete',
+    'account.read'
   ],
 
   staff: [
@@ -87,6 +89,7 @@ const rolePermissions = {
     'source_data.read',
     'major_data.read',
     'error_report.read', 'error_report.create',
+    'group.read', 
   ],
 };
 

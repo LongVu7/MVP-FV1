@@ -6,6 +6,9 @@ model UserGroup {
 
   groupLeader Account? @relation("GroupLeader", fields: [groupLeaderId], references: [id], onDelete: SetNull)
 
+  createdById Int? @map("created_by_id")
+  createdBy   Account? @relation("GroupCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
   accounts Account[]
 
   @@map("user_group")

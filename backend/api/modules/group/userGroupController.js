@@ -9,7 +9,7 @@ const handleError = (res, error) => {
 // ─── List all groups
 const getAllGroups = async (req, res) => {
   try {
-    const groups = await userGroupService.getAllGroups();
+    const groups = await userGroupService.getAllGroups(req.user);
     res.status(200).json({
       message: 'Get all groups successfully',
       requestedByRole: req.user?.roleName,
@@ -41,7 +41,7 @@ const getGroupById = async (req, res) => {
 const createGroup = async (req, res) => {
   try {
     const { name, groupLeaderId } = req.body;
-    const data = await userGroupService.createGroup(name, groupLeaderId);
+    const data = await userGroupService.createGroup(name, groupLeaderId, req.user);
     res.status(201).json({
       message: 'Group created successfully',
       requestedByRole: req.user?.roleName,
