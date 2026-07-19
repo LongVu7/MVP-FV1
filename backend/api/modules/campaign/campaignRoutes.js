@@ -22,7 +22,7 @@ router.route('/:id')
     .put(authenticate, authorize('campaign.update'), validateParams(idParamSchema), validateBody(updateCampaignSchema), campaignController.updateCampaign)
     .delete(authenticate, authorize('campaign.delete'), validateParams(idParamSchema), campaignController.deleteCampaign);
 
-// ─── Activity routes (nested under campaign) ───
+// ─── Activity routes  ───
 router.route('/:id/activities')
     .post(authenticate, authorize('campaign.create'), validateParams(idParamSchema), validateBody(activitySchema), campaignController.createActivity);
 

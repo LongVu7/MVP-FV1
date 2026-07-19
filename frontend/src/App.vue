@@ -56,19 +56,29 @@ const authStore = useAuthStore()
 const sidebarCollapsed = ref(false)
 
 const navItems = computed(() => {
+  const role = authStore.user?.roleName || '';
+  
   const items = [
     { label: 'Home', icon: 'pi pi-home', to: '/' },
     { label: 'Students', icon: 'pi pi-graduation-cap', to: '/students' },
     { label: 'Inquiries', icon: 'pi pi-ticket', to: '/inquiries' },
     { label: 'Schools', icon: 'pi pi-building', to: '/schools' },
-    { label: 'Campaigns', icon: 'pi pi-send', to: '/campaigns' },
     { label: 'Reports', icon: 'pi pi-flag', to: '/reports' }
-  ]
-  if (authStore.user?.roleName === 'admin') {
-    items.push({ label: 'Accounts', icon: 'pi pi-users', to: '/accounts' })
-    items.push({ label: 'Groups', icon: 'pi pi-folder', to: '/groups' })
+  ];
+
+  // Campaigns available to Admin and Manager
+  if (role !== 'staff') {
+    items.push({ label: 'Campaigns', icon: 'pi pi-send', to: '/campaigns' });
   }
-  return items
+
+  items.push({ label: 'Groups', icon: 'pi pi-folder', to: '/groups' });
+
+  // Accounts only for Admin
+  if (role === 'admin') {
+    items.push({ label: 'Accounts', icon: 'pi pi-users', to: '/accounts' });
+  }
+  
+  return items;
 })
 
 function toggleSidebar() {

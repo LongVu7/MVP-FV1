@@ -89,7 +89,7 @@ const rolePermissions = {
     'source_data.read',
     'major_data.read',
     'error_report.read', 'error_report.create',
-    'group.read', 
+    'group.read',
   ],
 };
 

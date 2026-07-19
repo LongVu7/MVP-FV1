@@ -1,3 +1,56 @@
+
+<template>
+  <form @submit.prevent="onSubmit" class="account-form">
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="af-fullName">Full Name <span class="required">*</span></label>
+        <InputText id="af-fullName" v-model="form.fullName" placeholder="Enter full name" :invalid="!!errors.fullName" fluid />
+        <small v-if="errors.fullName" class="form-error">{{ errors.fullName }}</small>
+      </div>
+      <div class="form-field">
+        <label for="af-email">Email <span class="required">*</span></label>
+        <InputText id="af-email" v-model="form.email" placeholder="user@email.com" :invalid="!!errors.email" fluid />
+        <small v-if="errors.email" class="form-error">{{ errors.email }}</small>
+      </div>
+    </div>
+
+    <div class="form-grid" v-if="!isEditing">
+      <div class="form-field">
+        <label for="af-password">Password <span class="required">*</span></label>
+        <InputText id="af-password" v-model="form.password" type="password" placeholder="Min 6 characters" :invalid="!!errors.password" fluid />
+        <small v-if="errors.password" class="form-error">{{ errors.password }}</small>
+      </div>
+      <div class="form-field"></div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="af-role">Role</label>
+        <Select id="af-role" v-model="form.roleId" :options="roleOptions" optionLabel="label" optionValue="value" placeholder="Select role" showClear fluid />
+      </div>
+      <div class="form-field">
+        <label for="af-group">Group</label>
+        <Select id="af-group" v-model="form.groupId" :options="groupOptions" optionLabel="label" optionValue="value" placeholder="Select group" showClear fluid />
+      </div>
+    </div>
+
+    <div class="form-grid" v-if="isEditing">
+      <div class="form-field">
+        <label for="af-active">Active Status</label>
+        <div class="toggle-row">
+          <ToggleSwitch id="af-active" v-model="form.isActive" />
+          <span class="toggle-label">{{ form.isActive ? 'Active' : 'Inactive' }}</span>
+        </div>
+      </div>
+      <div class="form-field"></div>
+    </div>
+
+    <div class="form-actions">
+      <Button type="submit" :label="buttonText" icon="pi pi-check" :loading="isSubmitting" />
+    </div>
+  </form>
+</template>
+
 <script setup>
 import { ref, watch, computed } from 'vue'
 import InputText from 'primevue/inputtext'
@@ -64,57 +117,6 @@ const onSubmit = () => {
 }
 </script>
 
-<template>
-  <form @submit.prevent="onSubmit" class="account-form">
-    <div class="form-grid">
-      <div class="form-field">
-        <label for="af-fullName">Full Name <span class="required">*</span></label>
-        <InputText id="af-fullName" v-model="form.fullName" placeholder="Enter full name" :invalid="!!errors.fullName" fluid />
-        <small v-if="errors.fullName" class="form-error">{{ errors.fullName }}</small>
-      </div>
-      <div class="form-field">
-        <label for="af-email">Email <span class="required">*</span></label>
-        <InputText id="af-email" v-model="form.email" placeholder="user@email.com" :invalid="!!errors.email" fluid />
-        <small v-if="errors.email" class="form-error">{{ errors.email }}</small>
-      </div>
-    </div>
-
-    <div class="form-grid" v-if="!isEditing">
-      <div class="form-field">
-        <label for="af-password">Password <span class="required">*</span></label>
-        <InputText id="af-password" v-model="form.password" type="password" placeholder="Min 6 characters" :invalid="!!errors.password" fluid />
-        <small v-if="errors.password" class="form-error">{{ errors.password }}</small>
-      </div>
-      <div class="form-field"></div>
-    </div>
-
-    <div class="form-grid">
-      <div class="form-field">
-        <label for="af-role">Role</label>
-        <Select id="af-role" v-model="form.roleId" :options="roleOptions" optionLabel="label" optionValue="value" placeholder="Select role" showClear fluid />
-      </div>
-      <div class="form-field">
-        <label for="af-group">Group</label>
-        <Select id="af-group" v-model="form.groupId" :options="groupOptions" optionLabel="label" optionValue="value" placeholder="Select group" showClear fluid />
-      </div>
-    </div>
-
-    <div class="form-grid" v-if="isEditing">
-      <div class="form-field">
-        <label for="af-active">Active Status</label>
-        <div class="toggle-row">
-          <ToggleSwitch id="af-active" v-model="form.isActive" />
-          <span class="toggle-label">{{ form.isActive ? 'Active' : 'Inactive' }}</span>
-        </div>
-      </div>
-      <div class="form-field"></div>
-    </div>
-
-    <div class="form-actions">
-      <Button type="submit" :label="buttonText" icon="pi pi-check" :loading="isSubmitting" />
-    </div>
-  </form>
-</template>
 
 <style scoped>
 .account-form {

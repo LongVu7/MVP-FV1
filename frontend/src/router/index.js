@@ -61,19 +61,16 @@ const router = createRouter({
       path: '/groups',
       name: 'groups',
       component: () => import('../views/group/Group.vue'),
-      meta: { requiresAdmin: true }
     },
     {
       path: '/groups/new',
       name: 'group-new',
       component: () => import('../views/group/GroupNew.vue'),
-      meta: { requiresAdmin: true }
     },
     {
       path: '/groups/:id',
       name: 'group-detail',
       component: () => import('../views/group/GroupDetail.vue'),
-      meta: { requiresAdmin: true }
     },
     {
       path: '/schools',
