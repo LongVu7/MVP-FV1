@@ -35,12 +35,14 @@ const createStudent = async (data) => {
   } catch (error) {
 
     if (error.code === 'P2002') {
-      const err = new Error(
-        `Student with email "${data.email}" already exists`
-      )
-      err.status = 409
-      // console.log(err)
-      throw err
+      const fields = error.meta?.target || error.meta?.driverAdapterError?.cause?.constraint?.fields || [];
+      let message = 'A student with this data already exists';
+      if (fields.includes('mobile')) {
+        message = `Student with mobile "${data.mobile}" already exists`;
+      }
+      const err = new Error(message);
+      err.status = 409;
+      throw err;
     }
 
     throw error
@@ -115,31 +117,45 @@ const updateStudent = async (id, data) => {
     ? { disconnect: true } 
     : (schoolId ? { connect: { id: schoolId } } : undefined);
 
-  return prisma.student.update({
-    where: { id: Number(id) },
-    data: {
-      ...studentData,
-      birthDate: studentData.birthDate ? new Date(studentData.birthDate) : studentData.birthDate,
-      updatedAt: new Date(),
-      ...(schoolUpdate && { school: schoolUpdate }),
-      ...(specializedRegister !== undefined && {
+  try {
+    return await prisma.student.update({
+      where: { id: Number(id) },
+      data: {
+        ...studentData,
+        birthDate: studentData.birthDate ? new Date(studentData.birthDate) : studentData.birthDate,
+        updatedAt: new Date(),
+        ...(schoolUpdate && { school: schoolUpdate }),
+        ...(specializedRegister !== undefined && {
+          specializedRegister: {
+            upsert: {
+              create: specializedRegister,
+              update: specializedRegister
+            }
+          }
+        })
+      },
+      include: {
         specializedRegister: {
-          upsert: {
-            create: specializedRegister,
-            update: specializedRegister
+          include: {
+            interestedMajor: { select: { id: true, name: true } },
+            specificMajor: { select: { id: true, name: true } }
           }
         }
-      })
-    },
-    include: {
-      specializedRegister: {
-        include: {
-          interestedMajor: { select: { id: true, name: true } },
-          specificMajor: { select: { id: true, name: true } }
-        }
       }
+    });
+  } catch (error) {
+    if (error.code === 'P2002') {
+      const fields = error.meta?.target || error.meta?.driverAdapterError?.cause?.constraint?.fields || [];
+      let message = 'A student with this data already exists';
+      if (fields.includes('mobile')) {
+        message = `Student with mobile "${data.mobile}" already exists`;
+      }
+      const err = new Error(message);
+      err.status = 409;
+      throw err;
     }
-  });
+    throw error;
+  }
 };
 
 // ─── Delete a student

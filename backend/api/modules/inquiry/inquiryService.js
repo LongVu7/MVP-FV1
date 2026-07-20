@@ -102,32 +102,73 @@ const _createWithExistingStudent = async (inquiryData, studentId) => {
       404
     );
 
-  const { id } = await prisma.inquiry.create({ 
-    data: { ...inquiryData, student: { connect: { id: sid } } } 
+  // Check if this student is already linked to another inquiry
+  const existingLink = await prisma.inquiry.findFirst({
+    where: { studentId: sid }
   });
-  return fetchInquiry(prisma, id);
+  if (existingLink) {
+    throw handleError(
+      `This student is already linked to another inquiry`,
+      409
+    );
+  }
+
+  try {
+    const { id } = await prisma.inquiry.create({ 
+      data: { ...inquiryData, student: { connect: { id: sid } } } 
+    });
+    return fetchInquiry(prisma, id);
+  } catch (error) {
+    if (error.code === 'P2002') {
+      const fields = error.meta?.target || error.meta?.driverAdapterError?.cause?.constraint?.fields || [];
+      let message = 'An inquiry with this data already exists';
+      if (fields.includes('studentId') || fields.includes('student_id')) {
+        message = 'This student is already linked to another inquiry';
+      }
+      const err = new Error(message);
+      err.status = 409;
+      throw err;
+    }
+    throw error;
+  }
 };
 
 //Private method 
 const _createWithNewStudent = async (inquiryData, student) => {
   const { specializedRegister, ...studentData } = student;
-  const { id } = await prisma.inquiry.create({
-    data: {
-      ...inquiryData,
-      student: {
-        create: {
-          ...studentData,
-          ...(studentData.birthDate && { birthDate: new Date(studentData.birthDate) }),
-          ...(specializedRegister && {
-            specializedRegister: {
-              create: specializedRegister
-            }
-          })
+  try {
+    const { id } = await prisma.inquiry.create({
+      data: {
+        ...inquiryData,
+        student: {
+          create: {
+            ...studentData,
+            ...(studentData.birthDate && { birthDate: new Date(studentData.birthDate) }),
+            ...(specializedRegister && {
+              specializedRegister: {
+                create: specializedRegister
+              }
+            })
+          }
         }
       }
+    });
+    return fetchInquiry(prisma, id);
+  } catch (error) {
+    if (error.code === 'P2002') {
+      const fields = error.meta?.target || error.meta?.driverAdapterError?.cause?.constraint?.fields || [];
+      let message = 'An inquiry or associated student with this data already exists';
+      if (fields.includes('mobile')) {
+        message = `Student with mobile "${studentData.mobile}" already exists`;
+      } else if (fields.includes('studentId') || fields.includes('student_id')) {
+        message = 'This student is already linked to another inquiry';
+      }
+      const err = new Error(message);
+      err.status = 409;
+      throw err;
     }
-  });
-  return fetchInquiry(prisma, id);
+    throw error;
+  }
 };
 
 const _createAlone = async (inquiryData) => {
@@ -160,11 +201,25 @@ const updateInquiry = async (id, updateData) => {
       : { disconnect: true };
   }
 
-  return prisma.inquiry.update({
-    where: { id: parseInt(id, 10) },
-    data,
-    include: inquiryInclude
-  });
+  try {
+    return await prisma.inquiry.update({
+      where: { id: parseInt(id, 10) },
+      data,
+      include: inquiryInclude
+    });
+  } catch (error) {
+    if (error.code === 'P2002') {
+      const fields = error.meta?.target || error.meta?.driverAdapterError?.cause?.constraint?.fields || [];
+      let message = 'An inquiry with this data already exists';
+      if (fields.includes('studentId') || fields.includes('student_id')) {
+        message = 'This student is already linked to another inquiry';
+      }
+      const err = new Error(message);
+      err.status = 409;
+      throw err;
+    }
+    throw error;
+  }
 };
 
 
@@ -186,12 +241,36 @@ const assignStudentToInquiry = async (inquiryId, studentId) => {
   const student = await prisma.student.findUnique({ where: { id: sid } });
   if (!student) throw handleError('Student not found', 404);
 
-  await prisma.inquiry.update({
-    where: { id: iid },
-    data: { student: { connect: { id: sid } } }
+  // Check if this student is already linked to a different inquiry
+  const existingLink = await prisma.inquiry.findFirst({
+    where: { studentId: sid, id: { not: iid } }
   });
+  if (existingLink) {
+    throw handleError(
+      `This student is already linked to another inquiry`,
+      409
+    );
+  }
 
-  return { inquiryId: iid, student };
+  try {
+    await prisma.inquiry.update({
+      where: { id: iid },
+      data: { student: { connect: { id: sid } } }
+    });
+    return { inquiryId: iid, student };
+  } catch (error) {
+    if (error.code === 'P2002') {
+      const fields = error.meta?.target || error.meta?.driverAdapterError?.cause?.constraint?.fields || [];
+      let message = 'An inquiry with this data already exists';
+      if (fields.includes('studentId') || fields.includes('student_id')) {
+        message = 'This student is already linked to another inquiry';
+      }
+      const err = new Error(message);
+      err.status = 409;
+      throw err;
+    }
+    throw error;
+  }
 };
 
 // ─── Unassign a student from an inquiry

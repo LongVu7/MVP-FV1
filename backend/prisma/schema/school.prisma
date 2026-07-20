@@ -1,7 +1,7 @@
 model School {
   id         Int        @id @default(autoincrement())
   name       String     @db.VarChar(255)
-  schoolType SchoolType @map("school_type")
+  schoolType SchoolType? @map("school_type")
 
   cityId Int  @map("city_id")
   city   City @relation(fields: [cityId], references: [id])

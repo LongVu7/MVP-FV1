@@ -16,7 +16,7 @@ export function useStudent() {
       students.value = response.data
       pagination.value = response.pagination
     } catch (err) {
-      error.value = err.response?.data?.details || err.message
+      error.value = err.response?.data?.error || err.response?.data?.details || err.message
       throw err
     } finally {
       loading.value = false
@@ -30,7 +30,7 @@ export function useStudent() {
       student.value = await api.getStudentById(id)
       return student.value
     } catch (err) {
-      error.value = err.response?.data?.details || err.message
+      error.value = err.response?.data?.error || err.response?.data?.details || err.message
       throw err
     } finally {
       loading.value = false
@@ -46,7 +46,7 @@ export function useStudent() {
       return response
     } catch (err) {
       console.log(err.response?.data)
-      error.value = err.response?.data?.details || err.message
+      error.value = err.response?.data?.error || err.response?.data?.details || err.message
       throw err
     } finally {
       loading.value = false
@@ -60,7 +60,7 @@ export function useStudent() {
       const response = await api.updateStudent(id, payload)
       return response
     } catch (err) {
-      error.value = err.response?.data?.details || err.message
+      error.value = err.response?.data?.error || err.response?.data?.details || err.message
       throw err
     } finally {
       loading.value = false
@@ -74,7 +74,7 @@ export function useStudent() {
       const response = await api.deleteStudent(id)
       return response
     } catch (err) {
-      error.value = err.response?.data?.details || err.message
+      error.value = err.response?.data?.error || err.response?.data?.details || err.message
       throw err
     } finally {
       loading.value = false

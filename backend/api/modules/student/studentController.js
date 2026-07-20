@@ -1,6 +1,7 @@
 const fs = require('fs');
 const studentService = require('./studentService');
 const { parseExcelFiles } = require('../../utils/excelParser');
+const { parsePagination } = require('../../utils/pagination');
 
 // Helper: translate service errors to HTTP responses
 const handleError = (res, error) => {
@@ -24,7 +25,6 @@ const createStudent = async (req, res) => {
   }
 };
 
-const { parsePagination } = require('../../utils/pagination');
 
 const getAllStudents = async (req, res) => {
   try {

@@ -16,7 +16,7 @@ export function useInquiry() {
       inquiries.value = response.data
       pagination.value = response.pagination
     } catch (err) {
-      error.value = err.response?.data?.details || err.message
+      error.value = err.response?.data?.error || err.response?.data?.details || err.message
       throw err
     } finally {
       loading.value = false
@@ -30,7 +30,7 @@ export function useInquiry() {
       inquiry.value = await api.getInquiryById(id)
       return inquiry.value
     } catch (err) {
-      error.value = err.response?.data?.details || err.message
+      error.value = err.response?.data?.error || err.response?.data?.details || err.message
       throw err
     } finally {
       loading.value = false
@@ -44,7 +44,7 @@ export function useInquiry() {
       const response = await api.createInquiry(payload)
       return response
     } catch (err) {
-      error.value = err.response?.data?.details || err.message
+      error.value = err.response?.data?.error || err.response?.data?.details || err.message
       throw err
     } finally {
       loading.value = false
@@ -58,7 +58,7 @@ export function useInquiry() {
       const response = await api.updateInquiry(id, payload)
       return response
     } catch (err) {
-      error.value = err.response?.data?.details || err.message
+      error.value = err.response?.data?.error || err.response?.data?.details || err.message
       throw err
     } finally {
       loading.value = false
@@ -72,7 +72,7 @@ export function useInquiry() {
       const response = await api.unassignStudent(inquiryId, studentId)
       return response
     } catch (err) {
-      error.value = err.response?.data?.details || err.message
+      error.value = err.response?.data?.error || err.response?.data?.details || err.message
       throw err
     } finally {
       loading.value = false
@@ -86,7 +86,7 @@ export function useInquiry() {
       const response = await api.assignStudent(inquiryId, studentId)
       return response
     } catch (err) {
-      error.value = err.response?.data?.details || err.message
+      error.value = err.response?.data?.error || err.response?.data?.details || err.message
       throw err
     } finally {
       loading.value = false
@@ -100,7 +100,7 @@ export function useInquiry() {
       const response = await api.deleteInquiry(id)
       return response
     } catch (err) {
-      error.value = err.response?.data?.details || err.message
+      error.value = err.response?.data?.error || err.response?.data?.details || err.message
       throw err
     } finally {
       loading.value = false
