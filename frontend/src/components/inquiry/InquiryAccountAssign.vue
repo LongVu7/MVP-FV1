@@ -2,17 +2,22 @@
   <div class="section-card">
     <div class="card-header">
       <h2><i class="pi pi-briefcase"></i> Account Assignment</h2>
-      <Button 
-        label="Select Account" 
-        severity="secondary" 
-        size="small" 
-        icon="pi pi-search" 
-        @click="dialogVisible = true" 
-      />
     </div>
     
-    <div class="selected-entity-area">
-      <div class="entity-info" v-if="selectedAccount">
+    <div class="account-select-area">
+      <Select
+        v-model="selectedAccountId"
+        :options="accountOptions"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Search account by name or email..."
+        filter
+        showClear
+        :loading="loadingAccounts"
+        fluid
+        @change="onAccountSelect"
+      />
+      <div v-if="selectedAccount" class="entity-info" style="margin-top: 0.75rem;">
         <div class="entity-avatar"><i class="pi pi-id-card"></i></div>
         <div class="entity-details">
           <h3>{{ selectedAccount.fullName }}</h3>
@@ -32,40 +37,14 @@
         <p>No account assigned. Inquiry will be unassigned.</p>
       </div>
     </div>
-
-    <!-- Account Selection Dialog -->
-    <Dialog v-model:visible="dialogVisible" header="Select Account" :modal="true" :style="{ width: '400px' }">
-      <div class="dialog-content">
-        <AutoComplete
-          v-model="tempSelected"
-          :suggestions="accountSuggestions"
-          @complete="onSearch"
-          optionLabel="fullName"
-          placeholder="Search by name or email..."
-          fluid
-        >
-          <template #option="{ option }">
-            <div class="autocomplete-item">
-              <span class="ac-name">{{ option.fullName }}</span>
-              <span class="ac-detail">{{ option.email }} ({{ option.role?.name || 'N/A' }})</span>
-            </div>
-          </template>
-        </AutoComplete>
-      </div>
-      <template #footer>
-        <Button label="Cancel" text severity="secondary" @click="dialogVisible = false" />
-        <Button label="Confirm" @click="confirmSelection" :disabled="!tempSelected || !tempSelected.id" />
-      </template>
-    </Dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import Button from 'primevue/button'
-import Dialog from 'primevue/dialog'
-import AutoComplete from 'primevue/autocomplete'
-import { useAccountSearch } from '@/composables/useAccountSearch'
+import Select from 'primevue/select'
+import { getAllAccounts } from '@/helpers/accountHelper'
 
 const props = defineProps({
   initialAccount: {
@@ -74,34 +53,59 @@ const props = defineProps({
   }
 })
 
-const { accountSuggestions, searchAccounts } = useAccountSearch()
+const allAccounts = ref([])
+const loadingAccounts = ref(false)
+const selectedAccountId = ref(null)
 
-const selectedAccount = ref(props.initialAccount)
-const tempSelected = ref(null)
-const dialogVisible = ref(false)
+const accountOptions = computed(() =>
+  allAccounts.value.map(acc => ({
+    label: acc.fullName
+      ? `${acc.fullName} (${acc.email})`
+      : acc.email,
+    value: acc.id
+  }))
+)
 
-watch(() => props.initialAccount, (newVal) => {
-  if (newVal) selectedAccount.value = newVal
-}, { immediate: true })
+const selectedAccount = computed(() =>
+  allAccounts.value.find(a => a.id === selectedAccountId.value) || null
+)
 
-const onSearch = async (event) => {
-  await searchAccounts(event.query)
-}
-
-const confirmSelection = () => {
-  if (tempSelected.value && tempSelected.value.id) {
-    selectedAccount.value = tempSelected.value
-    dialogVisible.value = false
+const fetchAccounts = async () => {
+  loadingAccounts.value = true
+  try {
+    const accounts = await getAllAccounts()
+    allAccounts.value = (accounts || []).filter(a => a.isActive)
+  } catch {
+    allAccounts.value = []
+  } finally {
+    loadingAccounts.value = false
   }
 }
 
+onMounted(() => {
+  fetchAccounts()
+})
+
+watch(() => props.initialAccount, (newVal) => {
+  if (newVal) {
+    selectedAccountId.value = newVal.id
+    // Ensure the account is in the list for display
+    if (!allAccounts.value.find(a => a.id === newVal.id)) {
+      allAccounts.value.push(newVal)
+    }
+  }
+}, { immediate: true })
+
+const onAccountSelect = () => {
+  // Selection handled reactively via selectedAccount computed
+}
+
 const removeAccount = () => {
-  selectedAccount.value = null
-  tempSelected.value = null
+  selectedAccountId.value = null
 }
 
 const getPayload = () => {
-  return selectedAccount.value ? selectedAccount.value.id : null
+  return selectedAccountId.value || null
 }
 
 defineExpose({
@@ -140,7 +144,7 @@ defineExpose({
   color: var(--p-primary-color);
 }
 
-.selected-entity-area {
+.account-select-area {
   background: var(--p-surface-50);
   border: 1px solid var(--p-surface-200);
   border-radius: 8px;
@@ -185,14 +189,6 @@ defineExpose({
   color: var(--p-text-muted-color);
   font-style: italic;
   font-size: 0.95rem;
+  margin-top: 0.75rem;
 }
-
-.dialog-content {
-  padding-top: 0.5rem;
-  padding-bottom: 1rem;
-}
-
-.autocomplete-item { display: flex; flex-direction: column; gap: 0.1rem; }
-.ac-name { font-weight: 600; }
-.ac-detail { font-size: 0.8rem; color: var(--p-text-muted-color); }
 </style>

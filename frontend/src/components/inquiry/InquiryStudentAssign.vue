@@ -9,7 +9,7 @@
           severity="secondary" 
           size="small" 
           icon="pi pi-search" 
-          @click="dialogVisible = true" 
+          @click="isCreatingStudent = false" 
         />
         <Button 
           v-else 
@@ -48,61 +48,49 @@
           v-tooltip.top="'Remove student'"
         />
       </div>
-      <div v-else-if="!readonly && selectedStudent" class="entity-info">
-        <div class="entity-avatar"><i class="pi pi-user"></i></div>
-        <div class="entity-details">
-          <h3>{{ selectedStudent.fullName }}</h3>
-          <p>{{ selectedStudent.email || 'No email' }} | {{ selectedStudent.mobile || 'No phone' }}</p>
-        </div>
-        <Button 
-          icon="pi pi-times" 
-          severity="danger" 
-          text 
-          rounded 
-          size="small" 
-          @click="clearSelectedStudent" 
-          v-tooltip.top="'Remove student'"
+      <div v-else-if="!readonly" class="student-select-area">
+        <Select
+          v-model="selectedStudentId"
+          :options="studentOptions"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="Search student by name, email or phone..."
+          filter
+          showClear
+          :loading="loadingStudents"
+          fluid
+          @change="onStudentSelect"
         />
-      </div>
-      <div v-else class="empty-state">
-        <p>No students assigned.</p>
+        <div v-if="selectedStudent" class="entity-info" style="margin-top: 0.75rem;">
+          <div class="entity-avatar"><i class="pi pi-user"></i></div>
+          <div class="entity-details">
+            <h3>{{ selectedStudent.fullName }}</h3>
+            <p>{{ selectedStudent.email || 'No email' }} | {{ selectedStudent.mobile || 'No phone' }}</p>
+          </div>
+          <Button 
+            icon="pi pi-times" 
+            severity="danger" 
+            text 
+            rounded 
+            size="small" 
+            @click="clearSelectedStudent" 
+            v-tooltip.top="'Remove student'"
+          />
+        </div>
+        <div v-else class="empty-state">
+          <p>No student assigned.</p>
+        </div>
       </div>
     </div>
-
-    <!-- Student Selection Dialog -->
-    <Dialog v-if="!readonly" v-model:visible="dialogVisible" header="Select Existing Student" :modal="true" :style="{ width: '400px' }">
-      <div class="dialog-content">
-        <AutoComplete
-          v-model="tempSelected"
-          :suggestions="studentSuggestions"
-          @complete="onSearch"
-          optionLabel="fullName"
-          placeholder="Search by name or email..."
-          fluid
-        >
-          <template #option="{ option }">
-            <div class="autocomplete-item">
-              <span class="ac-name">{{ option.fullName }}</span>
-              <span class="ac-detail">{{ option.email || 'No email' }}</span>
-            </div>
-          </template>
-        </AutoComplete>
-      </div>
-      <template #footer>
-        <Button label="Cancel" text severity="secondary" @click="dialogVisible = false" />
-        <Button label="Confirm" @click="confirmSelection" :disabled="!tempSelected || !tempSelected.id" />
-      </template>
-    </Dialog>
   </div>
 </template>
 
 <script setup>
-import { ref, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import Button from 'primevue/button'
-import Dialog from 'primevue/dialog'
-import AutoComplete from 'primevue/autocomplete'
-import { useStudentSearch } from '@/composables/useStudentSearch'
+import Select from 'primevue/select'
 import StudentForm from '@/components/student/StudentForm.vue'
+import { getAllStudents } from '@/helpers/studentHelper'
 
 const props = defineProps({
   readonly: {
@@ -117,12 +105,10 @@ const props = defineProps({
 
 const emit = defineEmits(['remove-student'])
 
-const { studentSuggestions, searchStudents } = useStudentSearch()
-
 const isCreatingStudent = ref(true)
-const selectedStudent = ref(null)
-const tempSelected = ref(null)
-const dialogVisible = ref(false)
+const selectedStudentId = ref(null)
+const allStudents = ref([])
+const loadingStudents = ref(false)
 const studentFormRef = ref(null)
 
 const newStudentForm = ref({
@@ -144,42 +130,57 @@ const newStudentForm = ref({
   }
 })
 
+const studentOptions = computed(() =>
+  allStudents.value.map(s => ({
+    label: s.fullName
+      ? `${s.fullName} (${s.email || s.mobile || 'No contact'})`
+      : s.email || s.mobile || `Student #${s.id}`,
+    value: s.id
+  }))
+)
+
+const selectedStudent = computed(() =>
+  allStudents.value.find(s => s.id === selectedStudentId.value) || null
+)
+
+const fetchAllStudents = async () => {
+  loadingStudents.value = true
+  try {
+    const response = await getAllStudents({ page: 1, limit: 1000 })
+    allStudents.value = response.data || []
+  } catch {
+    allStudents.value = []
+  } finally {
+    loadingStudents.value = false
+  }
+}
+
+onMounted(() => {
+  if (!props.readonly) {
+    fetchAllStudents()
+  }
+})
+
 watch(
   () => props.initialStudent, (newStudent) => {
     if (newStudent) {
       isCreatingStudent.value = false
-      selectedStudent.value = newStudent
+      selectedStudentId.value = newStudent.id
     }
   },
   { immediate: true }
 )
 
-const onSearch = async (event) => {
-  await searchStudents(event.query)
+const onStudentSelect = () => {
+  // Selection handled reactively via selectedStudent computed
 }
-
-const confirmSelection = () => {
-  if (tempSelected.value && tempSelected.value.id) {
-    selectedStudent.value = tempSelected.value
-    isCreatingStudent.value = false
-    dialogVisible.value = false
-  }
-}
-
-// const clearSelectedStudent = () => {
-//   selectedStudent.value = null
-//   tempSelected.value = null
-//   isCreatingStudent.value = true
-// }
 
 const clearSelectedStudent = () => {
-  //Unlink if the student is from database
-  if (selectedStudent.value && props.initialStudent && selectedStudent.value.id === props.initialStudent.id) {
-    emit('remove-student', selectedStudent.value.id)
+  if (selectedStudentId.value && props.initialStudent && selectedStudentId.value === props.initialStudent.id) {
+    emit('remove-student', props.initialStudent.id)
   }
   
-  selectedStudent.value = null
-  tempSelected.value = null
+  selectedStudentId.value = null
   isCreatingStudent.value = true
 }
 
@@ -192,14 +193,14 @@ const validateAndGetPayload = () => {
       return { isValid: false }
     }
     
-    studentPayload = studentFormRef.value.getPayload()
+    studentPayload = studentFormRef.value?.getPayload() || null
   }
 
   return {
     isValid: true,
     isCreating: isCreatingStudent.value,
     studentPayload: isCreatingStudent.value ? studentPayload : null,
-    studentId: !isCreatingStudent.value && selectedStudent.value ? selectedStudent.value.id : null
+    studentId: !isCreatingStudent.value && selectedStudentId.value ? selectedStudentId.value : null
   }
 }
 
@@ -243,17 +244,16 @@ defineExpose({
   padding: 0.5rem 0;
 }
 
+.student-select-area {
+  display: flex;
+  flex-direction: column;
+}
+
 .selected-entity-area {
   background: var(--p-surface-50);
   border: 1px solid var(--p-surface-200);
   border-radius: 8px;
   padding: 1.25rem;
-}
-
-.linked-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
 }
 
 .entity-info {
@@ -295,13 +295,4 @@ defineExpose({
   font-style: italic;
   font-size: 0.95rem;
 }
-
-.dialog-content {
-  padding-top: 0.5rem;
-  padding-bottom: 1rem;
-}
-
-.autocomplete-item { display: flex; flex-direction: column; gap: 0.1rem; }
-.ac-name { font-weight: 600; }
-.ac-detail { font-size: 0.8rem; color: var(--p-text-muted-color); }
 </style>
