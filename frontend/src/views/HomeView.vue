@@ -62,33 +62,44 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
 import { getAllStudents } from '@/helpers/studentHelper'
 import { getAllInquiries } from '@/helpers/inquiryHelper'
 import { getAllAccounts } from '@/helpers/accountHelper'
+import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
+const authStore = useAuthStore()
 const loading = ref(true)
 const studentCount = ref(0)
 const inquiryCount = ref(0)
 const accountCount = ref(0)
 
+const userRole = computed(() => authStore.user?.roleName || '')
+const isStaff = computed(() => userRole.value === 'staff')
+
 onMounted(async () => {
   try {
-    const studentsRes = await getAllStudents()
-    studentCount.value = studentsRes.pagination?.total || 0
+    // Fetch each stat independently so one 403 doesn't break others
+    try {
+      const studentsRes = await getAllStudents()
+      studentCount.value = studentsRes.pagination?.totalCount || 0
+    } catch { /* staff may lack permission */ }
 
-    const inquiriesRes = await getAllInquiries()
-    inquiryCount.value = inquiriesRes.pagination?.total || 0
+    try {
+      const inquiriesRes = await getAllInquiries()
+      inquiryCount.value = inquiriesRes.pagination?.totalCount || 0
+    } catch { /* staff may lack permission */ }
 
-    const accounts = await getAllAccounts()
-    accountCount.value = accounts.length
-  } catch {
-    studentCount.value = 0
-    inquiryCount.value = 0
-    accountCount.value = 0
+    // Only fetch accounts for non-staff roles
+    if (!isStaff.value) {
+      try {
+        const accounts = await getAllAccounts()
+        accountCount.value = accounts.length
+      } catch { /* ignore */ }
+    }
   } finally {
     loading.value = false
   }
