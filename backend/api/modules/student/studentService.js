@@ -230,10 +230,70 @@ const analyzeImport = async (parsedStudents) => {
     }
   });
 
+  // ─── Resolve schoolCity + school names to schoolId ───
+  const schoolWarnings = [];
+  const studentsNeedingSchoolLookup = parsedStudents.filter(
+    s => s.school && s.schoolCity && !s.schoolId
+  );
+
+  if (studentsNeedingSchoolLookup.length > 0) {
+    // Get unique city names
+    const cityNames = [...new Set(studentsNeedingSchoolLookup.map(s => String(s.schoolCity).trim()))];
+    
+    // Fetch cities with their schools in one query
+    const cities = await prisma.city.findMany({
+      where: { name: { in: cityNames, mode: 'insensitive' } },
+      include: { schools: { select: { id: true, name: true } } }
+    });
+
+    // Build lookup: cityName (lowercase) → { cityId, schools: Map<schoolName(lowercase), schoolId> }
+    const cityLookup = new Map();
+    cities.forEach(city => {
+      const schoolMap = new Map();
+      city.schools.forEach(school => {
+        schoolMap.set(school.name.toLowerCase().trim(), school.id);
+      });
+      cityLookup.set(city.name.toLowerCase().trim(), { cityId: city.id, schools: schoolMap });
+    });
+
+    // Resolve each student's schoolId
+    for (const student of parsedStudents) {
+      if (student.school && student.schoolCity && !student.schoolId) {
+        const cityKey = String(student.schoolCity).toLowerCase().trim();
+        const schoolKey = String(student.school).toLowerCase().trim();
+        const cityEntry = cityLookup.get(cityKey);
+
+        if (!cityEntry) {
+          schoolWarnings.push({
+            mobile: student.mobile,
+            fullName: student.fullName,
+            fileName: student._mapping?.fileName,
+            rowNumber: student._mapping?.rowNumber,
+            message: `City "${student.schoolCity}" not found in database.`
+          });
+        } else {
+          const schoolId = cityEntry.schools.get(schoolKey);
+          if (schoolId) {
+            student.schoolId = schoolId;
+          } else {
+            schoolWarnings.push({
+              mobile: student.mobile,
+              fullName: student.fullName,
+              fileName: student._mapping?.fileName,
+              rowNumber: student._mapping?.rowNumber,
+              message: `School "${student.school}" not found in city "${student.schoolCity}".`
+            });
+          }
+        }
+      }
+    }
+  }
+
   return {
     totalParsed: parsedStudents.length,
     duplicateCount: duplicates.length,
     duplicates,
+    schoolWarnings,
     parsedStudents
   };
 };
@@ -275,21 +335,44 @@ const processImport = async (students) => {
   let updatedCount = 0;
 
   const transactionOperations = validStudents.map(studentData => {
-    // Separate SpecializedRegister fields from Student fields
+    // Separate SpecializedRegister fields and Excel-only lookup fields from Student fields
+    // Accept both interestedMajor/specificMajor (legacy) and interestedMajorId/specificMajorId
     const { 
       specializedRegister: existingSR, 
-      gpa, englishCertificate, interestedMajor, specificMajor, admissionYear, programScore,
+      gpa, englishCertificate, 
+      interestedMajor, specificMajor,
+      interestedMajorId, specificMajorId,
+      admissionYear, programScore,
       schoolId,
+      school: _school, schoolCity: _schoolCity,  // Excel-only lookup fields (already resolved to schoolId)
       ...dbData 
     } = studentData;
 
-    // Merge any loose SR fields with the existing nested object
-    const srFields = { gpa, englishCertificate, interestedMajor, specificMajor, admissionYear, programScore };
-    // Remove undefined keys
-    Object.keys(srFields).forEach(k => srFields[k] === undefined && delete srFields[k]);
-    
+    // Build SR fields — convert empty strings to null for enum fields
+    const cleanEnum = (val) => (val === '' || val === null || val === undefined) ? undefined : val;
+    const cleanInt = (val) => {
+      if (val === '' || val === null || val === undefined) return undefined;
+      const n = Number(val);
+      return isNaN(n) ? undefined : n;
+    };
+
+    const srFields = {};
+    const gpaVal = cleanEnum(gpa);
+    const englishCertVal = cleanEnum(englishCertificate);
+    const programScoreVal = cleanEnum(programScore);
+    const admissionYearVal = cleanInt(admissionYear);
+    const interestedMajorIdVal = cleanInt(interestedMajorId || interestedMajor);
+    const specificMajorIdVal = cleanInt(specificMajorId || specificMajor);
+
+    if (gpaVal !== undefined) srFields.gpa = gpaVal;
+    if (englishCertVal !== undefined) srFields.englishCertificate = englishCertVal;
+    if (programScoreVal !== undefined) srFields.programScore = programScoreVal;
+    if (admissionYearVal !== undefined) srFields.admissionYear = admissionYearVal;
+    if (interestedMajorIdVal !== undefined) srFields.interestedMajorId = interestedMajorIdVal;
+    if (specificMajorIdVal !== undefined) srFields.specificMajorId = specificMajorIdVal;
+
     const specializedRegister = Object.keys(srFields).length > 0 
-      ? { ...existingSR, ...srFields } 
+      ? { ...(existingSR || {}), ...srFields } 
       : existingSR;
 
     if (existingMobiles.has(dbData.mobile)) {

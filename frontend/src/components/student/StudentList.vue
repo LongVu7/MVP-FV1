@@ -68,9 +68,9 @@
       <Column field="birthDate" header="Birth Date" sortable style="width: 130px">
         <template #body="{ data }">{{ formatDate(data.birthDate) }}</template>
       </Column>
-      <Column field="gpa" header="GPA" sortable style="width: 80px">
+      <Column header="GPA" style="min-width: 160px">
         <template #body="{ data }">
-          <span v-if="data.gpa != null" class="gpa-badge">{{ Number(data.gpa).toFixed(2) }}</span>
+          <span v-if="data.specializedRegister?.gpa" class="gpa-badge">{{ gpaLabel(data.specializedRegister.gpa) }}</span>
           <span v-else class="null-text">—</span>
         </template>
       </Column>
@@ -130,7 +130,7 @@ const confirm = useConfirm()
 const searchQuery = ref('')
 let searchTimeout = null
 
-// event.first: skip value, event.rows: limit value
+// event.first: offset value, event.rows: limit value
 const onPage = (event) => {
   const page = Math.floor(event.first / event.rows) + 1
   emit('page-change', { page, limit: event.rows })
@@ -168,6 +168,20 @@ const formatDateTime = (dateStr) => {
   if (!dateStr) return '—'
   return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
+
+const gpaLabelMap = {
+  LOWER_21: 'Lower 21',
+  GRADE_11_FROM_21_TO_23: 'Grade 11: 21 - 23',
+  GRADE_12_CUR_2_FROM_24_TO_25: 'Grade 12 (Cur 2): 24 - 25',
+  GRADE_12_FROM_21_TO_23: 'Grade 12: 21 - 23',
+  GRADE_11_FROM_24_TO_26: 'Grade 11: 24 - 26',
+  GRADE_12_FROM_24_TO_26: 'Grade 12: 24 - 26',
+  GRADE_11_HIGHER_26: 'Grade 11: Higher 26',
+  GRADE_12_CUR_1_HIGHER_26: 'Grade 12 (Cur 1): Higher 26',
+  GRADE_12_HIGHER_26: 'Grade 12: Higher 26'
+}
+
+const gpaLabel = (value) => gpaLabelMap[value] || value
 
 const genderSeverity = (gender) => {
   if (gender === 'Male') return 'info'

@@ -63,6 +63,12 @@ const updateStudentSchema = z.object({
   { message: 'Request body cannot be empty' }
 );
 
+// Helper: preprocess empty strings to undefined for enum fields
+const cleanEnumForImport = (enumObj) => z.preprocess(
+  (val) => (val === '' || val === null ? undefined : val),
+  z.enum(enumObj).optional()
+);
+
 const importStudentSchema = z.object({
   fullName: z.string({
     required_error: 'fullName is required',
@@ -79,7 +85,28 @@ const importStudentSchema = z.object({
     (val) => (val === '' || val === null ? null : (val === undefined ? undefined : Number(val))),
     z.number().int().positive('schoolId must be a positive integer').nullable().optional()
   ),
-  specializedRegister: specializedRegisterSchema.optional()
+  specializedRegister: specializedRegisterSchema.optional(),
+  // Flat SR fields from Excel columns — preprocessed to handle empty strings
+  gpa: cleanEnumForImport(GPA),
+  englishCertificate: cleanEnumForImport(EnglishCertificate),
+  programScore: cleanEnumForImport(ProgramScore),
+  admissionYear: z.preprocess(
+    (val) => (val === '' || val === null ? undefined : (val === undefined ? undefined : Number(val))),
+    z.number().int().optional()
+  ),
+  interestedMajorId: z.preprocess(
+    (val) => (val === '' || val === null ? undefined : (val === undefined ? undefined : Number(val))),
+    z.number().int().positive().optional()
+  ),
+  specificMajorId: z.preprocess(
+    (val) => (val === '' || val === null ? undefined : (val === undefined ? undefined : Number(val))),
+    z.number().int().positive().optional()
+  ),
+  interestedMajor: z.any().optional(),
+  specificMajor: z.any().optional(),
+  // Excel-only columns for school name lookup (resolved to schoolId during preview)
+  schoolCity: z.preprocess((val) => (val === '' ? undefined : val), z.string().max(255).optional()),
+  school: z.preprocess((val) => (val === '' ? undefined : val), z.string().max(255).optional())
 }).passthrough();
 
 const importStudentsPayloadSchema = z.object({

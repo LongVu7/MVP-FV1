@@ -40,6 +40,13 @@
         Found {{ duplicateCount }} duplicate(s) based on mobile numbers. Records with existing database mobiles will be updated. Be careful with duplicates within the uploaded files themselves. Click on a mobile number to edit it.
       </Message>
 
+      <Message v-if="schoolWarnings.length > 0" severity="warn" :closable="false">
+        {{ schoolWarnings.length }} student(s) had school lookup issues:
+        <ul style="margin: 0.5rem 0 0 1rem; padding: 0;">
+          <li v-for="(w, i) in schoolWarnings" :key="i" style="font-size: 0.85rem;">Row {{ w.rowNumber }} ({{ w.fullName }}): {{ w.message }}</li>
+        </ul>
+      </Message>
+
       <DataTable 
         :value="parsedData" 
         dataKey="mobile"
@@ -61,7 +68,14 @@
             </span>
           </template>
         </Column>
-        <Column field="email" header="Email" style="width: 25%"></Column>
+        <Column field="email" header="Email" style="width: 20%"></Column>
+        <Column header="School" style="width: 15%">
+          <template #body="{ data }">
+            <span v-if="data.schoolId" class="school-resolved">{{ data.school || `ID: ${data.schoolId}` }}</span>
+            <span v-else-if="data.school" class="school-unresolved">{{ data.school }} <i class="pi pi-exclamation-circle" title="School not found"></i></span>
+            <span v-else style="color: var(--p-text-muted-color)">—</span>
+          </template>
+        </Column>
         <Column field="_mapping.fileName" header="Source File" style="width: 20%"></Column>
         <Column header="Actions" style="width: 5%">
           <template #body="{ index }">
@@ -101,6 +115,7 @@ const isConfirming = ref(false)
 const parsedData = ref([])
 const duplicates = ref([])
 const duplicateCount = ref(0)
+const schoolWarnings = ref([])
 
 const onUpload = async (event) => {
   const files = event.files
@@ -113,6 +128,7 @@ const onUpload = async (event) => {
     parsedData.value = analysis.parsedStudents || []
     duplicates.value = analysis.duplicates || []
     duplicateCount.value = analysis.duplicateCount || 0
+    schoolWarnings.value = analysis.schoolWarnings || []
     
     step.value = 2
   } catch (error) {
@@ -256,5 +272,13 @@ const submitConfirm = async () => {
 }
 .mt-3 {
   margin-top: 1rem;
+}
+.school-resolved {
+  color: var(--p-green-600);
+  font-size: 0.85rem;
+}
+.school-unresolved {
+  color: #ef4444;
+  font-size: 0.85rem;
 }
 </style>
