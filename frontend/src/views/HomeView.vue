@@ -1,4 +1,3 @@
-
 <template>
   <div class="home">
     <div class="home-header">
@@ -53,9 +52,9 @@
       <h2>Quick Actions</h2>
       <div class="action-grid">
         <Button label="View Students" icon="pi pi-graduation-cap" severity="info" outlined
-        @click="router.push('/students')" class="action-btn" />
+          @click="router.push('/students')" class="action-btn" />
         <Button label="Add New Student" icon="pi pi-user-plus" outlined @click="router.push('/students')"
-        class="action-btn" />
+          class="action-btn" />
       </div>
     </div>
   </div>
@@ -82,23 +81,21 @@ const isStaff = computed(() => userRole.value === 'staff')
 
 onMounted(async () => {
   try {
-    // Fetch each stat independently so one 403 doesn't break others
     try {
       const studentsRes = await getAllStudents()
       studentCount.value = studentsRes.pagination?.totalCount || 0
-    } catch { /* staff may lack permission */ }
+    } catch { }
 
     try {
       const inquiriesRes = await getAllInquiries()
       inquiryCount.value = inquiriesRes.pagination?.totalCount || 0
-    } catch { /* staff may lack permission */ }
+    } catch { }
 
-    // Only fetch accounts for non-staff roles
     if (!isStaff.value) {
       try {
         const accounts = await getAllAccounts()
         accountCount.value = accounts.length
-      } catch { /* ignore */ }
+      } catch {}
     }
   } finally {
     loading.value = false
