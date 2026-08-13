@@ -6,7 +6,7 @@ export function useSourceData() {
   const sourceDetails = ref([])
   const approachMethods = ref([])
   const loadingSources = ref(false)
-  const loadingDetails = ref(false)
+  const loadingSourceDetails = ref(false)
   const loadingMethods = ref(false)
 
   const fetchSources = async () => {
@@ -25,13 +25,13 @@ export function useSourceData() {
       sourceDetails.value = []
       return
     }
-    loadingDetails.value = true
+    loadingSourceDetails.value = true
     try {
       sourceDetails.value = await getChildrenById(sourceId)
     } catch {
       sourceDetails.value = []
     } finally {
-      loadingDetails.value = false
+      loadingSourceDetails.value = false
     }
   }
 
@@ -55,7 +55,7 @@ export function useSourceData() {
     sourceDetails,
     approachMethods,
     loadingSources,
-    loadingDetails,
+    loadingSourceDetails,
     loadingMethods,
     fetchSources,
     fetchSourceDetails,

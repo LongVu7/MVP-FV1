@@ -53,13 +53,10 @@ const studentAssignRef = ref(null)
 const accountAssignRef = ref(null)
 
 const inquiryForm = ref({
-  statusInteraction: null,
-  statusGeneral: null,
-  statusDetail: null,
+  statusDataId: null,
   priority: '',
   description: '',
   dataReceived: null,
-  dataSource: null,
   sourceDataId: null
 })
 

@@ -21,28 +21,16 @@
         <div class="card-header">
           <h2><i class="pi pi-info-circle"></i> Inquiry Details</h2>
         </div>
-        <InquiryForm v-model="inquiryForm" :initialSourceDataId="initialSourceDataId" />
+        <InquiryForm v-model="inquiryForm" :initialSourceDataId="initialSourceDataId" :initialStatusDataId="initialStatusDataId" />
       </div>
 
-      <InquiryStudentAssign 
-        ref="studentAssignRef" 
-        :initialStudent="linkedStudent" 
-        @remove-student="handleRemoveStudent"
-      />
-      
-      <InquiryAccountAssign 
-        ref="accountAssignRef" 
-        :initialAccount="selectedStaff" 
-      />
+      <InquiryStudentAssign ref="studentAssignRef" :initialStudent="linkedStudent"
+        @remove-student="handleRemoveStudent" />
+
+      <InquiryAccountAssign ref="accountAssignRef" :initialAccount="selectedStaff" />
 
       <div class="global-actions">
-        <Button 
-          label="Update Inquiry" 
-          icon="pi pi-check" 
-          size="large" 
-          @click="submitGlobal" 
-          :loading="isSubmitting" 
-        />
+        <Button label="Update Inquiry" icon="pi pi-check" size="large" @click="submitGlobal" :loading="isSubmitting" />
       </div>
     </div>
   </div>
@@ -76,21 +64,20 @@ const loading = ref(true)
 const notFound = ref(false)
 const isSubmitting = ref(false)
 const initialSourceDataId = ref(null)
+const initialStatusDataId = ref(null)
 
 onMounted(async () => {
   try {
     const data = await fetchInquiryById(route.params.id)
     inquiryForm.value = {
-      statusInteraction: data.statusInteraction || null,
-      statusGeneral: data.statusGeneral || null,
-      statusDetail: data.statusDetail || null,
+      statusDataId: data.statusDataId || null,
       priority: data.priority || '',
       description: data.description || '',
       dataReceived: data.dataReceived ? new Date(data.dataReceived) : null,
-      dataSource: data.dataSource || null,
       sourceDataId: data.sourceDataId || null
     }
     initialSourceDataId.value = data.sourceDataId || null
+    initialStatusDataId.value = data.statusDataId || null
     linkedStudent.value = data.student || null
     if (data.assignedTo) {
       selectedStaff.value = data.assignedTo
@@ -112,7 +99,7 @@ const submitGlobal = async () => {
 
   // Build inquiry payload — include null for nullable fields so backend can clear them
   const payload = {}
-  const nullableFields = ['statusInteraction', 'statusGeneral', 'statusDetail', 'dataSource', 'sourceDataId', 'dataReceived', 'regional', 'groupTele']
+  const nullableFields = ['statusDataId', 'sourceDataId', 'dataReceived', 'regional', 'groupTele']
   for (const [key, value] of Object.entries(inquiryForm.value)) {
     if (value !== '' && value !== null && value !== undefined) {
       payload[key] = value
@@ -162,21 +149,59 @@ const handleRemoveStudent = async (studentId) => {
 </script>
 
 <style scoped>
-.inquiry-detail-view { padding: 1.5rem 2rem; max-width: 1000px; margin: 0 auto; }
-.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; }
-.page-header h1 { font-size: 1.5rem; font-weight: 700; margin: 0; color: var(--p-text-color); }
-.loading-state, .empty-state { display: flex; flex-direction: column; align-items: center; padding: 4rem; gap: 0.75rem; color: var(--p-text-muted-color); }
-.empty-state i { font-size: 3rem; color: var(--p-orange-400); }
-.empty-state h3 { margin: 0 0 1rem 0; color: var(--p-text-color); }
+.inquiry-detail-view {
+  padding: 1.5rem 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
 
-.cards-container { display: flex; flex-direction: column; gap: 1.5rem; margin-bottom: 2rem; }
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
 
-.section-card { 
-  background: var(--p-content-background); 
-  border: 1px solid var(--p-surface-200); 
-  border-radius: 12px; 
-  padding: 1.5rem; 
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06); 
+.page-header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--p-text-color);
+}
+
+.loading-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4rem;
+  gap: 0.75rem;
+  color: var(--p-text-muted-color);
+}
+
+.empty-state i {
+  font-size: 3rem;
+  color: var(--p-orange-400);
+}
+
+.empty-state h3 {
+  margin: 0 0 1rem 0;
+  color: var(--p-text-color);
+}
+
+.cards-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.section-card {
+  background: var(--p-content-background);
+  border: 1px solid var(--p-surface-200);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
 }
 
 .card-header {

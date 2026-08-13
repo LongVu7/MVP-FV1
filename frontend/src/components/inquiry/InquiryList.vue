@@ -41,21 +41,15 @@
           <span v-else class="null-text">—</span>
         </template>
       </Column>
-      <Column field="statusGeneral" header="Status" sortable style="width: 120px">
+      <Column header="Status" style="min-width: 220px">
         <template #body="{ data }">
-          <Tag v-if="data.statusGeneral" :value="data.statusGeneral" :severity="statusSeverity(data.statusGeneral)" />
+          <span v-if="data.statusData" class="status-breadcrumb">{{ formatStatusBreadcrumb(data.statusData) }}</span>
           <span v-else class="null-text">—</span>
         </template>
       </Column>
       <Column field="priority" header="Priority" sortable style="width: 100px">
         <template #body="{ data }">
           <span v-if="data.priority">{{ data.priority }}</span>
-          <span v-else class="null-text">—</span>
-        </template>
-      </Column>
-      <Column field="statusInteraction" header="Interaction" sortable style="width: 130px">
-        <template #body="{ data }">
-          <Tag v-if="data.statusInteraction" :value="data.statusInteraction" :severity="interactionSeverity(data.statusInteraction)" />
           <span v-else class="null-text">—</span>
         </template>
       </Column>
@@ -99,7 +93,6 @@ import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
-import Tag from 'primevue/tag'
 import ConfirmDialog from 'primevue/confirmdialog'
 import { useConfirm } from 'primevue/useconfirm'
 
@@ -150,14 +143,20 @@ const formatDate = (dateStr) => {
   return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
-const statusSeverity = (status) => {
-  const map = { new: 'info', assigned: 'warn', inProcess: 'warn', converted: 'success', dead: 'danger' }
-  return map[status] || 'secondary'
-}
-
-const interactionSeverity = (interaction) => {
-  const map = { pending: 'warn', wrongNumber: 'danger', future: 'info', interacted: 'success', notInteracted: 'secondary', notInterested: 'danger' }
-  return map[interaction] || 'secondary'
+const formatStatusBreadcrumb = (statusData) => {
+  if (!statusData) return '—'
+  const chain = []
+  if (statusData.level === 'interaction') {
+    chain.push(statusData.label)
+  } else if (statusData.level === 'general') {
+    if (statusData.parent) chain.push(statusData.parent.label)
+    chain.push(statusData.label)
+  } else if (statusData.level === 'detail') {
+    if (statusData.parent?.parent) chain.push(statusData.parent.parent.label)
+    if (statusData.parent) chain.push(statusData.parent.label)
+    chain.push(statusData.label)
+  }
+  return chain.join(' → ')
 }
 </script>
 
@@ -168,6 +167,7 @@ const interactionSeverity = (interaction) => {
 .null-text { color: var(--p-text-muted-color); }
 .desc-text { font-size: 0.88rem; }
 .date-text { font-size: 0.85rem; color: var(--p-text-muted-color); }
+.status-breadcrumb { font-size: 0.88rem; font-weight: 500; color: var(--p-text-color); }
 .action-buttons { display: flex; gap: 0.25rem; }
 .empty-state { display: flex; flex-direction: column; align-items: center; padding: 3rem 1rem; gap: 0.5rem; color: var(--p-text-muted-color); }
 .empty-state i { font-size: 3rem; margin-bottom: 0.5rem; opacity: 0.4; }

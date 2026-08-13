@@ -18,7 +18,12 @@
             <Column field="student.fullName" header="Student Name"></Column>
             <Column field="student.email" header="Email"></Column>
             <Column field="student.mobile" header="Mobile"></Column>
-            <Column field="statusGeneral" header="Status"></Column>
+            <Column header="Status">
+                <template #body="{ data }">
+                    <span v-if="data.statusData">{{ data.statusData.label }}</span>
+                    <span v-else>—</span>
+                </template>
+            </Column>
         </DataTable>
 
         <template #footer>

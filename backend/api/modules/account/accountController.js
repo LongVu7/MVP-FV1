@@ -58,7 +58,12 @@ const getAccountById = async (req, res) => {
           select: { id: true, name: true }
         },
         inquiries: {
-          select: { id: true, statusGeneral: true, statusDetail: true }
+          select: { 
+            id: true, 
+            statusData: {
+              select: { id: true, label: true, name: true, level: true }
+            }
+          }
         }
       }
     });

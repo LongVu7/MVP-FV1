@@ -4,19 +4,14 @@ model Inquiry {
 
   assignedToId Int? @map("assigned_to_id")
 
-  statusInteraction String? @map("status_interaction") @db.VarChar(100)
-
-  statusGeneral String? @map("status_general") @db.VarChar(100)
-
-  statusDetail String? @map("status_detail") @db.VarChar(255)
+  statusDataId Int?        @map("status_data_id")
+  statusData   StatusData? @relation(fields: [statusDataId], references: [id])
 
   priority String? @db.VarChar(50)
 
   description String?
 
   dataReceived DateTime? @map("data_received") @db.Date
-
-  dataSource String? @map("data_source") @db.VarChar(255)
 
   sourceDataId Int?        @map("source_data_id")
   sourceData   SourceData? @relation(fields: [sourceDataId], references: [id])
@@ -42,21 +37,6 @@ model Inquiry {
   @@map("inquiry")
 }
 
-enum DataSource {
-  webGame
-  holland
-  roadShowCity
-  roadShowProvince
-  acquireCity
-  acquireProvince
-  cityInquiry
-  provinceInquiry
-  partnership
-  income
-  openDayInquiry
-  eventInquiry
-  activeContact
-}
 
 enum Regional {
   kv1

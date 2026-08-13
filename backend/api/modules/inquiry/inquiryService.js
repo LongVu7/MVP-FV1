@@ -16,15 +16,29 @@ const inquiryInclude = {
   },
   sourceData: {
     select: { id: true, name: true, level: true }
+  },
+  statusData: {
+    select: {
+      id: true, name: true, label: true, level: true,
+      parent: {
+        select: {
+          id: true, name: true, label: true, level: true,
+          parent: {
+            select: { id: true, name: true, label: true, level: true }
+          }
+        }
+      }
+    }
   }
 };
 
 
-const buildInquiryData = ({ assignedToId, sourceDataId, dataReceived, ...rest }) => ({
+const buildInquiryData = ({ assignedToId, sourceDataId, statusDataId, dataReceived, ...rest }) => ({
   ...rest,
   ...(dataReceived  && { dataReceived: new Date(dataReceived) }),
   ...(assignedToId  && { assignedTo: { connect: { id: parseInt(assignedToId, 10) } } }),
-  ...(sourceDataId  && { sourceData: { connect: { id: parseInt(sourceDataId, 10) } } })
+  ...(sourceDataId  && { sourceData: { connect: { id: parseInt(sourceDataId, 10) } } }),
+  ...(statusDataId  && { statusData: { connect: { id: parseInt(statusDataId, 10) } } })
 });
 
 
@@ -179,7 +193,7 @@ const _createAlone = async (inquiryData) => {
 
 // ─── Update inquiry
 const updateInquiry = async (id, updateData) => {
-  const { sourceDataId, assignedToId, ...rest } = updateData;
+  const { sourceDataId, statusDataId, assignedToId, ...rest } = updateData;
 
   const data = {
     ...rest,
@@ -198,6 +212,13 @@ const updateInquiry = async (id, updateData) => {
   if (sourceDataId !== undefined) {
     data.sourceData = sourceDataId
       ? { connect: { id: parseInt(sourceDataId, 10) } }
+      : { disconnect: true };
+  }
+
+  // Handle statusDataId: connect or disconnect
+  if (statusDataId !== undefined) {
+    data.statusData = statusDataId
+      ? { connect: { id: parseInt(statusDataId, 10) } }
       : { disconnect: true };
   }
 
