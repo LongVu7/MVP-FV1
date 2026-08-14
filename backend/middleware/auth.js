@@ -30,6 +30,13 @@ const authenticate = async (req, res, next) => {
               select: { permission: { select: { code: true } } }
             }
           }
+        },
+        group: {
+          select: {
+            permissions: {
+              select: { permission: { select: { code: true } } }
+            }
+          }
         }
       }
     });
@@ -38,14 +45,16 @@ const authenticate = async (req, res, next) => {
       return res.status(401).json({ error: 'Account not found or deactivated' });
     }
 
+    // Merge permissions from Role and Group into a single Set
+    const rolePermissions = (account.role?.permissions || []).map(rp => rp.permission.code);
+    const groupPermissions = (account.group?.permissions || []).map(gp => gp.permission.code);
+
     req.user = {
       accountId: account.id,
       email: account.email,
       fullName: account.fullName,
       roleName: account.role?.name || null,
-      permissions: new Set(
-        (account.role?.permissions || []).map(rp => rp.permission.code)
-      )
+      permissions: new Set([...rolePermissions, ...groupPermissions])
     };
 
     next();

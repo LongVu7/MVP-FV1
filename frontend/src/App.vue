@@ -73,8 +73,9 @@ const navItems = computed(() => {
 
   items.push({ label: 'Groups', icon: 'pi pi-folder', to: '/groups' });
 
-  // Accounts only for Admin
+  // Accounts and Roles only for Admin
   if (role === 'admin') {
+    items.push({ label: 'Roles', icon: 'pi pi-shield', to: '/roles' });
     items.push({ label: 'Accounts', icon: 'pi pi-users', to: '/accounts' });
   }
   

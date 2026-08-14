@@ -76,7 +76,8 @@ const loadGroupData = async () => {
     if (data) {
       existingGroup.value = {
         name: data.name || '',
-        groupLeaderId: data.groupLeaderId || null
+        groupLeaderId: data.groupLeaderId || null,
+        permissionIds: data.permissionIds || []
       }
       linkedMembers.value = data.accounts || []
     } else {

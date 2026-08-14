@@ -22,6 +22,12 @@
       </div>
     </div>
 
+    <div class="form-section">
+      <h3><i class="pi pi-shield"></i> Group Privileges (Optional)</h3>
+      <p class="section-hint">Assign additional privileges to all members of this group.</p>
+      <PermissionMatrix v-model="form.permissionIds" />
+    </div>
+
     <div class="form-actions">
       <Button type="submit" :label="buttonText" icon="pi pi-check" :loading="isSubmitting" />
     </div>
@@ -33,6 +39,7 @@ import { ref, watch, computed } from 'vue'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
 import Button from 'primevue/button'
+import PermissionMatrix from '@/components/shared/PermissionMatrix.vue'
 
 const props = defineProps({
   group: { type: Object, required: true },
@@ -43,11 +50,11 @@ const props = defineProps({
 
 const emit = defineEmits(['submit'])
 
-const form = ref({ ...props.group })
+const form = ref({ ...props.group, permissionIds: [...(props.group.permissionIds || [])] })
 const errors = ref({})
 
 watch(() => props.group, (newVal) => {
-  form.value = { ...newVal }
+  form.value = { ...newVal, permissionIds: [...(newVal.permissionIds || [])] }
   errors.value = {}
 }, { deep: true })
 
@@ -71,6 +78,7 @@ const getPayload = () => {
   const payload = {}
   payload.name = form.value.name.trim()
   payload.groupLeaderId = form.value.groupLeaderId || null
+  payload.permissionIds = form.value.permissionIds || []
   return payload
 }
 
@@ -119,6 +127,26 @@ const onSubmit = () => {
   display: flex;
   justify-content: flex-end;
   margin-top: 0.5rem;
+}
+
+.form-section h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--p-text-color);
+}
+
+.form-section h3 i {
+  color: var(--p-primary-color);
+}
+
+.section-hint {
+  font-size: 0.82rem;
+  color: var(--p-text-muted-color);
+  margin: 0 0 0.75rem 0;
 }
 
 @media (max-width: 640px) {

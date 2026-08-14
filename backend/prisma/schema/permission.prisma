@@ -7,6 +7,7 @@ model Permission {
   description String?
 
   roles       RolePermission[]
+  groups      GroupPermission[]
 
   @@map("permission")
 }
@@ -20,4 +21,15 @@ model RolePermission {
 
   @@id([roleId, permissionId])
   @@map("role_permission")
+}
+
+model GroupPermission {
+  groupId      Int @map("group_id")
+  permissionId Int @map("permission_id")
+
+  group      UserGroup  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([groupId, permissionId])
+  @@map("group_permission")
 }

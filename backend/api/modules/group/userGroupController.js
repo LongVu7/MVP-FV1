@@ -26,11 +26,13 @@ const getAllGroups = async (req, res) => {
 const getGroupById = async (req, res) => {
   try {
     const data = await userGroupService.getGroupById(req.params.id);
+    // Flatten permission IDs for frontend render
+    const permissionIds = (data.permissions || []).map(gp => gp.permissionId);
     res.status(200).json({
       message: 'Get group by ID successfully',
       requestedByRole: req.user?.roleName,
       requestedByAccountId: req.user?.accountId,
-      data
+      data: { ...data, permissionIds }
     });
   } catch (error) {
     handleError(res, error);
@@ -40,8 +42,8 @@ const getGroupById = async (req, res) => {
 // ─── Create group
 const createGroup = async (req, res) => {
   try {
-    const { name, groupLeaderId } = req.body;
-    const data = await userGroupService.createGroup(name, groupLeaderId, req.user);
+    const { name, groupLeaderId, permissionIds } = req.body;
+    const data = await userGroupService.createGroup(name, groupLeaderId, req.user, permissionIds);
     res.status(201).json({
       message: 'Group created successfully',
       requestedByRole: req.user?.roleName,
@@ -56,8 +58,8 @@ const createGroup = async (req, res) => {
 // ─── Update group
 const updateGroup = async (req, res) => {
   try {
-    const { name, groupLeaderId } = req.body;
-    const data = await userGroupService.updateGroup(req.params.id, { name, groupLeaderId });
+    const { name, groupLeaderId, permissionIds } = req.body;
+    const data = await userGroupService.updateGroup(req.params.id, { name, groupLeaderId, permissionIds });
     res.status(200).json({
       message: 'Group updated successfully',
       requestedByRole: req.user?.roleName,

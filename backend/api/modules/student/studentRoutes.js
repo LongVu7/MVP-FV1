@@ -13,10 +13,10 @@ router.route('/')
     .post(authenticate, authorize('student.create'), validateBody(createStudentSchema), studentController.createStudent);
 
 router.route('/import/preview')
-    .post(authenticate, authorize('student.create'), upload.array('files'), studentController.previewImport);
+    .post(authenticate, authorize('student.import'), upload.array('files'), studentController.previewImport);
 
 router.route('/import/confirm')
-    .post(authenticate, authorize('student.create'), validateBody(importStudentsPayloadSchema), studentController.confirmImport);
+    .post(authenticate, authorize('student.import'), validateBody(importStudentsPayloadSchema), studentController.confirmImport);
 
 router.route('/:id')
     .get(authenticate, authorize('student.read'), validateParams(idParamSchema), studentController.getStudentById)

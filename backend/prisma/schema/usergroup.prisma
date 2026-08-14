@@ -10,6 +10,7 @@ model UserGroup {
   createdBy   Account? @relation("GroupCreator", fields: [createdById], references: [id], onDelete: SetNull)
 
   accounts Account[]
+  permissions GroupPermission[]
 
   @@map("user_group")
 }

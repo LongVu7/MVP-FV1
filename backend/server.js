@@ -18,6 +18,7 @@ const statusDataRoutes = require('./api/modules/statusData/statusDataRoutes');
 const campaignRoutes = require('./api/modules/campaign/campaignRoutes');
 const errorReportRoutes = require('./api/modules/errorReport/errorReportRoutes');
 const majorDataRoutes = require('./api/modules/majorData/majorDataRoutes');
+const permissionRoutes = require('./api/modules/permission/permissionRoutes');
 
 const app = express();
 const port = process.env.PORT || 3003;
@@ -48,6 +49,7 @@ app.use('/api/status-data', statusDataRoutes);
 app.use('/api/major-data', majorDataRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/error-reports', errorReportRoutes);
+app.use('/api/permissions', permissionRoutes);
 
 app.listen(port);
 

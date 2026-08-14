@@ -23,6 +23,9 @@ const groupIncludeWithRole = {
       isActive: true,
       role: { select: { id: true, name: true } }
     }
+  },
+  permissions: {
+    include: { permission: true }
   }
 };
 
@@ -55,7 +58,7 @@ const getGroupById = async (id) => {
 };
 
 // ─── Create group
-const createGroup = async (name, groupLeaderId, user) => {
+const createGroup = async (name, groupLeaderId, user, permissionIds) => {
   if (!name?.trim()) {
     const err = new Error('Group name is required');
     err.status = 400;
@@ -73,18 +76,34 @@ const createGroup = async (name, groupLeaderId, user) => {
     }
   }
 
-  return prisma.userGroup.create({
-    data: { 
-      name: name.trim(),
-      ...(leaderId && { groupLeader: { connect: { id: leaderId } } }),
-      ...(user.accountId && { createdBy: { connect: { id: user.accountId } } })
-    },
-    include: groupInclude
+  return prisma.$transaction(async (tx) => {
+    const group = await tx.userGroup.create({
+      data: { 
+        name: name.trim(),
+        ...(leaderId && { groupLeader: { connect: { id: leaderId } } }),
+        ...(user.accountId && { createdBy: { connect: { id: user.accountId } } })
+      }
+    });
+
+    // Link permissions if provided
+    if (Array.isArray(permissionIds) && permissionIds.length > 0) {
+      await tx.groupPermission.createMany({
+        data: permissionIds.map(pid => ({
+          groupId: group.id,
+          permissionId: Number(pid)
+        }))
+      });
+    }
+
+    return tx.userGroup.findUnique({
+      where: { id: group.id },
+      include: groupInclude
+    });
   });
 };
 
-// ─── Update group (name and/or leader)
-const updateGroup = async (id, { name, groupLeaderId }) => {
+// ─── Update group (name, leader, and/or permissions)
+const updateGroup = async (id, { name, groupLeaderId, permissionIds }) => {
   const existing = await prisma.userGroup.findUnique({ where: { id: Number(id) } });
   if (!existing) {
     const err = new Error('Group not found');
@@ -101,18 +120,37 @@ const updateGroup = async (id, { name, groupLeaderId }) => {
     }
   }
 
-  const updateData = {};
-  if (name !== undefined) updateData.name = name.trim();
-  if (groupLeaderId !== undefined) {
-    updateData.groupLeader = groupLeaderId 
-      ? { connect: { id: Number(groupLeaderId) } } 
-      : { disconnect: true };
-  }
+  return prisma.$transaction(async (tx) => {
+    const updateData = {};
+    if (name !== undefined) updateData.name = name.trim();
+    if (groupLeaderId !== undefined) {
+      updateData.groupLeader = groupLeaderId 
+        ? { connect: { id: Number(groupLeaderId) } } 
+        : { disconnect: true };
+    }
 
-  return prisma.userGroup.update({
-    where: { id: Number(id) },
-    data: updateData,
-    include: groupInclude
+    await tx.userGroup.update({
+      where: { id: Number(id) },
+      data: updateData
+    });
+
+    // Replace permission links if provided
+    if (Array.isArray(permissionIds)) {
+      await tx.groupPermission.deleteMany({ where: { groupId: Number(id) } });
+      if (permissionIds.length > 0) {
+        await tx.groupPermission.createMany({
+          data: permissionIds.map(pid => ({
+            groupId: Number(id),
+            permissionId: Number(pid)
+          }))
+        });
+      }
+    }
+
+    return tx.userGroup.findUnique({
+      where: { id: Number(id) },
+      include: groupInclude
+    });
   });
 };
 

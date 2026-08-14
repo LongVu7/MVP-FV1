@@ -73,6 +73,24 @@ const router = createRouter({
       component: () => import('../views/group/GroupDetail.vue'),
     },
     {
+      path: '/roles',
+      name: 'roles',
+      component: () => import('../views/role/RoleList.vue'),
+      meta: { requiresAdmin: true }
+    },
+    {
+      path: '/roles/new',
+      name: 'role-new',
+      component: () => import('../views/role/RoleNew.vue'),
+      meta: { requiresAdmin: true }
+    },
+    {
+      path: '/roles/:id',
+      name: 'role-detail',
+      component: () => import('../views/role/RoleDetail.vue'),
+      meta: { requiresAdmin: true }
+    },
+    {
       path: '/schools',
       name: 'schools',
       component: () => import('../views/school/School.vue'),
