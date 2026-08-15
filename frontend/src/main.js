@@ -22,8 +22,17 @@ const app = createApp(App)
 const pinia = createPinia()
 app.use(pinia)
 
+import { abilitiesPlugin } from '@casl/vue'
+import { ability } from '@/services/ability'
+import api, { setupInterceptors } from '@/helpers/helper'
+
+app.use(abilitiesPlugin, ability, { useGlobalProperties: true })
+
 import { useAuthStore } from '@/stores/auth'
 const authStore = useAuthStore(pinia)
+
+// Setup Axios interceptors with dependencies injected
+setupInterceptors(api, authStore, router, ability)
 
 // Check auth state before mounting app and router
 authStore.checkAuth().finally(() => {

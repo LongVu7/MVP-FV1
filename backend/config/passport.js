@@ -9,7 +9,18 @@ module.exports = (passport) => {
       try {
         const account = await prisma.account.findFirst({
           where: { email },
-          include: { role: { select: { name: true } } }
+          include: {
+            role: {
+              include: {
+                permissions: { include: { permission: true } }
+              }
+            },
+            group: {
+              include: {
+                permissions: { include: { permission: true } }
+              }
+            }
+          }
         });
 
         if (!account) {

@@ -53,34 +53,31 @@ import { useAuthStore } from '@/stores/auth'
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
+import { useAbility } from '@casl/vue'
+import { parsePermission } from '@/services/ability'
+
+const { can } = useAbility()
 const sidebarCollapsed = ref(false)
 
-const navItems = computed(() => {
-  const role = authStore.user?.roleName || '';
-  
-  const items = [
-    { label: 'Home', icon: 'pi pi-home', to: '/' },
-    { label: 'Students', icon: 'pi pi-graduation-cap', to: '/students' },
-    { label: 'Inquiries', icon: 'pi pi-ticket', to: '/inquiries' },
-    { label: 'Schools', icon: 'pi pi-building', to: '/schools' },
-    { label: 'Reports', icon: 'pi pi-flag', to: '/reports' }
-  ];
+const navigationItems = [
+  { label: 'Home',       icon: 'pi pi-home',           to: '/',           permission: null },
+  { label: 'Students',   icon: 'pi pi-graduation-cap', to: '/students',   permission: 'student.read' },
+  { label: 'Inquiries',  icon: 'pi pi-ticket',         to: '/inquiries',  permission: 'inquiry.read' },
+  { label: 'Schools',    icon: 'pi pi-building',        to: '/schools',    permission: 'school.read' },
+  { label: 'Reports',    icon: 'pi pi-flag',            to: '/reports',    permission: null },
+  { label: 'Campaigns',  icon: 'pi pi-send',            to: '/campaigns',  permission: 'campaign.read' },
+  { label: 'Groups',     icon: 'pi pi-folder',          to: '/groups',     permission: 'group.read' },
+  { label: 'Roles',      icon: 'pi pi-shield',          to: '/roles',      permission: 'role.read' },
+  { label: 'Accounts',   icon: 'pi pi-users',           to: '/accounts',   permission: 'account.read' },
+]
 
-  // Campaigns available to Admin and Manager
-  if (role !== 'staff') {
-    items.push({ label: 'Campaigns', icon: 'pi pi-send', to: '/campaigns' });
-  }
-
-  items.push({ label: 'Groups', icon: 'pi pi-folder', to: '/groups' });
-
-  // Accounts and Roles only for Admin
-  if (role === 'admin') {
-    items.push({ label: 'Roles', icon: 'pi pi-shield', to: '/roles' });
-    items.push({ label: 'Accounts', icon: 'pi pi-users', to: '/accounts' });
-  }
-  
-  return items;
-})
+const navItems = computed(() =>
+  navigationItems.filter(item => {
+    if (!item.permission) return true
+    const { action, subject } = parsePermission(item.permission)
+    return can(action, subject)
+  })
+)
 
 function toggleSidebar() {
   sidebarCollapsed.value = !sidebarCollapsed.value

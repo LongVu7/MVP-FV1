@@ -1,0 +1,33 @@
+const lookupDependencies = {
+  'school.options':      ['school.read', 'student.create', 'student.update'],
+  'status_data.read':    ['status_data.read', 'inquiry.create', 'inquiry.update'],
+  'source_data.read':    ['source_data.read', 'inquiry.create', 'inquiry.update'],
+  'major_data.read':     ['major_data.read', 'student.create', 'student.update'],
+  'city.read':           ['city.read', 'student.create', 'student.update'],
+}
+
+const authorizeLookup = (lookupKey) => (req, res, next) => {
+  const allowed = lookupDependencies[lookupKey]
+  if (!allowed) {
+    return res.status(500).json({ error: `Unknown lookup key: ${lookupKey}` })
+  }
+  
+  if (!req.user || !req.user.permissions) {
+    return res.status(403).json({
+      error: 'Forbidden',
+      reason: 'NO_PERMISSIONS',
+      message: 'No permissions found for this user'
+    })
+  }
+
+  if (allowed.some(p => req.user.permissions.has(p))) return next()
+  
+  return res.status(403).json({
+    error: 'Forbidden',
+    reason: 'MISSING_LOOKUP_PERMISSION',
+    requiredAnyOf: allowed,
+    message: `You need one of: ${allowed.join(', ')}`
+  })
+}
+
+module.exports = { lookupDependencies, authorizeLookup }

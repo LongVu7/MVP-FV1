@@ -35,7 +35,7 @@
       </div>
 
       <!-- Staff Card -->
-      <div class="stat-card" @click="router.push('/accounts')">
+      <div class="stat-card" @click="router.push('/accounts')" v-if="$can('read', 'account')">
         <div class="stat-icon stat-icon--staff">
           <i class="pi pi-users"></i>
         </div>
@@ -53,8 +53,8 @@
       <div class="action-grid">
         <Button label="View Students" icon="pi pi-graduation-cap" severity="info" outlined
           @click="router.push('/students')" class="action-btn" />
-        <Button label="Add New Student" icon="pi pi-user-plus" outlined @click="router.push('/students')"
-          class="action-btn" />
+        <Button label="Add New Student" icon="pi pi-user-plus" outlined @click="router.push('/students/new')"
+          class="action-btn" v-if="$can('create', 'student')" />
       </div>
     </div>
   </div>
@@ -68,6 +68,7 @@ import { getAllStudents } from '@/helpers/studentHelper'
 import { getAllInquiries } from '@/helpers/inquiryHelper'
 import { getAllAccounts } from '@/helpers/accountHelper'
 import { useAuthStore } from '@/stores/auth'
+import { useAbility } from '@casl/vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -75,9 +76,7 @@ const loading = ref(true)
 const studentCount = ref(0)
 const inquiryCount = ref(0)
 const accountCount = ref(0)
-
-const userRole = computed(() => authStore.user?.roleName || '')
-const isStaff = computed(() => userRole.value === 'staff')
+const { can } = useAbility()
 
 onMounted(async () => {
   try {
@@ -91,7 +90,7 @@ onMounted(async () => {
       inquiryCount.value = inquiriesRes.pagination?.totalCount || 0
     } catch { }
 
-    if (!isStaff.value) {
+    if (can('read', 'account')) {
       try {
         const accounts = await getAllAccounts()
         accountCount.value = accounts.length

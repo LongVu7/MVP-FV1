@@ -1,5 +1,6 @@
 const passport = require('passport');
 const jwt = require('jsonwebtoken');
+const { resolveEffectivePermissions } = require('../../../utils/resolvePermissions');
 
 // ─── Login
 const login = (req, res, next) => {
@@ -42,7 +43,8 @@ const login = (req, res, next) => {
         id: account.id,
         email: account.email,
         fullName: account.fullName,
-        roleName: account.role?.name || null
+        roleName: account.role?.name || null,
+        permissions: resolveEffectivePermissions(account)
       }
     });
   })(req, res, next);
@@ -61,7 +63,8 @@ const getMe = (req, res) => {
       id: req.user.accountId,
       email: req.user.email,
       fullName: req.user.fullName,
-      roleName: req.user.roleName
+      roleName: req.user.roleName,
+      permissions: Array.from(req.user.permissions || [])
     }
   });
 };
@@ -92,7 +95,8 @@ const refreshToken = (req, res) => {
       id: req.user.accountId,
       email: req.user.email,
       fullName: req.user.fullName,
-      roleName: req.user.roleName
+      roleName: req.user.roleName,
+      permissions: Array.from(req.user.permissions || [])
     }
   });
 };

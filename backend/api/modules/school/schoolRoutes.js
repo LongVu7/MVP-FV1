@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { authenticate } = require('../../../middleware/auth');
 const authorize = require('../../../middleware/authorize');
+const { authorizeLookup } = require('../../../authorization/lookupPolicy');
 const { validateBody, validateParams } = require('../../../middleware/validate');
 const { idParamSchema } = require('../../../schemas/commonSchemas');
 const { createSchoolSchema, updateSchoolSchema } = require('./schoolSchemas');
@@ -12,7 +13,7 @@ router.route('/')
     .post(authenticate, authorize('school.create'), validateBody(createSchoolSchema), schoolController.createSchool);
 
 router.route('/options')
-    .get(authenticate, authorize('school.read'), schoolController.getSchoolOptions);
+    .get(authenticate, authorizeLookup('school.options'), schoolController.getSchoolOptions);
 
 router.route('/statistics')
     .get(authenticate, authorize('school.read'), schoolController.getStatistics);
