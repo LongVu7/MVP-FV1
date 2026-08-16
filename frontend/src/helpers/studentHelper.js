@@ -2,8 +2,14 @@ import api from './helper.js'
 
 const prefix = '/students'
 
-export const getAllStudents = async ({ page = 1, limit = 20, search = '' } = {}) => {
-  const response = await api.get(`${prefix}/`, { params: { page, limit, search } })
+export const getAllStudents = async (paramsObj = {}) => {
+  const { page = 1, limit = 20, search = '', sortField, sortOrder } = paramsObj
+  const params = { page, limit, search }
+  if (sortField) {
+    params.sortField = sortField
+    params.sortOrder = sortOrder
+  }
+  const response = await api.get(`${prefix}/`, { params })
   return response.data
 }
 

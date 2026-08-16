@@ -18,6 +18,7 @@
       @page-change="onPageChange"
       @search="onSearch"
       @delete="onDelete"
+      @sort="onSort"
     />
   </div>
 </template>
@@ -33,7 +34,7 @@ import { useToast } from 'primevue/usetoast'
 const { students, pagination, loading, fetchStudents, deleteStudent } = useStudent()
 const toast = useToast()
 
-const currentParams = ref({ page: 1, limit: 20, search: '' })
+const currentParams = ref({ page: 1, limit: 20, search: '', sortField: null, sortOrder: null })
 
 onMounted(async () => {
   await loadData()
@@ -55,6 +56,13 @@ const onPageChange = async ({ page, limit }) => {
 
 const onSearch = async (searchQuery) => {
   currentParams.value.search = searchQuery
+  currentParams.value.page = 1
+  await loadData()
+}
+
+const onSort = async ({ sortField, sortOrder }) => {
+  currentParams.value.sortField = sortField
+  currentParams.value.sortOrder = sortOrder
   currentParams.value.page = 1
   await loadData()
 }

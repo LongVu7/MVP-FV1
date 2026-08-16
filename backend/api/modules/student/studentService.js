@@ -51,13 +51,24 @@ const createStudent = async (data) => {
 
 
 // ─── Get all students
-const getAllStudents = async ({ page, limit, skip, search }) => {
+const getAllStudents = async ({ page, limit, skip, search, sortField, sortOrder }) => {
   const where = {};
   if (search) {
     where.OR = [
       { mobile: { contains: search, mode: 'insensitive' } },
-      { email: { contains: search, mode: 'insensitive' } }
+      { email: { contains: search, mode: 'insensitive' } },
+      { fullName: { contains: search, mode: 'insensitive' } }
     ];
+  }
+
+  let orderBy = { createdAt: 'desc' };
+  if (sortField) {
+    const order = sortOrder === 1 ? 'asc' : 'desc';
+    if (sortField === 'school.name') {
+      orderBy = { school: { name: order } };
+    } else {
+      orderBy = { [sortField]: order };
+    }
   }
 
   const [students, totalCount] = await prisma.$transaction([
@@ -74,7 +85,7 @@ const getAllStudents = async ({ page, limit, skip, search }) => {
           }
         }
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy
     }),
     prisma.student.count({ where })
   ]);

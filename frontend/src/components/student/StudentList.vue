@@ -10,6 +10,7 @@
       :rowsPerPageOptions="[10, 20, 50, 100]"
       :loading="loading"
       @page="onPage"
+      @sort="onSort"
       dataKey="id"
       removableSort
       stripedRows
@@ -74,7 +75,7 @@
           <span v-else class="null-text">—</span>
         </template>
       </Column>
-      <Column header="School" sortable style="min-width: 160px">
+      <Column field="school.name" header="School" sortable style="min-width: 160px">
         <template #body="{ data }">
           <span v-if="data.school">{{ data.school.name }}</span>
           <span v-else class="null-text">—</span>
@@ -135,7 +136,7 @@ const props = defineProps({
   pagination: { type: Object, default: null }
 })
 
-const emit = defineEmits(['page-change', 'search', 'delete'])
+const emit = defineEmits(['page-change', 'search', 'delete', 'sort'])
 
 const router = useRouter()
 const confirm = useConfirm()
@@ -147,6 +148,10 @@ let searchTimeout = null
 const onPage = (event) => {
   const page = Math.floor(event.first / event.rows) + 1
   emit('page-change', { page, limit: event.rows })
+}
+
+const onSort = (event) => {
+  emit('sort', { sortField: event.sortField, sortOrder: event.sortOrder })
 }
 
 const onSearch = (e) => {
