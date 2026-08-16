@@ -42,9 +42,11 @@ const createStudentSchema = z.object({
   otherPhone: mobileString,
   birthDate: dateString.nullable().optional(),
   parentPhone: mobileString,
-  primaryAddressCity: z.string().max(255).nullable().optional(),
+  primaryAddress: z.string().max(255).nullable().optional(),
   schoolId: z.number().int().positive('schoolId must be a positive integer'),
-  specializedRegister: specializedRegisterSchema.optional()
+  specializedRegister: specializedRegisterSchema.optional(),
+  newSchoolCity: z.string().max(255).nullable().optional(),
+  schoolCountry: z.string().max(255).nullable().optional()
 }).strict();
 
 const updateStudentSchema = z.object({
@@ -55,9 +57,11 @@ const updateStudentSchema = z.object({
   otherPhone: mobileString,
   birthDate: dateString.nullable().optional(),
   parentPhone: mobileString,
-  primaryAddressCity: z.string().max(255).nullable().optional(),
+  primaryAddress: z.string().max(255).nullable().optional(),
   schoolId: z.number().int().positive('schoolId must be a positive integer'),
-  specializedRegister: specializedRegisterSchema.optional()
+  specializedRegister: specializedRegisterSchema.optional(),
+  newSchoolCity: z.string().max(255).nullable().optional(),
+  schoolCountry: z.string().max(255).nullable().optional()
 }).strict().refine(
   (data) => Object.keys(data).length > 0,
   { message: 'Request body cannot be empty' }
@@ -80,7 +84,7 @@ const importStudentSchema = z.object({
   otherPhone: mobileString,
   birthDate: dateString.optional(),
   parentPhone: mobileString,
-  primaryAddressCity: z.string().max(255).optional(),
+  primaryAddress: z.string().max(255).optional(),
   schoolId: z.preprocess(
     (val) => (val === '' || val === null ? null : (val === undefined ? undefined : Number(val))),
     z.number().int().positive('schoolId must be a positive integer').nullable().optional()
@@ -106,7 +110,9 @@ const importStudentSchema = z.object({
   specificMajor: z.any().optional(),
   // Excel-only columns for school name lookup (resolved to schoolId during preview)
   schoolCity: z.preprocess((val) => (val === '' ? undefined : val), z.string().max(255).optional()),
-  school: z.preprocess((val) => (val === '' ? undefined : val), z.string().max(255).optional())
+  school: z.preprocess((val) => (val === '' ? undefined : val), z.string().max(255).optional()),
+  newSchoolCity: z.string().max(255).nullable().optional(),
+  schoolCountry: z.string().max(255).nullable().optional()
 }).passthrough();
 
 const importStudentsPayloadSchema = z.object({

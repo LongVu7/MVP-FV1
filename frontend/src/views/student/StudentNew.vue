@@ -42,8 +42,10 @@ const studentTemplate = ref({
   otherPhone: '',
   birthDate: null,
   parentPhone: '',
-  primaryAddressCity: '',
+  primaryAddress: '',
   schoolId: null,
+  newSchoolCity: null,
+  schoolCountry: null,
   specializedRegister: {
     interestedMajor: '',
     specificMajor: '',

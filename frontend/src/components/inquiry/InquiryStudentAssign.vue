@@ -119,7 +119,9 @@ const newStudentForm = ref({
   otherPhone: '',
   parentPhone: '',
   birthDate: null,
-  primaryAddressCity: '',
+  primaryAddress: '',
+  newSchoolCity: null,
+  schoolCountry: null,
   specializedRegister: {
     interestedMajor: '',
     specificMajor: '',

@@ -39,11 +39,11 @@
     <div class="form-grid">
       <div class="form-field">
         <label for="sf-birthDate">Birth Date</label>
-        <DatePicker id="sf-birthDate" v-model="form.birthDate" dateFormat="yy-mm-dd" placeholder="Select date" :showIcon="true" fluid />
+        <DatePicker id="sf-birthDate" v-model="form.birthDate" dateFormat="dd-mm-yy" placeholder="Select date" :showIcon="true" fluid />
       </div>
       <div class="form-field">
-        <label for="sf-city">City</label>
-        <InputText id="sf-city" v-model="form.primaryAddressCity" placeholder="City name" fluid />
+        <label for="sf-primaryAddress">Primary address</label>
+        <InputText id="sf-primaryAddress" v-model="form.primaryAddress" placeholder="Primary address" fluid />
       </div>
     </div>
 
@@ -57,6 +57,17 @@
         <label for="sf-school">School <span class="required">*</span></label>
         <Select id="sf-school" v-model="form.schoolId" :options="schools" optionLabel="name" optionValue="id" placeholder="Select school" :loading="loadingSchools" :disabled="!selectedCityId" :invalid="!!errors.school" filter showClear fluid />
         <small v-if="errors.school" class="form-error">{{ errors.school }}</small>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="sf-newSchoolCity">New School City</label>
+        <Select id="sf-newSchoolCity" v-model="form.newSchoolCity" :options="newSchoolCityOptions" optionLabel="label" optionValue="value" placeholder="Select new city" filter showClear fluid />
+      </div>
+      <div class="form-field">
+        <label for="sf-schoolCountry">School Country</label>
+        <Select id="sf-schoolCountry" v-model="form.schoolCountry" :options="schoolCountryOptions" optionLabel="label" optionValue="value" placeholder="Select country" filter showClear fluid />
       </div>
     </div>
 
@@ -116,6 +127,7 @@ import DatePicker from 'primevue/datepicker'
 import Button from 'primevue/button'
 import { useSchoolOptions } from '@/composables/useSchoolOptions'
 import { useMajorOptions } from '@/composables/useMajorOptions'
+import { newSchoolCityOptions, schoolCountryOptions } from '@/helpers/schoolEnums'
 
 export default {
   name: 'StudentForm',
@@ -139,11 +151,13 @@ export default {
     return {
       form: { 
         ...this.student,
-        specializedRegister: { ...this.student.specializedRegister }
+        specializedRegister: this.student.specializedRegister ? { ...this.student.specializedRegister } : {}
       },
       errors: {},
       warnings: {},
       selectedCityId: null,
+      newSchoolCityOptions,
+      schoolCountryOptions,
       genderOptions: [
         { label: 'Male', value: 'Male' },
         { label: 'Female', value: 'Female' }
@@ -268,7 +282,7 @@ export default {
     },
     getPayload() {
       // Allowlist: only include fields that the backend Zod schemas accept
-      const allowedStudentFields = ['fullName', 'gender', 'email', 'mobile', 'otherPhone', 'birthDate', 'parentPhone', 'primaryAddressCity', 'schoolId']
+      const allowedStudentFields = ['fullName', 'gender', 'email', 'mobile', 'otherPhone', 'birthDate', 'parentPhone', 'primaryAddress', 'schoolId', 'newSchoolCity', 'schoolCountry']
       const allowedSRFields = ['interestedMajorId', 'specificMajorId', 'admissionYear', 'englishCertificate', 'gpa', 'programScore']
 
       const payload = {}

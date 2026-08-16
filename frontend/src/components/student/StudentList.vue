@@ -80,9 +80,21 @@
           <span v-else class="null-text">—</span>
         </template>
       </Column>
-      <Column field="primaryAddressCity" header="City" sortable style="width: 140px">
+      <Column field="primaryAddress" header="Primary address" sortable style="width: 140px">
         <template #body="{ data }">
-          <span v-if="data.primaryAddressCity">{{ data.primaryAddressCity }}</span>
+          <span v-if="data.primaryAddress">{{ data.primaryAddress }}</span>
+          <span v-else class="null-text">—</span>
+        </template>
+      </Column>
+      <Column field="newSchoolCity" header="New City" sortable style="min-width: 140px">
+        <template #body="{ data }">
+          <span v-if="data.newSchoolCity">{{ formatNewSchoolCity(data.newSchoolCity) }}</span>
+          <span v-else class="null-text">—</span>
+        </template>
+      </Column>
+      <Column field="schoolCountry" header="Country" sortable style="min-width: 140px">
+        <template #body="{ data }">
+          <span v-if="data.schoolCountry">{{ formatSchoolCountry(data.schoolCountry) }}</span>
           <span v-else class="null-text">—</span>
         </template>
       </Column>
@@ -115,6 +127,7 @@ import InputIcon from 'primevue/inputicon'
 import Tag from 'primevue/tag'
 import ConfirmDialog from 'primevue/confirmdialog'
 import { useConfirm } from 'primevue/useconfirm'
+import { newSchoolCityOptions, schoolCountryOptions } from '@/helpers/schoolEnums'
 
 const props = defineProps({
   students: { type: Array, default: () => [] },
@@ -161,7 +174,8 @@ const confirmDeleteAction = (student) => {
 
 const formatDate = (dateStr) => {
   if (!dateStr) return '—'
-  return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+  const d = new Date(dateStr)
+  return `${String(d.getDate()).padStart(2, '0')}-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`
 }
 
 const formatDateTime = (dateStr) => {
@@ -169,19 +183,28 @@ const formatDateTime = (dateStr) => {
   return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
-const gpaLabelMap = {
-  LOWER_21: 'Lower 21',
-  GRADE_11_FROM_21_TO_23: 'Grade 11: 21 - 23',
-  GRADE_12_CUR_2_FROM_24_TO_25: 'Grade 12 (Cur 2): 24 - 25',
-  GRADE_12_FROM_21_TO_23: 'Grade 12: 21 - 23',
-  GRADE_11_FROM_24_TO_26: 'Grade 11: 24 - 26',
-  GRADE_12_FROM_24_TO_26: 'Grade 12: 24 - 26',
-  GRADE_11_HIGHER_26: 'Grade 11: Higher 26',
-  GRADE_12_CUR_1_HIGHER_26: 'Grade 12 (Cur 1): Higher 26',
-  GRADE_12_HIGHER_26: 'Grade 12: Higher 26'
+const gpaLabel = (g) => {
+  if (g === 'LOWER_21') return 'Lower 21'
+  if (g === 'GRADE_11_FROM_21_TO_23') return 'Grade 11: 21 - 23'
+  if (g === 'GRADE_12_CUR_2_FROM_24_TO_25') return 'Grade 12 (Cur 2): 24 - 25'
+  if (g === 'GRADE_12_FROM_21_TO_23') return 'Grade 12: 21 - 23'
+  if (g === 'GRADE_11_FROM_24_TO_26') return 'Grade 11: 24 - 26'
+  if (g === 'GRADE_12_FROM_24_TO_26') return 'Grade 12: 24 - 26'
+  if (g === 'GRADE_11_HIGHER_26') return 'Grade 11: Higher 26'
+  if (g === 'GRADE_12_CUR_1_HIGHER_26') return 'Grade 12 (Cur 1): Higher 26'
+  if (g === 'GRADE_12_HIGHER_26') return 'Grade 12: Higher 26'
+  return g
 }
 
-const gpaLabel = (value) => gpaLabelMap[value] || value
+const formatNewSchoolCity = (value) => {
+  const opt = newSchoolCityOptions.find(o => o.value === value)
+  return opt ? opt.label : value
+}
+
+const formatSchoolCountry = (value) => {
+  const opt = schoolCountryOptions.find(o => o.value === value)
+  return opt ? opt.label : value
+}
 
 const genderSeverity = (gender) => {
   if (gender === 'Male') return 'info'

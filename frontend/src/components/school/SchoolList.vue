@@ -164,6 +164,7 @@ const typeSeverity = (type) => {
   if (type === 'B') return 'success'
   if (type === 'C') return 'danger'
   if (type === 'D') return 'secondary'
+  if (type === 'D') return 'secondary'
   return 'secondary'
 }
 </script>
