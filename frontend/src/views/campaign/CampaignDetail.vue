@@ -65,6 +65,7 @@
         v-if="showRecipientDialog"
         v-model:visible="showRecipientDialog" 
         :loading="recipientLoading"
+        :initialRecipients="selectedActivityForRecipients?.recipients || []"
         @add="handleRecipientsAdded" 
     />
   </div>

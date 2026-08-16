@@ -20,6 +20,26 @@
     >
       <template #header>
         <div class="table-toolbar">
+          <Select 
+            v-model="selectedBirthYear" 
+            :options="birthYearOptions" 
+            optionLabel="label" 
+            optionValue="value" 
+            placeholder="Filter by Birth Year" 
+            showClear
+            @change="onBirthYearChange"
+            class="year-filter"
+          />
+          <Select 
+            v-model="selectedCity" 
+            :options="newSchoolCityOptions" 
+            optionLabel="label" 
+            optionValue="value" 
+            placeholder="Filter by New City" 
+            showClear
+            @change="onCityChange"
+            class="city-filter"
+          />
           <IconField>
             <InputIcon class="pi pi-search" />
             <InputText placeholder="Search students (phone, email)..." @input="onSearch" :value="searchQuery" class="search-input" />
@@ -66,7 +86,7 @@
           <span v-else class="null-text">—</span>
         </template>
       </Column>
-      <Column field="birthDate" header="Birth Date" sortable style="width: 130px">
+      <Column field="birthDate" header="Birth Date" sortable style="width: 160px">
         <template #body="{ data }">{{ formatDate(data.birthDate) }}</template>
       </Column>
       <Column header="GPA" style="min-width: 160px">
@@ -127,6 +147,7 @@ import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import Tag from 'primevue/tag'
 import ConfirmDialog from 'primevue/confirmdialog'
+import Select from 'primevue/select'
 import { useConfirm } from 'primevue/useconfirm'
 import { newSchoolCityOptions, schoolCountryOptions } from '@/helpers/schoolEnums'
 
@@ -136,13 +157,21 @@ const props = defineProps({
   pagination: { type: Object, default: null }
 })
 
-const emit = defineEmits(['page-change', 'search', 'delete', 'sort'])
+const emit = defineEmits(['page-change', 'search', 'delete', 'sort', 'filter-city'])
 
 const router = useRouter()
 const confirm = useConfirm()
 
 const searchQuery = ref('')
+const selectedCity = ref(null)
+const selectedBirthYear = ref(null)
 let searchTimeout = null
+
+const currentYear = new Date().getFullYear()
+const birthYearOptions = Array.from({ length: 40 }, (_, i) => {
+  const year = currentYear - i
+  return { label: year.toString(), value: year }
+})
 
 // event.first: offset value, event.rows: limit value
 const onPage = (event) => {
@@ -160,6 +189,14 @@ const onSearch = (e) => {
   searchTimeout = setTimeout(() => {
     emit('search', searchQuery.value)
   }, 500)
+}
+
+const onCityChange = () => {
+  emit('filter-city', selectedCity.value)
+}
+
+const onBirthYearChange = () => {
+  emit('filter-birth-year', selectedBirthYear.value)
 }
 
 const confirmDeleteAction = (student) => {
@@ -220,7 +257,9 @@ const genderSeverity = (gender) => {
 
 <style scoped>
 .table-container { background: var(--p-content-background); border-radius: 12px; overflow: hidden; border: 1px solid var(--p-surface-200); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06); }
-.table-toolbar { display: flex; justify-content: flex-end; }
+.table-toolbar { display: flex; justify-content: flex-end; gap: 1rem; }
+.city-filter { width: 220px; }
+.year-filter { width: 180px; }
 .search-input { width: 280px; }
 .student-name { font-weight: 600; color: var(--p-text-color); }
 .email-text { color: var(--p-primary-color); font-size: 0.9rem; }

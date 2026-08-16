@@ -47,6 +47,10 @@ const props = defineProps({
     loading: {
         type: Boolean,
         default: false
+    },
+    initialRecipients: {
+        type: Array,
+        default: () => []
     }
 });
 
@@ -60,8 +64,15 @@ const fetching = ref(false);
 const fetchInquiriesData = async () => {
     fetching.value = true;
     try {
-        const response = await getAllInquiries({ limit: 100 }); // fetch more for selection
+        const response = await getAllInquiries({ limit: 100, hasStudent: true }); // fetch more for selection
         inquiries.value = response.data || response.inquiries || response; 
+
+        if (props.initialRecipients && props.initialRecipients.length) {
+            const initialInquiryIds = props.initialRecipients.map(r => r.inquiryId);
+            selectedInquiries.value = inquiries.value.filter(inq => initialInquiryIds.includes(inq.id));
+        } else {
+            selectedInquiries.value = [];
+        }
     } catch (error) {
         toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to load inquiries', life: 3000 });
     } finally {

@@ -19,6 +19,8 @@
       @search="onSearch"
       @delete="onDelete"
       @sort="onSort"
+      @filter-city="onFilterCity"
+      @filter-birth-year="onFilterBirthYear"
     />
   </div>
 </template>
@@ -34,7 +36,7 @@ import { useToast } from 'primevue/usetoast'
 const { students, pagination, loading, fetchStudents, deleteStudent } = useStudent()
 const toast = useToast()
 
-const currentParams = ref({ page: 1, limit: 20, search: '', sortField: null, sortOrder: null })
+const currentParams = ref({ page: 1, limit: 20, search: '', sortField: null, sortOrder: null, city: null, birthYear: null })
 
 onMounted(async () => {
   await loadData()
@@ -63,6 +65,18 @@ const onSearch = async (searchQuery) => {
 const onSort = async ({ sortField, sortOrder }) => {
   currentParams.value.sortField = sortField
   currentParams.value.sortOrder = sortOrder
+  currentParams.value.page = 1
+  await loadData()
+}
+
+const onFilterCity = async (city) => {
+  currentParams.value.city = city
+  currentParams.value.page = 1
+  await loadData()
+}
+
+const onFilterBirthYear = async (year) => {
+  currentParams.value.birthYear = year
   currentParams.value.page = 1
   await loadData()
 }

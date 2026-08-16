@@ -32,8 +32,10 @@ const getAllStudents = async (req, res) => {
     const search = req.query.search || '';
     const sortField = req.query.sortField || null;
     const sortOrder = req.query.sortOrder ? parseInt(req.query.sortOrder, 10) : null;
+    const city = req.query.city || null;
+    const birthYear = req.query.birthYear || null;
 
-    const { students, pagination } = await studentService.getAllStudents({ page, limit, skip, search, sortField, sortOrder });
+    const { students, pagination } = await studentService.getAllStudents({ page, limit, skip, search, sortField, sortOrder, city, birthYear });
 
     res.status(200).json({
       message: 'Students retrieved successfully',

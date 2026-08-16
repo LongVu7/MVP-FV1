@@ -13,8 +13,9 @@ const getAllInquiries = async (req, res) => {
   try {
     const { page, limit, skip } = parsePagination(req.query);
     const search = req.query.search || '';
+    const hasStudent = req.query.hasStudent === 'true';
 
-    const { inquiries, pagination } = await inquiryService.getAllInquiries({ page, limit, skip, search, user: req.user });
+    const { inquiries, pagination } = await inquiryService.getAllInquiries({ page, limit, skip, search, user: req.user, hasStudent });
 
     res.status(200).json({
       message: 'Inquiries retrieved successfully',

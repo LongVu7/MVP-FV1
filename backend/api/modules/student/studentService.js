@@ -51,7 +51,7 @@ const createStudent = async (data) => {
 
 
 // ─── Get all students
-const getAllStudents = async ({ page, limit, skip, search, sortField, sortOrder }) => {
+const getAllStudents = async ({ page, limit, skip, search, sortField, sortOrder, city, birthYear }) => {
   const where = {};
   if (search) {
     where.OR = [
@@ -59,6 +59,18 @@ const getAllStudents = async ({ page, limit, skip, search, sortField, sortOrder 
       { email: { contains: search, mode: 'insensitive' } },
       { fullName: { contains: search, mode: 'insensitive' } }
     ];
+  }
+  //Filter by newSchoolCity
+  if (city) {
+    where.newSchoolCity = city;
+  }
+  //Filter by birthYear
+  if (birthYear) {
+    const year = parseInt(birthYear, 10);
+    where.birthDate = {
+      gte: new Date(`${year}-01-01T00:00:00.000Z`),
+      lt: new Date(`${year + 1}-01-01T00:00:00.000Z`)
+    };
   }
 
   let orderBy = { createdAt: 'desc' };

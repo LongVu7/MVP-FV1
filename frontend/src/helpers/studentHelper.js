@@ -3,11 +3,19 @@ import api from './helper.js'
 const prefix = '/students'
 
 export const getAllStudents = async (paramsObj = {}) => {
-  const { page = 1, limit = 20, search = '', sortField, sortOrder } = paramsObj
+  const { page = 1, limit = 20, search = '', sortField, sortOrder, city, birthYear } = paramsObj
   const params = { page, limit, search }
   if (sortField) {
     params.sortField = sortField
     params.sortOrder = sortOrder
+  }
+  //Filter by newSchoolCity
+  if (city) {
+    params.city = city
+  }
+  //Filter by birthYear
+  if (birthYear) {
+    params.birthYear = birthYear
   }
   const response = await api.get(`${prefix}/`, { params })
   return response.data

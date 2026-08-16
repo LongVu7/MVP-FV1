@@ -2,8 +2,10 @@ import api from './helper.js'
 
 const prefix = '/inquiries'
 
-export const getAllInquiries = async ({ page = 1, limit = 20, search = '' } = {}) => {
-  const response = await api.get(`${prefix}/`, { params: { page, limit, search } })
+export const getAllInquiries = async ({ page = 1, limit = 20, search = '', hasStudent } = {}) => {
+  const params = { page, limit, search }
+  if (hasStudent !== undefined) params.hasStudent = hasStudent
+  const response = await api.get(`${prefix}/`, { params })
   return response.data
 }
 

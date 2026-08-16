@@ -54,9 +54,13 @@ const fetchInquiry = (txOrPrisma, id) =>
 const { buildPaginationMeta } = require('../../utils/pagination');
 
 // ─── List all inquiries
-const getAllInquiries = async ({ page, limit, skip, search, user }) => {
+const getAllInquiries = async ({ page, limit, skip, search, user, hasStudent }) => {
   const scope = await buildInquiryScope(user);
   const where = { ...scope };
+
+  if (hasStudent) {
+    where.studentId = { not: null };
+  }
 
   if (search) {
     const searchCondition = [
