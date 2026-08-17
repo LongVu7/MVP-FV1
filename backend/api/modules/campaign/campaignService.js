@@ -95,24 +95,49 @@ const addRecipients = async (activityId, inquiryIds) => {
   });
   if (!activity) throw new Error('Activity not found');
 
-  const inquiries = await prisma.inquiry.findMany({
-    where: { id: { in: inquiryIds } },
-    include: { student: true }
+  // Find existing recipients
+  const existingRecipients = await prisma.campaignRecipient.findMany({
+    where: { activityId: Number(activityId) }
   });
 
-  const recipientsData = inquiries.map(inq => ({
-    activityId: Number(activityId),
-    inquiryId: inq.id,
-    email: inq.student?.email || null,
-    mobile: inq.student?.mobile || null,
-    fullName: inq.student?.fullName || null,
-    status: 'pending'
-  }));
+  const existingInquiryIds = existingRecipients.map(r => r.inquiryId);
+  
+  // Determine which to remove and which to add
+  const toRemoveInquiryIds = existingInquiryIds.filter(id => !inquiryIds.includes(id));
+  const toAddInquiryIds = inquiryIds.filter(id => !existingInquiryIds.includes(id));
 
-  return prisma.campaignRecipient.createMany({
-    data: recipientsData,
-    skipDuplicates: true
-  });
+  // Remove unselected recipients
+  if (toRemoveInquiryIds.length > 0) {
+    await prisma.campaignRecipient.deleteMany({
+      where: {
+        activityId: Number(activityId),
+        inquiryId: { in: toRemoveInquiryIds }
+      }
+    });
+  }
+
+  // Add new recipients
+  if (toAddInquiryIds.length > 0) {
+    const inquiries = await prisma.inquiry.findMany({
+      where: { id: { in: toAddInquiryIds } },
+      include: { student: true }
+    });
+
+    const recipientsData = inquiries.map(inq => ({
+      activityId: Number(activityId),
+      inquiryId: inq.id,
+      email: inq.student?.email || null,
+      mobile: inq.student?.mobile || null,
+      fullName: inq.student?.fullName || null,
+      status: 'pending'
+    }));
+
+    await prisma.campaignRecipient.createMany({
+      data: recipientsData
+    });
+  }
+  
+  return { success: true };
 };
 
 // ─── Send Email Activity ───

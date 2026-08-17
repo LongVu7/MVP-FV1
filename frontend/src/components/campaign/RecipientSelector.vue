@@ -28,7 +28,7 @@
 
         <template #footer>
             <Button label="Cancel" icon="pi pi-times" text @click="$emit('update:visible', false)" />
-            <Button label="Add Selected" icon="pi pi-check" @click="handleAdd" :loading="loading" :disabled="!selectedInquiries.length" />
+            <Button label="Save Recipients" icon="pi pi-check" @click="handleAdd" :loading="loading" />
         </template>
     </Dialog>
 </template>
@@ -81,7 +81,6 @@ const fetchInquiriesData = async () => {
 };
 
 const handleAdd = () => {
-    if (!selectedInquiries.value.length) return;
     const inquiryIds = selectedInquiries.value.map(inq => inq.id);
     emit('add', inquiryIds);
 };
