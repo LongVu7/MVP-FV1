@@ -1,5 +1,6 @@
 const prisma = require('../../../config/db');
 const { sendMail } = require('../../../config/mailer');
+const templateRenderer = require('../campaignTemplate/templateRenderer');
 
 // ─── Campaign CRUD ───
 
@@ -160,11 +161,13 @@ const sendEmailActivity = async (activityId) => {
 
   for (const recipient of emailRecipients) {
     try {
-      // Replace template variables
-      let html = activity.content;
-      html = html.replace(/\{\{fullName\}\}/g, recipient.fullName || '');
-      html = html.replace(/\{\{email\}\}/g, recipient.email || '');
-      html = html.replace(/\{\{mobile\}\}/g, recipient.mobile || '');
+      const dataObj = {
+        fullName: recipient.fullName || '',
+        email: recipient.email || '',
+        mobile: recipient.mobile || ''
+      };
+      
+      const html = templateRenderer.renderContent(activity.content, dataObj);
 
       await sendMail({
         to: recipient.email,
@@ -196,20 +199,6 @@ const sendEmailActivity = async (activityId) => {
   return { sentCount, failedCount, total: emailRecipients.length };
 };
 
-// ─── Templates ───
-
-const createTemplate = async (data, createdById) => {
-  return prisma.campaignTemplate.create({
-    data: { ...data, createdById }
-  });
-};
-
-const listTemplates = async () => {
-  return prisma.campaignTemplate.findMany({
-    orderBy: { createdAt: 'desc' }
-  });
-};
-
 module.exports = {
   createCampaign,
   updateCampaign,
@@ -220,7 +209,5 @@ module.exports = {
   updateActivity,
   deleteActivity,
   addRecipients,
-  sendEmailActivity,
-  createTemplate,
-  listTemplates
+  sendEmailActivity
 };

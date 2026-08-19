@@ -120,21 +120,27 @@ const router = createRouter({
     },
     {
       path: '/campaigns',
-      name: 'campaigns',
-      component: () => import('../views/campaign/CampaignList.vue'),
+      name: 'CampaignList',
+      component: () => import('@/views/campaign/CampaignList.vue'),
       meta: { permission: 'campaign.read' }
     },
     {
       path: '/campaigns/new',
-      name: 'campaign-new',
-      component: () => import('../views/campaign/CampaignNew.vue'),
+      name: 'CampaignNew',
+      component: () => import('@/views/campaign/CampaignNew.vue'),
       meta: { permission: 'campaign.create' }
     },
     {
       path: '/campaigns/:id',
-      name: 'campaign-detail',
-      component: () => import('../views/campaign/CampaignDetail.vue'),
+      name: 'CampaignDetail',
+      component: () => import('@/views/campaign/CampaignDetail.vue'),
       meta: { permission: 'campaign.read' }
+    },
+    {
+      path: '/campaign-templates',
+      name: 'CampaignTemplateList',
+      component: () => import('@/views/campaign/TemplateList.vue'),
+      meta: { permission: 'campaign_template.read' }
     },
     {
       path: '/reports',

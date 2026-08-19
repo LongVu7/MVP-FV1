@@ -62,16 +62,22 @@ model CampaignRecipient {
   @@map("campaign_recipient")
 }
 
+enum CampaignTemplateStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
 model CampaignTemplate {
-  id          Int          @id @default(autoincrement())
-  name        String       @db.VarChar(255)
-  type        ActivityType
-  subject     String?      @db.VarChar(255) // Only for email
-  content     String       // plain text or rich text html
-  isActived   Boolean      @default(true) @map("is_actived")
-  createdById Int?         @map("created_by_id")
-  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz()
-  updatedAt   DateTime     @default(now()) @map("updated_at") @db.Timestamptz()
+  id          Int                    @id @default(autoincrement())
+  name        String                 @db.VarChar(255)
+  channel     ActivityType
+  subject     String?                @db.VarChar(255) // Only for "Email" channel
+  content     String                 // plain text or rich text html
+  status      CampaignTemplateStatus @default(ACTIVE)
+  createdById Int?                   @map("created_by_id")
+  createdAt   DateTime               @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt   DateTime               @default(now()) @map("updated_at") @db.Timestamptz()
 
   createdBy  Account?           @relation(fields: [createdById], references: [id])
   activities CampaignActivity[]

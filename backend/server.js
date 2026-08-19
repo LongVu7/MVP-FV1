@@ -16,6 +16,7 @@ const schoolRoutes = require('./api/modules/school/schoolRoutes');
 const sourceDataRoutes = require('./api/modules/sourceData/sourceDataRoutes');
 const statusDataRoutes = require('./api/modules/statusData/statusDataRoutes');
 const campaignRoutes = require('./api/modules/campaign/campaignRoutes');
+const campaignTemplateRoutes = require('./api/modules/campaignTemplate/templateRoutes');
 const errorReportRoutes = require('./api/modules/errorReport/errorReportRoutes');
 const majorDataRoutes = require('./api/modules/majorData/majorDataRoutes');
 const permissionRoutes = require('./api/modules/permission/permissionRoutes');
@@ -48,6 +49,7 @@ app.use('/api/source-data', sourceDataRoutes);
 app.use('/api/status-data', statusDataRoutes);
 app.use('/api/major-data', majorDataRoutes);
 app.use('/api/campaigns', campaignRoutes);
+app.use('/api/campaign-templates', campaignTemplateRoutes);
 app.use('/api/error-reports', errorReportRoutes);
 app.use('/api/permissions', permissionRoutes);
 

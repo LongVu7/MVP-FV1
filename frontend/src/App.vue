@@ -66,6 +66,7 @@ const navigationItems = [
   { label: 'Schools',    icon: 'pi pi-building',        to: '/schools',    permission: 'school.read' },
   { label: 'Reports',    icon: 'pi pi-flag',            to: '/reports',    permission: null },
   { label: 'Campaigns',  icon: 'pi pi-send',            to: '/campaigns',  permission: 'campaign.read' },
+  { label: 'Templates',  icon: 'pi pi-file-edit',       to: '/campaign-templates', permission: 'campaign_template.read' },
   { label: 'Groups',     icon: 'pi pi-folder',          to: '/groups',     permission: 'group.read' },
   { label: 'Roles',      icon: 'pi pi-shield',          to: '/roles',      permission: 'role.read' },
   { label: 'Accounts',   icon: 'pi pi-users',           to: '/accounts',   permission: 'account.read' },

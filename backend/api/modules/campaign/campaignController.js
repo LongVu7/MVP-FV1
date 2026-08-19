@@ -101,27 +101,6 @@ const sendActivity = async (req, res) => {
   }
 };
 
-// ─── Templates ───
-
-const createTemplate = async (req, res) => {
-  try {
-    const createdById = req.user ? req.user.id : null;
-    const template = await campaignService.createTemplate(req.body, createdById);
-    res.status(201).json(template);
-  } catch (error) {
-    res.status(500).json({ error: error.message || 'Error creating template' });
-  }
-};
-
-const listTemplates = async (req, res) => {
-  try {
-    const templates = await campaignService.listTemplates();
-    res.json(templates);
-  } catch (error) {
-    res.status(500).json({ error: error.message || 'Error fetching templates' });
-  }
-};
-
 module.exports = {
   createCampaign,
   updateCampaign,
@@ -132,7 +111,5 @@ module.exports = {
   updateActivity,
   deleteActivity,
   addRecipients,
-  sendActivity,
-  createTemplate,
-  listTemplates
+  sendActivity
 };

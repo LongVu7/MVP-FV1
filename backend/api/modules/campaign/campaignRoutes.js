@@ -7,11 +7,6 @@ const { idParamSchema } = require('../../../schemas/commonSchemas');
 const { campaignSchema, updateCampaignSchema, activitySchema, updateActivitySchema, activityRecipientSchema, campaignTemplateSchema } = require('./campaignSchemas');
 const campaignController = require('./campaignController');
 
-// ─── Campaign Template routes ───
-router.route('/templates')
-    .get(authenticate, authorize('campaign.read'), campaignController.listTemplates)
-    .post(authenticate, authorize('campaign.create'), validateBody(campaignTemplateSchema), campaignController.createTemplate);
-
 // ─── CRUD routes for Campaigns ───
 router.route('/')
     .get(authenticate, authorize('campaign.read'), campaignController.listCampaigns)
