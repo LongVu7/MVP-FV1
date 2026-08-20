@@ -60,7 +60,6 @@ const getAllStudents = async ({ page, limit, skip, search, sortField, sortOrder,
       { fullName: { contains: search, mode: 'insensitive' } }
     ];
   }
-  //Filter by newSchoolCity will be refactored later
   //Filter by birthYear
   if (birthYear) {
     const year = parseInt(birthYear, 10);
@@ -86,7 +85,7 @@ const getAllStudents = async ({ page, limit, skip, search, sortField, sortOrder,
       skip,
       take: limit,
       include: { 
-        school: { select: { id: true, name: true, city: { select: { id: true, name: true } } } },
+        school: { select: { id: true, name: true, oldProvince: { select: { id: true, name: true } } } },
         specializedRegister: {
           include: {
             interestedMajor: { select: { id: true, name: true } },
@@ -110,7 +109,7 @@ const getStudentById = async (id) => {
   const student = await prisma.student.findUnique({
     where: { id: Number(id) },
     include: { 
-      school: { select: { id: true, name: true, city: { select: { id: true, name: true } } } },
+      school: { select: { id: true, name: true, oldProvince: { select: { id: true, name: true } } } },
       specializedRegister: {
         include: {
           interestedMajor: { select: { id: true, name: true } },
