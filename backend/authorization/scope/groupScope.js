@@ -2,14 +2,24 @@ const prisma = require('../../config/db');
 
 // ─── Build Prisma WHERE scope for group queries
 const buildGroupScope = (user) => {
-  if (user.roleName === 'admin') return {};
+  // Full expansion
+  if (user.permissions.has('group.read_all')) return {};
   
-  if (user.roleName === 'manager') {
-    return { createdById: user.accountId };
+  const scopeConditions = [];
+  
+  // Base scope: view groups they belong to
+  scopeConditions.push({ accounts: { some: { id: user.accountId } } });
+
+  // Managed expansion: view groups where they are the groupLeader
+  if (user.permissions.has('group.read_managed')) {
+    scopeConditions.push({ groupLeaderId: user.accountId });
   }
 
-  // staff: view groups they belong to
-  return { accounts: { some: { id: user.accountId } } };
+  if (scopeConditions.length > 1) {
+    return { OR: scopeConditions };
+  }
+
+  return scopeConditions[0];
 };
 
 // ─── Ownership resolver for single group access

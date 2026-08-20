@@ -1,27 +1,17 @@
 <template>
   <div class="table-container">
-    <DataTable
-      :value="inquiries"
-      lazy
-      :paginator="true"
-      :rows="pagination?.limit || 20"
-      :first="((pagination?.page || 1) - 1) * (pagination?.limit || 20)"
-      :totalRecords="pagination?.totalCount || 0"
-      :rowsPerPageOptions="[10, 20, 50, 100]"
-      :loading="loading"
-      @page="onPage"
-      dataKey="id"
-      removableSort
-      stripedRows
+    <DataTable :value="inquiries" lazy :paginator="true" :rows="pagination?.limit || 20"
+      :first="((pagination?.page || 1) - 1) * (pagination?.limit || 20)" :totalRecords="pagination?.totalCount || 0"
+      :rowsPerPageOptions="[10, 20, 50, 100]" :loading="loading" @page="onPage" dataKey="id" removableSort stripedRows
       showGridlines
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown CurrentPageReport"
-      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} inquiries"
-    >
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords} inquiries">
       <template #header>
         <div class="table-toolbar">
           <IconField>
             <InputIcon class="pi pi-search" />
-            <InputText placeholder="Search inquiries (desc, student)..." @input="onSearch" :value="searchQuery" class="search-input" />
+            <InputText placeholder="Search inquiries (desc, student)..." @input="onSearch" :value="searchQuery"
+              class="search-input" />
           </IconField>
         </div>
       </template>
@@ -34,7 +24,7 @@
           <Button label="New Inquiry" icon="pi pi-plus" @click="$router.push('/inquiries/new')" />
         </div>
       </template>
-      
+
       <Column header="Student" style="min-width: 150px">
         <template #body="{ data }">
           <span v-if="data.student">{{ data.student.fullName }}</span>
@@ -61,7 +51,8 @@
       </Column>
       <Column field="description" header="Description" style="min-width: 200px">
         <template #body="{ data }">
-          <span v-if="data.description" class="desc-text">{{ data.description.length > 60 ? data.description.substring(0, 60) + '...' : data.description }}</span>
+          <span v-if="data.description" class="desc-text">{{ data.description.length > 60 ?
+            data.description.substring(0, 60) + '...' : data.description }}</span>
           <span v-else class="null-text">—</span>
         </template>
       </Column>
@@ -73,8 +64,10 @@
       <Column header="Actions" style="width: 120px" :exportable="false" frozen alignFrozen="right">
         <template #body="{ data }">
           <div class="action-buttons">
-            <Button icon="pi pi-pencil" rounded text severity="info" size="small" v-tooltip.top="'Edit'" @click="$router.push('/inquiries/' + data.id)" />
-            <Button icon="pi pi-trash" rounded text severity="danger" size="small" v-tooltip.top="'Delete'" @click="confirmDeleteAction(data)" />
+            <Button icon="pi pi-pencil" rounded text severity="info" size="small" v-tooltip.top="'Edit'"
+              @click="$router.push('/inquiries/' + data.id)" />
+            <Button icon="pi pi-trash" rounded text severity="danger" size="small" v-tooltip.top="'Delete'"
+              @click="confirmDeleteAction(data)" />
           </div>
         </template>
       </Column>
@@ -161,16 +154,71 @@ const formatStatusBreadcrumb = (statusData) => {
 </script>
 
 <style scoped>
-.table-container { background: var(--p-content-background); border-radius: 12px; overflow: hidden; border: 1px solid var(--p-surface-200); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06); }
-.table-toolbar { display: flex; justify-content: flex-end; }
-.search-input { width: 280px; }
-.null-text { color: var(--p-text-muted-color); }
-.desc-text { font-size: 0.88rem; }
-.date-text { font-size: 0.85rem; color: var(--p-text-muted-color); }
-.status-breadcrumb { font-size: 0.88rem; font-weight: 500; color: var(--p-text-color); }
-.action-buttons { display: flex; gap: 0.25rem; }
-.empty-state { display: flex; flex-direction: column; align-items: center; padding: 3rem 1rem; gap: 0.5rem; color: var(--p-text-muted-color); }
-.empty-state i { font-size: 3rem; margin-bottom: 0.5rem; opacity: 0.4; }
-.empty-state h3 { margin: 0; font-size: 1.15rem; font-weight: 600; color: var(--p-text-color); }
-.empty-state p { margin: 0 0 1rem 0; font-size: 0.9rem; }
+.table-container {
+  background: var(--p-content-background);
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--p-surface-200);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.table-toolbar {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.search-input {
+  width: 280px;
+}
+
+.null-text {
+  color: var(--p-text-muted-color);
+}
+
+.desc-text {
+  font-size: 0.88rem;
+}
+
+.date-text {
+  font-size: 0.85rem;
+  color: var(--p-text-muted-color);
+}
+
+.status-breadcrumb {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--p-text-color);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem 1rem;
+  gap: 0.5rem;
+  color: var(--p-text-muted-color);
+}
+
+.empty-state i {
+  font-size: 3rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.4;
+}
+
+.empty-state h3 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--p-text-color);
+}
+
+.empty-state p {
+  margin: 0 0 1rem 0;
+  font-size: 0.9rem;
+}
 </style>

@@ -1,7 +1,7 @@
 const prisma = require('../../config/db');
 
-//Helper to get group member's account IDs for a manager
-const getGroupMemberIds = async (accountId) => {
+//Helper to get managed group member's account IDs for a manager
+const getManagedGroupMemberIds = async (accountId) => {
   const groups = await prisma.userGroup.findMany({
     where: { groupLeaderId: accountId },
     select: {
@@ -15,15 +15,19 @@ const getGroupMemberIds = async (accountId) => {
 
 //Build Prisma WHERE scope for inquiry queries
 const buildInquiryScope = async (user) => {
-  if (user.roleName === 'admin') return {};
+  // Full expansion
+  if (user.permissions.has('inquiry.read_all')) return {};
 
-  if (user.roleName === 'manager') {
-    const memberIds = await getGroupMemberIds(user.accountId);
-    return { assignedToId: { in: [user.accountId, ...memberIds] } };
+  // Base scope: own inquiries
+  const validIds = [user.accountId];
+
+  // Group expansion
+  if (user.permissions.has('inquiry.read_group')) {
+    const memberIds = await getManagedGroupMemberIds(user.accountId);
+    validIds.push(...memberIds);
   }
 
-  // staff and any other role: own inquiries only
-  return { assignedToId: user.accountId };
+  return { assignedToId: { in: validIds } };
 };
 
 //Ownership resolver for single inquiry access
@@ -50,5 +54,5 @@ const resolveInquiryOwnership = async (req) => {
 module.exports = {
   buildInquiryScope,
   resolveInquiryOwnership,
-  getGroupMemberIds
+  getManagedGroupMemberIds
 };
