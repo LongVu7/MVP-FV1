@@ -1,12 +1,12 @@
 model School {
   id         Int        @id @default(autoincrement())
   name       String     @db.VarChar(255)
-  schoolType SchoolType? @map("school_type")
 
   oldProvinceId Int  @map("old_province_id")
   oldProvince   OldProvince @relation(fields: [oldProvinceId], references: [id])
 
-  students Student[]
+
+  studentEducations StudentEducation[]
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz()
@@ -14,12 +14,4 @@ model School {
   @@unique([name, oldProvinceId])
   @@index([oldProvinceId])
   @@map("school")
-}
-
-enum SchoolType {
-  A_STAR
-  A
-  B
-  C
-  D
 }

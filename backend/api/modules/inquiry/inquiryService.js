@@ -153,7 +153,7 @@ const _createWithExistingStudent = async (inquiryData, studentId) => {
 
 //Private method 
 const _createWithNewStudent = async (inquiryData, student) => {
-  const { specializedRegister, ...studentData } = student;
+  const { specializedRegister, education, ...studentData } = student;
   try {
     const { id } = await prisma.inquiry.create({
       data: {
@@ -162,6 +162,11 @@ const _createWithNewStudent = async (inquiryData, student) => {
           create: {
             ...studentData,
             ...(studentData.birthDate && { birthDate: new Date(studentData.birthDate) }),
+            ...(education && {
+              education: {
+                create: education
+              }
+            }),
             ...(specializedRegister && {
               specializedRegister: {
                 create: specializedRegister

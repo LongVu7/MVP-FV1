@@ -6,7 +6,7 @@ const dateString = z.string().refine((val) => !isNaN(Date.parse(val)), {
 
 
 
-const { EnglishCertificate, GPA, ProgramScore } = require('@prisma/client');
+const { EnglishCertificate, GPA, ProgramScore, SchoolType, ProvinceGroup } = require('@prisma/client');
 
 const mobileString = z.preprocess(
   (val) => (val === '' || val === null ? null : val),
@@ -30,6 +30,14 @@ const specializedRegisterSchema = z.object({
   programScore: z.enum(ProgramScore).nullable().optional()
 }).strict();
 
+const educationSchema = z.object({
+  schoolId: z.number().int().positive('schoolId must be a positive integer').nullable().optional(),
+  newProvinceId: z.number().int().positive('newProvinceId must be a positive integer').nullable().optional(),
+  countryId: z.number().int().positive('countryId must be a positive integer').nullable().optional(),
+  provinceGroup: z.enum(ProvinceGroup).nullable().optional(),
+  schoolType: z.enum(SchoolType).nullable().optional()
+}).strict();
+
 
 const createStudentSchema = z.object({
   fullName: z.string({
@@ -43,7 +51,7 @@ const createStudentSchema = z.object({
   birthDate: dateString.nullable().optional(),
   parentPhone: mobileString,
   primaryAddress: z.string().max(255).nullable().optional(),
-  schoolId: z.number().int().positive('schoolId must be a positive integer'),
+  education: educationSchema,
   specializedRegister: specializedRegisterSchema.optional(),
 
 }).strict();
@@ -57,7 +65,7 @@ const updateStudentSchema = z.object({
   birthDate: dateString.nullable().optional(),
   parentPhone: mobileString,
   primaryAddress: z.string().max(255).nullable().optional(),
-  schoolId: z.number().int().positive('schoolId must be a positive integer'),
+  education: educationSchema.optional(),
   specializedRegister: specializedRegisterSchema.optional(),
 
 }).strict().refine(
@@ -83,10 +91,7 @@ const importStudentSchema = z.object({
   birthDate: dateString.optional(),
   parentPhone: mobileString,
   primaryAddress: z.string().max(255).optional(),
-  schoolId: z.preprocess(
-    (val) => (val === '' || val === null ? null : (val === undefined ? undefined : Number(val))),
-    z.number().int().positive('schoolId must be a positive integer').nullable().optional()
-  ),
+  education: educationSchema.optional(),
   specializedRegister: specializedRegisterSchema.optional(),
   // Flat SR fields from Excel columns — preprocessed to handle empty strings
   gpa: cleanEnumForImport(GPA),

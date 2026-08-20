@@ -55,12 +55,32 @@
       </div>
       <div class="form-field">
         <label for="sf-school">School <span class="required">*</span></label>
-        <Select id="sf-school" v-model="form.schoolId" :options="schools" optionLabel="name" optionValue="id" placeholder="Select school" :loading="loadingSchools" :disabled="!selectedOldProvinceId" :invalid="!!errors.school" filter showClear fluid />
+        <Select id="sf-school" v-model="form.education.schoolId" :options="schools" optionLabel="name" optionValue="id" placeholder="Select school" :loading="loadingSchools" :disabled="!selectedOldProvinceId" :invalid="!!errors.school" filter showClear fluid />
         <small v-if="errors.school" class="form-error">{{ errors.school }}</small>
       </div>
     </div>
+    
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="sf-newProvince">New Province</label>
+        <Select id="sf-newProvince" v-model="form.education.newProvinceId" :options="newProvinces" optionLabel="name" optionValue="id" placeholder="Select new province" :loading="loadingNewProvinces" filter showClear fluid />
+      </div>
+      <div class="form-field">
+        <label for="sf-country">Country</label>
+        <Select id="sf-country" v-model="form.education.countryId" :options="countries" optionLabel="name" optionValue="id" placeholder="Select country" :loading="loadingCountries" filter showClear fluid />
+      </div>
+    </div>
 
-
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="sf-schoolType">School Type</label>
+        <Select id="sf-schoolType" v-model="form.education.schoolType" :options="schoolTypeOptions" optionLabel="label" optionValue="value" placeholder="Select school type" showClear fluid />
+      </div>
+      <div class="form-field">
+        <label for="sf-provinceGroup">Province Group</label>
+        <Select id="sf-provinceGroup" v-model="form.education.provinceGroup" :options="provinceGroupOptions" optionLabel="label" optionValue="value" placeholder="Select province group" showClear fluid />
+      </div>
+    </div>
 
     <div class="section-divider">Academic Intentions</div>
 
@@ -117,6 +137,8 @@ import Select from 'primevue/select'
 import DatePicker from 'primevue/datepicker'
 import Button from 'primevue/button'
 import { useSchoolOptions } from '@/composables/useSchoolOptions'
+import { useNewProvinceOptions } from '@/composables/useNewProvinceOptions'
+import { useCountryOptions } from '@/composables/useCountryOptions'
 import { useMajorOptions } from '@/composables/useMajorOptions'
 
 export default {
@@ -131,9 +153,13 @@ export default {
   emits: ['submit'],
   setup() {
     const { oldProvinces, schools, loadingOldProvinces, loadingSchools, fetchOldProvinces, fetchSchools } = useSchoolOptions()
+    const { newProvinces, loadingNewProvinces, fetchNewProvinces } = useNewProvinceOptions()
+    const { countries, loadingCountries, fetchCountries } = useCountryOptions()
     const { interestedMajors, specificMajors, loadingInterested, loadingSpecific, fetchInterestedMajors, fetchSpecificMajors } = useMajorOptions()
     return { 
       oldProvinces, schools, loadingOldProvinces, loadingSchools, fetchOldProvinces, fetchSchools,
+      newProvinces, loadingNewProvinces, fetchNewProvinces,
+      countries, loadingCountries, fetchCountries,
       interestedMajors, specificMajors, loadingInterested, loadingSpecific, fetchInterestedMajors, fetchSpecificMajors
     }
   },
@@ -141,6 +167,7 @@ export default {
     return {
       form: { 
         ...this.student,
+        education: this.student.education ? { ...this.student.education } : {},
         specializedRegister: this.student.specializedRegister ? { ...this.student.specializedRegister } : {}
       },
       errors: {},
@@ -183,6 +210,19 @@ export default {
         { label: 'Chemistry G11: Higher 7', value: 'CHEM_G11_HIGHER_7' },
         { label: 'Chemistry G12 (Cur 1): Higher 7', value: 'CHEM_G12_CUR1_HIGHER_7' },
         { label: 'Chemistry G12: Higher 7', value: 'CHEM_G12_HIGHER_7' }
+      ],
+      schoolTypeOptions: [
+        { label: 'A*', value: 'A_STAR' },
+        { label: 'A', value: 'A' },
+        { label: 'B', value: 'B' },
+        { label: 'C', value: 'C' },
+        { label: 'D', value: 'D' }
+      ],
+      provinceGroupOptions: [
+        { label: 'Ho Chi Minh', value: 'HO_CHI_MINH' },
+        { label: 'Core Province', value: 'CORE_PROVINCE' },
+        { label: 'Other Province', value: 'OTHER_PROVINCE' },
+        { label: 'Foreign', value: 'FOREIGN' }
       ]
     }
   },
@@ -191,12 +231,13 @@ export default {
       async handler(newVal) {
         this.form = { 
           ...newVal,
+          education: newVal.education ? { ...newVal.education } : {},
           specializedRegister: { ...newVal.specializedRegister }
         }
         this.errors = {}
         // Restore old province selection when editing an existing student with school data
-        if (newVal.school?.oldProvince?.id) {
-          this.selectedOldProvinceId = newVal.school.oldProvince.id
+        if (newVal.education?.school?.oldProvince?.id) {
+          this.selectedOldProvinceId = newVal.education.school.oldProvince.id
           this.fetchSchools(this.selectedOldProvinceId)
         } else {
           this.selectedOldProvinceId = null
@@ -215,9 +256,11 @@ export default {
   },
   async created() {
     this.fetchOldProvinces()
+    this.fetchNewProvinces()
+    this.fetchCountries()
     // If editing student with existing school, load the school's old province dropdown
-    if (this.student.school?.oldProvince?.id) {
-      this.selectedOldProvinceId = this.student.school.oldProvince.id
+    if (this.student.education?.school?.oldProvince?.id) {
+      this.selectedOldProvinceId = this.student.education.school.oldProvince.id
       this.fetchSchools(this.selectedOldProvinceId)
     }
 
@@ -229,7 +272,7 @@ export default {
   },
   methods: {
     onOldProvinceChange() {
-      this.form.schoolId = null
+      this.form.education.schoolId = null
       if (this.selectedOldProvinceId) {
         this.fetchSchools(this.selectedOldProvinceId)
       } else {
@@ -254,13 +297,13 @@ export default {
         }
       }
 
-      // School old province and school are both required
-      if (!this.selectedOldProvinceId && !this.form.schoolId) {
+      // Required field validation
+      if (!this.selectedOldProvinceId && !this.form.education?.schoolId) {
         e.schoolOldProvince = 'School old province is required'
         e.school = 'School is required'
-      } else if (this.selectedOldProvinceId && !this.form.schoolId) {
+      } else if (this.selectedOldProvinceId && !this.form.education?.schoolId) {
         e.school = 'Please select a school for the chosen old province'
-      } else if (!this.selectedOldProvinceId && this.form.schoolId) {
+      } else if (!this.selectedOldProvinceId && this.form.education?.schoolId) {
         e.schoolOldProvince = 'School old province is required when a school is selected'
       }
 
@@ -270,7 +313,8 @@ export default {
     },
     getPayload() {
       // Allowlist: only include fields that the backend Zod schemas accept
-      const allowedStudentFields = ['fullName', 'gender', 'email', 'mobile', 'otherPhone', 'birthDate', 'parentPhone', 'primaryAddress', 'schoolId']
+      const allowedStudentFields = ['fullName', 'gender', 'email', 'mobile', 'otherPhone', 'birthDate', 'parentPhone', 'primaryAddress']
+      const allowedEducationFields = ['schoolId', 'newProvinceId', 'countryId', 'provinceGroup', 'schoolType']
       const allowedSRFields = ['interestedMajorId', 'specificMajorId', 'admissionYear', 'englishCertificate', 'gpa', 'programScore']
 
       const payload = {}
@@ -280,6 +324,22 @@ export default {
           payload[key] = null
         } else if (value !== undefined) {
           payload[key] = value
+        }
+      }
+      
+      // Handle education
+      if (this.form.education) {
+        const eduPayload = {}
+        for (const key of allowedEducationFields) {
+          const value = this.form.education[key]
+          if (value === '' || value === null) {
+            eduPayload[key] = null
+          } else if (value !== undefined) {
+            eduPayload[key] = value
+          }
+        }
+        if (Object.keys(eduPayload).length > 0) {
+          payload.education = eduPayload
         }
       }
       

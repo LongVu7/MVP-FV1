@@ -20,29 +20,15 @@
     >
       <template #header>
         <div class="table-toolbar">
-          <Select 
-            v-model="selectedBirthYear" 
-            :options="birthYearOptions" 
-            optionLabel="label" 
-            optionValue="value" 
-            placeholder="Filter by Birth Year" 
-            showClear
-            @change="onBirthYearChange"
-            class="year-filter"
-          />
-          <Select 
-            v-model="selectedCity" 
-            :options="newSchoolCityOptions" 
-            optionLabel="label" 
-            optionValue="value" 
-            placeholder="Filter by New City" 
-            showClear
-            @change="onCityChange"
-            class="city-filter"
-          />
+          <Select v-model="selectedBirthYear" :options="birthYearOptions" optionLabel="label" optionValue="value" placeholder="Birth Year" showClear @change="onFilterChange" class="filter-select" />
+          <Select v-model="selectedOldProvinceId" :options="oldProvinces" optionLabel="name" optionValue="id" placeholder="Old Province" showClear @change="onFilterChange" class="filter-select" />
+          <Select v-model="selectedNewProvinceId" :options="newProvinces" optionLabel="name" optionValue="id" placeholder="New Province" showClear @change="onFilterChange" class="filter-select" />
+          <Select v-model="selectedCountryId" :options="countries" optionLabel="name" optionValue="id" placeholder="Country" showClear @change="onFilterChange" class="filter-select" />
+          <Select v-model="selectedProvinceGroup" :options="provinceGroupOptions" optionLabel="label" optionValue="value" placeholder="Province Group" showClear @change="onFilterChange" class="filter-select" />
+          <Select v-model="selectedSchoolType" :options="schoolTypeOptions" optionLabel="label" optionValue="value" placeholder="School Type" showClear @change="onFilterChange" class="filter-select" />
           <IconField>
             <InputIcon class="pi pi-search" />
-            <InputText placeholder="Search students (phone, email)..." @input="onSearch" :value="searchQuery" class="search-input" />
+            <InputText placeholder="Search..." @input="onSearch" :value="searchQuery" class="search-input" />
           </IconField>
         </div>
       </template>
@@ -95,9 +81,9 @@
           <span v-else class="null-text">—</span>
         </template>
       </Column>
-      <Column field="school.name" header="School" sortable style="min-width: 160px">
+      <Column field="education.school.name" header="School" sortable style="min-width: 160px">
         <template #body="{ data }">
-          <span v-if="data.school">{{ data.school.name }}</span>
+          <span v-if="data.education?.school">{{ data.education.school.name }}</span>
           <span v-else class="null-text">—</span>
         </template>
       </Column>
@@ -107,15 +93,27 @@
           <span v-else class="null-text">—</span>
         </template>
       </Column>
-      <Column field="newSchoolCity" header="New City" sortable style="min-width: 140px">
+      <Column field="education.newProvince.name" header="New Province" sortable style="min-width: 140px">
         <template #body="{ data }">
-          <span v-if="data.newSchoolCity">{{ formatNewSchoolCity(data.newSchoolCity) }}</span>
+          <span v-if="data.education?.newProvince">{{ data.education.newProvince.name }}</span>
           <span v-else class="null-text">—</span>
         </template>
       </Column>
-      <Column field="schoolCountry" header="Country" sortable style="min-width: 140px">
+      <Column field="education.country.name" header="Country" sortable style="min-width: 140px">
         <template #body="{ data }">
-          <span v-if="data.schoolCountry">{{ formatSchoolCountry(data.schoolCountry) }}</span>
+          <span v-if="data.education?.country">{{ data.education.country.name }}</span>
+          <span v-else class="null-text">—</span>
+        </template>
+      </Column>
+      <Column field="education.provinceGroup" header="Province Group" sortable style="min-width: 140px">
+        <template #body="{ data }">
+          <span v-if="data.education?.provinceGroup">{{ formatProvinceGroup(data.education.provinceGroup) }}</span>
+          <span v-else class="null-text">—</span>
+        </template>
+      </Column>
+      <Column field="education.schoolType" header="School Type" sortable style="min-width: 140px">
+        <template #body="{ data }">
+          <span v-if="data.education?.schoolType">{{ formatSchoolType(data.education.schoolType) }}</span>
           <span v-else class="null-text">—</span>
         </template>
       </Column>
@@ -149,7 +147,10 @@ import Tag from 'primevue/tag'
 import ConfirmDialog from 'primevue/confirmdialog'
 import Select from 'primevue/select'
 import { useConfirm } from 'primevue/useconfirm'
-import { newSchoolCityOptions, schoolCountryOptions } from '@/helpers/schoolEnums'
+import { useSchoolOptions } from '@/composables/useSchoolOptions'
+import { useNewProvinceOptions } from '@/composables/useNewProvinceOptions'
+import { useCountryOptions } from '@/composables/useCountryOptions'
+import { onMounted } from 'vue'
 
 const props = defineProps({
   students: { type: Array, default: () => [] },
@@ -157,15 +158,44 @@ const props = defineProps({
   pagination: { type: Object, default: null }
 })
 
-const emit = defineEmits(['page-change', 'search', 'delete', 'sort', 'filter-city'])
+const emit = defineEmits(['page-change', 'search', 'delete', 'sort', 'filter'])
 
 const router = useRouter()
 const confirm = useConfirm()
 
+const { oldProvinces, fetchOldProvinces } = useSchoolOptions()
+const { newProvinces, fetchNewProvinces } = useNewProvinceOptions()
+const { countries, fetchCountries } = useCountryOptions()
+
+onMounted(() => {
+  fetchOldProvinces()
+  fetchNewProvinces()
+  fetchCountries()
+})
+
 const searchQuery = ref('')
-const selectedCity = ref(null)
+const selectedOldProvinceId = ref(null)
+const selectedNewProvinceId = ref(null)
+const selectedCountryId = ref(null)
+const selectedProvinceGroup = ref(null)
+const selectedSchoolType = ref(null)
 const selectedBirthYear = ref(null)
 let searchTimeout = null
+
+const provinceGroupOptions = [
+  { label: 'Ho Chi Minh', value: 'HO_CHI_MINH' },
+  { label: 'Core Province', value: 'CORE_PROVINCE' },
+  { label: 'Other Province', value: 'OTHER_PROVINCE' },
+  { label: 'Foreign', value: 'FOREIGN' }
+]
+
+const schoolTypeOptions = [
+  { label: 'A*', value: 'A_STAR' },
+  { label: 'A', value: 'A' },
+  { label: 'B', value: 'B' },
+  { label: 'C', value: 'C' },
+  { label: 'D', value: 'D' }
+]
 
 const currentYear = new Date().getFullYear()
 const birthYearOptions = Array.from({ length: 40 }, (_, i) => {
@@ -191,12 +221,15 @@ const onSearch = (e) => {
   }, 500)
 }
 
-const onCityChange = () => {
-  emit('filter-city', selectedCity.value)
-}
-
-const onBirthYearChange = () => {
-  emit('filter-birth-year', selectedBirthYear.value)
+const onFilterChange = () => {
+  emit('filter', {
+    oldProvinceId: selectedOldProvinceId.value,
+    newProvinceId: selectedNewProvinceId.value,
+    countryId: selectedCountryId.value,
+    provinceGroup: selectedProvinceGroup.value,
+    schoolType: selectedSchoolType.value,
+    birthYear: selectedBirthYear.value
+  })
 }
 
 const confirmDeleteAction = (student) => {
@@ -238,13 +271,13 @@ const gpaLabel = (g) => {
   return g
 }
 
-const formatNewSchoolCity = (value) => {
-  const opt = newSchoolCityOptions.find(o => o.value === value)
+const formatProvinceGroup = (value) => {
+  const opt = provinceGroupOptions.find(o => o.value === value)
   return opt ? opt.label : value
 }
 
-const formatSchoolCountry = (value) => {
-  const opt = schoolCountryOptions.find(o => o.value === value)
+const formatSchoolType = (value) => {
+  const opt = schoolTypeOptions.find(o => o.value === value)
   return opt ? opt.label : value
 }
 
@@ -257,10 +290,9 @@ const genderSeverity = (gender) => {
 
 <style scoped>
 .table-container { background: var(--p-content-background); border-radius: 12px; overflow: hidden; border: 1px solid var(--p-surface-200); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06); }
-.table-toolbar { display: flex; justify-content: flex-end; gap: 1rem; }
-.city-filter { width: 220px; }
-.year-filter { width: 180px; }
-.search-input { width: 280px; }
+.table-toolbar { display: flex; justify-content: flex-end; gap: 0.5rem; flex-wrap: wrap; }
+.filter-select { width: 140px; }
+.search-input { width: 220px; }
 .student-name { font-weight: 600; color: var(--p-text-color); }
 .email-text { color: var(--p-primary-color); font-size: 0.9rem; }
 .null-text { color: var(--p-text-muted-color); }

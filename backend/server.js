@@ -20,7 +20,8 @@ const campaignTemplateRoutes = require('./api/modules/campaignTemplate/templateR
 const errorReportRoutes = require('./api/modules/errorReport/errorReportRoutes');
 const majorDataRoutes = require('./api/modules/majorData/majorDataRoutes');
 const permissionRoutes = require('./api/modules/permission/permissionRoutes');
-
+const newProvinceRoutes = require('./api/modules/newProvince/newProvinceRoutes');
+const countryRoutes = require('./api/modules/country/countryRoutes');
 const app = express();
 const port = process.env.PORT || 3003;
 
@@ -44,6 +45,8 @@ app.use('/api/accounts', accountRoutes);
 app.use('/api/groups', userGroupRoutes);
 app.use('/api/roles', roleRoutes);
 app.use('/api/old-provinces', oldProvinceRoutes);
+app.use('/api/new-provinces', newProvinceRoutes);
+app.use('/api/countries', countryRoutes);
 app.use('/api/schools', schoolRoutes);
 app.use('/api/source-data', sourceDataRoutes);
 app.use('/api/status-data', statusDataRoutes);

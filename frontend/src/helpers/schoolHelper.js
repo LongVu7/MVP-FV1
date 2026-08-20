@@ -7,6 +7,16 @@ export const getAllOldProvinces = async () => {
   return response.data.data
 }
 
+export const getAllNewProvinces = async () => {
+  const response = await api.get('/new-provinces/')
+  return response.data.data
+}
+
+export const getAllCountries = async () => {
+  const response = await api.get('/countries/')
+  return response.data.data
+}
+
 export const getSchoolOptions = async (oldProvinceId) => {
   const params = {}
   if (oldProvinceId) params.oldProvinceId = oldProvinceId

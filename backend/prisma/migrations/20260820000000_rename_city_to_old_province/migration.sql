@@ -1,6 +1,4 @@
--- AlterTable
-ALTER TABLE "student" DROP COLUMN "new_school_city",
-DROP COLUMN "school_country";
+
 
 -- Rename table and column
 ALTER TABLE "city" RENAME TO "old_province";

@@ -6,24 +6,32 @@ const { buildPaginationMeta } = require('../../utils/pagination');
 
 // ─── Create a student
 const createStudent = async (data) => {
-  const { specializedRegister, schoolId, ...studentData } = data;
+  const { specializedRegister, education, ...studentData } = data;
   try {
-    return await prisma.student.create({
-      data: {
-        ...studentData,
-        birthDate: studentData.birthDate ? new Date(studentData.birthDate) : undefined,
-        ...(schoolId ? {
-          school: {
-            connect: { id: schoolId }
-          }
-        } : {}),
-        ...(specializedRegister && {
-          specializedRegister: {
-            create: specializedRegister
-          }
-        })
-      },
+    return await prisma.$transaction(async (tx) => {
+      return await tx.student.create({
+        data: {
+          ...studentData,
+          birthDate: studentData.birthDate ? new Date(studentData.birthDate) : undefined,
+          ...(education && {
+            education: {
+              create: education
+            }
+          }),
+          ...(specializedRegister && {
+            specializedRegister: {
+              create: specializedRegister
+            }
+          })
+        },
       include: {
+        education: {
+          include: {
+            school: { select: { id: true, name: true, oldProvince: { select: { id: true, name: true } } } },
+            newProvince: { select: { id: true, name: true } },
+            country: { select: { id: true, name: true } }
+          }
+        },
         specializedRegister: {
           include: {
             interestedMajor: { select: { id: true, name: true } },
@@ -32,6 +40,7 @@ const createStudent = async (data) => {
         }
       }
     });
+  });
   } catch (error) {
 
     if (error.code === 'P2002') {
@@ -51,7 +60,7 @@ const createStudent = async (data) => {
 
 
 // ─── Get all students
-const getAllStudents = async ({ page, limit, skip, search, sortField, sortOrder, city, birthYear }) => {
+const getAllStudents = async ({ page, limit, skip, search, sortField, sortOrder, oldProvinceId, newProvinceId, countryId, provinceGroup, schoolType, birthYear }) => {
   const where = {};
   if (search) {
     where.OR = [
@@ -72,8 +81,8 @@ const getAllStudents = async ({ page, limit, skip, search, sortField, sortOrder,
   let orderBy = { createdAt: 'desc' };
   if (sortField) {
     const order = sortOrder === 1 ? 'asc' : 'desc';
-    if (sortField === 'school.name') {
-      orderBy = { school: { name: order } };
+    if (sortField === 'education.school.name') {
+      orderBy = { education: { school: { name: order } } };
     } else {
       orderBy = { [sortField]: order };
     }
@@ -85,7 +94,13 @@ const getAllStudents = async ({ page, limit, skip, search, sortField, sortOrder,
       skip,
       take: limit,
       include: { 
-        school: { select: { id: true, name: true, oldProvince: { select: { id: true, name: true } } } },
+        education: {
+          include: {
+            school: { select: { id: true, name: true, oldProvince: { select: { id: true, name: true } } } },
+            newProvince: { select: { id: true, name: true } },
+            country: { select: { id: true, name: true } }
+          }
+        },
         specializedRegister: {
           include: {
             interestedMajor: { select: { id: true, name: true } },
@@ -109,7 +124,13 @@ const getStudentById = async (id) => {
   const student = await prisma.student.findUnique({
     where: { id: Number(id) },
     include: { 
-      school: { select: { id: true, name: true, oldProvince: { select: { id: true, name: true } } } },
+      education: {
+        include: {
+          school: { select: { id: true, name: true, oldProvince: { select: { id: true, name: true } } } },
+          newProvince: { select: { id: true, name: true } },
+          country: { select: { id: true, name: true } }
+        }
+      },
       specializedRegister: {
         include: {
           interestedMajor: { select: { id: true, name: true } },
@@ -130,37 +151,67 @@ const getStudentById = async (id) => {
 
 // ─── Update a student
 const updateStudent = async (id, data) => {
-  const { specializedRegister, schoolId, ...studentData } = data;
-  
-  const schoolUpdate = schoolId === null 
-    ? { disconnect: true } 
-    : (schoolId ? { connect: { id: schoolId } } : undefined);
+  const { specializedRegister, education, ...studentData } = data;
 
   try {
-    return await prisma.student.update({
-      where: { id: Number(id) },
-      data: {
-        ...studentData,
-        birthDate: studentData.birthDate ? new Date(studentData.birthDate) : studentData.birthDate,
-        updatedAt: new Date(),
-        ...(schoolUpdate && { school: schoolUpdate }),
-        ...(specializedRegister !== undefined && {
-          specializedRegister: {
-            upsert: {
-              create: specializedRegister,
-              update: specializedRegister
+    return await prisma.$transaction(async (tx) => {
+      // First update the student details
+      const studentUpdate = await tx.student.update({
+        where: { id: Number(id) },
+        data: {
+          ...studentData,
+          birthDate: studentData.birthDate ? new Date(studentData.birthDate) : studentData.birthDate,
+          updatedAt: new Date(),
+          ...(specializedRegister !== undefined && {
+            specializedRegister: {
+              upsert: {
+                create: specializedRegister,
+                update: specializedRegister
+              }
             }
-          }
-        })
-      },
-      include: {
-        specializedRegister: {
-          include: {
-            interestedMajor: { select: { id: true, name: true } },
-            specificMajor: { select: { id: true, name: true } }
-          }
+          })
+        },
+      });
+
+      // Then conditionally upsert or delete the education record
+      if (education !== undefined) {
+        if (education === null) {
+          await tx.studentEducation.deleteMany({
+            where: { studentId: Number(id) }
+          });
+        } else {
+          await tx.studentEducation.upsert({
+            where: { studentId: Number(id) },
+            create: {
+              studentId: Number(id),
+              ...education
+            },
+            update: {
+              ...education
+            }
+          });
         }
       }
+
+      // Finally, fetch and return the complete student
+      return await tx.student.findUnique({
+        where: { id: Number(id) },
+        include: {
+          education: {
+            include: {
+              school: { select: { id: true, name: true, oldProvince: { select: { id: true, name: true } } } },
+              newProvince: { select: { id: true, name: true } },
+              country: { select: { id: true, name: true } }
+            }
+          },
+          specializedRegister: {
+            include: {
+              interestedMajor: { select: { id: true, name: true } },
+              specificMajor: { select: { id: true, name: true } }
+            }
+          }
+        }
+      });
     });
   } catch (error) {
     if (error.code === 'P2002') {
@@ -260,7 +311,7 @@ const analyzeImport = async (parsedStudents) => {
     const cityNames = [...new Set(studentsNeedingSchoolLookup.map(s => String(s.schoolCity).trim()))];
     
     // Fetch cities with their schools in one query
-    const cities = await prisma.city.findMany({
+    const cities = await prisma.oldProvince.findMany({
       where: { name: { in: cityNames, mode: 'insensitive' } },
       include: { schools: { select: { id: true, name: true } } }
     });
@@ -405,15 +456,18 @@ const processImport = async (students) => {
       dbData.birthDate = new Date(dbData.birthDate);
     }
     
-    const schoolUpdate = schoolId === null 
-      ? { disconnect: true } 
-      : (schoolId ? { connect: { id: schoolId } } : undefined);
+    const educationUpsert = schoolId !== undefined ? {
+      upsert: {
+        create: { schoolId: schoolId === null ? undefined : schoolId },
+        update: { schoolId: schoolId === null ? null : schoolId }
+      }
+    } : undefined;
 
     return prisma.student.upsert({
       where: { mobile: dbData.mobile },
       update: {
         ...dbData,
-        ...(schoolUpdate && { school: schoolUpdate }),
+        ...(educationUpsert && { education: educationUpsert }),
         ...(specializedRegister && {
           specializedRegister: {
             upsert: {
@@ -426,8 +480,8 @@ const processImport = async (students) => {
       create: {
         ...dbData,
         ...(schoolId ? {
-          school: {
-            connect: { id: schoolId }
+          education: {
+            create: { schoolId }
           }
         } : {}),
         ...(specializedRegister && {
