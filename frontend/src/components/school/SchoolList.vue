@@ -19,9 +19,9 @@
     >
       <template #header>
         <div class="table-toolbar">
-          <Select v-model="selectedCityId" :options="cities" optionLabel="name" optionValue="id"
-            placeholder="Filter by city" :loading="loadingCities" filter showClear class="city-filter"
-            @change="onCityFilter" />
+          <Select v-model="selectedOldProvinceId" :options="oldProvinces" optionLabel="name" optionValue="id"
+            placeholder="Filter by old province" :loading="loadingOldProvinces" filter showClear class="city-filter"
+            @change="onOldProvinceFilter" />
           <IconField>
             <InputIcon class="pi pi-search" />
             <InputText placeholder="Search schools..." @input="onSearch" :value="searchQuery" class="search-input" />
@@ -50,9 +50,9 @@
       <Column field="name" header="School Name" sortable style="min-width: 220px">
         <template #body="{ data }"><span class="school-name">{{ data.name }}</span></template>
       </Column>
-      <Column header="City" sortable style="min-width: 160px">
+      <Column header="Old Province" sortable style="min-width: 160px">
         <template #body="{ data }">
-          <span v-if="data.city">{{ data.city.name }}</span>
+          <span v-if="data.oldProvince">{{ data.oldProvince.name }}</span>
           <span v-else class="null-text">—</span>
         </template>
       </Column>
@@ -99,17 +99,17 @@ const props = defineProps({
   pagination: { type: Object, default: null }
 })
 
-const emit = defineEmits(['page-change', 'search', 'delete', 'city-filter'])
+const emit = defineEmits(['page-change', 'search', 'delete', 'old-province-filter'])
 
 const confirm = useConfirm()
-const { cities, loadingCities, fetchCities } = useSchoolOptions()
+const { oldProvinces, loadingOldProvinces, fetchOldProvinces } = useSchoolOptions()
 
 const searchQuery = ref('')
-const selectedCityId = ref(null)
+const selectedOldProvinceId = ref(null)
 let searchTimeout = null
 
 onMounted(() => {
-  fetchCities()
+  fetchOldProvinces()
 })
 
 const onPage = (event) => {
@@ -125,8 +125,8 @@ const onSearch = (e) => {
   }, 500)
 }
 
-const onCityFilter = () => {
-  emit('city-filter', selectedCityId.value)
+const onOldProvinceFilter = () => {
+  emit('old-province-filter', selectedOldProvinceId.value)
 }
 
 const confirmDeleteAction = (school) => {

@@ -1,4 +1,4 @@
-model City {
+model OldProvince {
   id   Int    @id @default(autoincrement())
   name String @db.VarChar(255)
 
@@ -7,5 +7,5 @@ model City {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz()
 
-  @@map("city")
+  @@map("old_province")
 }

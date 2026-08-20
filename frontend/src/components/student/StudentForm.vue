@@ -49,27 +49,18 @@
 
     <div class="form-grid">
       <div class="form-field">
-        <label for="sf-schoolCity">School City <span class="required">*</span></label>
-        <Select id="sf-schoolCity" v-model="selectedCityId" :options="cities" optionLabel="name" optionValue="id" placeholder="Select city" :loading="loadingCities" :invalid="!!errors.schoolCity" filter showClear fluid @change="onCityChange" />
-        <small v-if="errors.schoolCity" class="form-error">{{ errors.schoolCity }}</small>
+        <label for="sf-schoolOldProvince">School Old Province <span class="required">*</span></label>
+        <Select id="sf-schoolOldProvince" v-model="selectedOldProvinceId" :options="oldProvinces" optionLabel="name" optionValue="id" placeholder="Select old province" :loading="loadingOldProvinces" :invalid="!!errors.schoolOldProvince" filter showClear fluid @change="onOldProvinceChange" />
+        <small v-if="errors.schoolOldProvince" class="form-error">{{ errors.schoolOldProvince }}</small>
       </div>
       <div class="form-field">
         <label for="sf-school">School <span class="required">*</span></label>
-        <Select id="sf-school" v-model="form.schoolId" :options="schools" optionLabel="name" optionValue="id" placeholder="Select school" :loading="loadingSchools" :disabled="!selectedCityId" :invalid="!!errors.school" filter showClear fluid />
+        <Select id="sf-school" v-model="form.schoolId" :options="schools" optionLabel="name" optionValue="id" placeholder="Select school" :loading="loadingSchools" :disabled="!selectedOldProvinceId" :invalid="!!errors.school" filter showClear fluid />
         <small v-if="errors.school" class="form-error">{{ errors.school }}</small>
       </div>
     </div>
 
-    <div class="form-grid">
-      <div class="form-field">
-        <label for="sf-newSchoolCity">New School City</label>
-        <Select id="sf-newSchoolCity" v-model="form.newSchoolCity" :options="newSchoolCityOptions" optionLabel="label" optionValue="value" placeholder="Select new city" filter showClear fluid />
-      </div>
-      <div class="form-field">
-        <label for="sf-schoolCountry">School Country</label>
-        <Select id="sf-schoolCountry" v-model="form.schoolCountry" :options="schoolCountryOptions" optionLabel="label" optionValue="value" placeholder="Select country" filter showClear fluid />
-      </div>
-    </div>
+
 
     <div class="section-divider">Academic Intentions</div>
 
@@ -127,7 +118,6 @@ import DatePicker from 'primevue/datepicker'
 import Button from 'primevue/button'
 import { useSchoolOptions } from '@/composables/useSchoolOptions'
 import { useMajorOptions } from '@/composables/useMajorOptions'
-import { newSchoolCityOptions, schoolCountryOptions } from '@/helpers/schoolEnums'
 
 export default {
   name: 'StudentForm',
@@ -140,10 +130,10 @@ export default {
   },
   emits: ['submit'],
   setup() {
-    const { cities, schools, loadingCities, loadingSchools, fetchCities, fetchSchools } = useSchoolOptions()
+    const { oldProvinces, schools, loadingOldProvinces, loadingSchools, fetchOldProvinces, fetchSchools } = useSchoolOptions()
     const { interestedMajors, specificMajors, loadingInterested, loadingSpecific, fetchInterestedMajors, fetchSpecificMajors } = useMajorOptions()
     return { 
-      cities, schools, loadingCities, loadingSchools, fetchCities, fetchSchools,
+      oldProvinces, schools, loadingOldProvinces, loadingSchools, fetchOldProvinces, fetchSchools,
       interestedMajors, specificMajors, loadingInterested, loadingSpecific, fetchInterestedMajors, fetchSpecificMajors
     }
   },
@@ -155,9 +145,7 @@ export default {
       },
       errors: {},
       warnings: {},
-      selectedCityId: null,
-      newSchoolCityOptions,
-      schoolCountryOptions,
+      selectedOldProvinceId: null,
       genderOptions: [
         { label: 'Male', value: 'Male' },
         { label: 'Female', value: 'Female' }
@@ -206,12 +194,12 @@ export default {
           specializedRegister: { ...newVal.specializedRegister }
         }
         this.errors = {}
-        // Restore city selection when editing an existing student with school data
-        if (newVal.school?.city?.id) {
-          this.selectedCityId = newVal.school.city.id
-          this.fetchSchools(this.selectedCityId)
+        // Restore old province selection when editing an existing student with school data
+        if (newVal.school?.oldProvince?.id) {
+          this.selectedOldProvinceId = newVal.school.oldProvince.id
+          this.fetchSchools(this.selectedOldProvinceId)
         } else {
-          this.selectedCityId = null
+          this.selectedOldProvinceId = null
           this.schools = []
         }
 
@@ -226,11 +214,11 @@ export default {
     }
   },
   async created() {
-    this.fetchCities()
-    // If editing student with existing school, load the school's city dropdown
-    if (this.student.school?.city?.id) {
-      this.selectedCityId = this.student.school.city.id
-      this.fetchSchools(this.selectedCityId)
+    this.fetchOldProvinces()
+    // If editing student with existing school, load the school's old province dropdown
+    if (this.student.school?.oldProvince?.id) {
+      this.selectedOldProvinceId = this.student.school.oldProvince.id
+      this.fetchSchools(this.selectedOldProvinceId)
     }
 
     // Fetch interested majors
@@ -240,10 +228,10 @@ export default {
     }
   },
   methods: {
-    onCityChange() {
+    onOldProvinceChange() {
       this.form.schoolId = null
-      if (this.selectedCityId) {
-        this.fetchSchools(this.selectedCityId)
+      if (this.selectedOldProvinceId) {
+        this.fetchSchools(this.selectedOldProvinceId)
       } else {
         this.schools = []
       }
@@ -266,14 +254,14 @@ export default {
         }
       }
 
-      // School city and school are both required
-      if (!this.selectedCityId && !this.form.schoolId) {
-        e.schoolCity = 'School city is required'
+      // School old province and school are both required
+      if (!this.selectedOldProvinceId && !this.form.schoolId) {
+        e.schoolOldProvince = 'School old province is required'
         e.school = 'School is required'
-      } else if (this.selectedCityId && !this.form.schoolId) {
-        e.school = 'Please select a school for the chosen city'
-      } else if (!this.selectedCityId && this.form.schoolId) {
-        e.schoolCity = 'School city is required when a school is selected'
+      } else if (this.selectedOldProvinceId && !this.form.schoolId) {
+        e.school = 'Please select a school for the chosen old province'
+      } else if (!this.selectedOldProvinceId && this.form.schoolId) {
+        e.schoolOldProvince = 'School old province is required when a school is selected'
       }
 
       this.errors = e
@@ -282,7 +270,7 @@ export default {
     },
     getPayload() {
       // Allowlist: only include fields that the backend Zod schemas accept
-      const allowedStudentFields = ['fullName', 'gender', 'email', 'mobile', 'otherPhone', 'birthDate', 'parentPhone', 'primaryAddress', 'schoolId', 'newSchoolCity', 'schoolCountry']
+      const allowedStudentFields = ['fullName', 'gender', 'email', 'mobile', 'otherPhone', 'birthDate', 'parentPhone', 'primaryAddress', 'schoolId']
       const allowedSRFields = ['interestedMajorId', 'specificMajorId', 'admissionYear', 'englishCertificate', 'gpa', 'programScore']
 
       const payload = {}

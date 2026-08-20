@@ -16,7 +16,7 @@
       :pagination="pagination"
       @page-change="onPageChange"
       @search="onSearch"
-      @city-filter="onCityFilter"
+      @old-province-filter="onOldProvinceFilter"
       @delete="onDelete"
     />
   </div>
@@ -33,7 +33,7 @@ import { useToast } from 'primevue/usetoast'
 const { schools, pagination, loading, fetchSchools, deleteSchool } = useSchool()
 const toast = useToast()
 
-const currentParams = ref({ page: 1, limit: 20, search: '', cityId: null })
+const currentParams = ref({ page: 1, limit: 20, search: '', oldProvinceId: null })
 
 onMounted(async () => {
   await loadData()
@@ -42,7 +42,7 @@ onMounted(async () => {
 const loadData = async () => {
   try {
     const params = { ...currentParams.value }
-    if (!params.cityId) delete params.cityId
+    if (!params.oldProvinceId) delete params.oldProvinceId
     if (!params.search) delete params.search
     await fetchSchools(params)
   } catch (e) {
@@ -62,8 +62,8 @@ const onSearch = async (searchQuery) => {
   await loadData()
 }
 
-const onCityFilter = async (cityId) => {
-  currentParams.value.cityId = cityId
+const onOldProvinceFilter = async (oldProvinceId) => {
+  currentParams.value.oldProvinceId = oldProvinceId
   currentParams.value.page = 1
   await loadData()
 }

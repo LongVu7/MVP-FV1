@@ -2,22 +2,22 @@ import api from './helper.js'
 
 const prefix = '/schools'
 
-export const getAllCities = async () => {
-  const response = await api.get('/cities/')
+export const getAllOldProvinces = async () => {
+  const response = await api.get('/old-provinces/')
   return response.data.data
 }
 
-export const getSchoolOptions = async (cityId) => {
+export const getSchoolOptions = async (oldProvinceId) => {
   const params = {}
-  if (cityId) params.cityId = cityId
+  if (oldProvinceId) params.oldProvinceId = oldProvinceId
   const response = await api.get(`${prefix}/options`, { params })
   return response.data.data
 }
 
-export const getAllSchools = async ({ page = 1, limit = 20, search = '', cityId } = {}) => {
+export const getAllSchools = async ({ page = 1, limit = 20, search = '', oldProvinceId } = {}) => {
   const params = { page, limit }
   if (search) params.search = search
-  if (cityId) params.cityId = cityId
+  if (oldProvinceId) params.oldProvinceId = oldProvinceId
   const response = await api.get(`${prefix}/`, { params })
   return response.data
 }

@@ -12,9 +12,9 @@ const handleError = (res, error) => {
 const getAllSchools = async (req, res) => {
   try {
     const { page, limit, skip } = parsePagination(req.query);
-    const { cityId, search } = req.query;
+    const { oldProvinceId, search } = req.query;
 
-    const { schools, pagination } = await schoolService.getAllSchools({ page, limit, skip, cityId, search });
+    const { schools, pagination } = await schoolService.getAllSchools({ page, limit, skip, oldProvinceId, search });
 
     res.status(200).json({
       message: 'Schools retrieved successfully',
@@ -28,8 +28,8 @@ const getAllSchools = async (req, res) => {
 
 const getSchoolOptions = async (req, res) => {
   try {
-    const { cityId } = req.query;
-    const data = await schoolService.getSchoolOptions(cityId);
+    const { oldProvinceId } = req.query;
+    const data = await schoolService.getSchoolOptions(oldProvinceId);
     res.status(200).json({
       message: 'School options retrieved successfully',
       data

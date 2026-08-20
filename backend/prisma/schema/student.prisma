@@ -20,9 +20,6 @@ model Student {
   schoolId Int?    @map("school_id")
   school   School? @relation(fields: [schoolId], references: [id])
 
-  newSchoolCity NewSchoolCity? @map("new_school_city")
-  schoolCountry SchoolCountry? @map("school_country")
-
   specializedRegisterId Int?                @unique @map("specialized_register_id")
   specializedRegister   SpecializedRegister? @relation(fields: [specializedRegisterId], references: [id])
 

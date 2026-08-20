@@ -1,31 +1,31 @@
 import { ref, watch } from 'vue'
-import { getAllCities, getSchoolOptions } from '@/helpers/schoolHelper'
+import { getAllOldProvinces, getSchoolOptions } from '@/helpers/schoolHelper'
 
 export function useSchoolOptions() {
-  const cities = ref([])
+  const oldProvinces = ref([])
   const schools = ref([])
-  const loadingCities = ref(false)
+  const loadingOldProvinces = ref(false)
   const loadingSchools = ref(false)
 
-  const fetchCities = async () => {
-    loadingCities.value = true
+  const fetchOldProvinces = async () => {
+    loadingOldProvinces.value = true
     try {
-      cities.value = await getAllCities()
+      oldProvinces.value = await getAllOldProvinces()
     } catch (err) {
-      cities.value = []
+      oldProvinces.value = []
     } finally {
-      loadingCities.value = false
+      loadingOldProvinces.value = false
     }
   }
 
-  const fetchSchools = async (cityId) => {
-    if (!cityId) {
+  const fetchSchools = async (oldProvinceId) => {
+    if (!oldProvinceId) {
       schools.value = []
       return
     }
     loadingSchools.value = true
     try {
-      schools.value = await getSchoolOptions(cityId)
+      schools.value = await getSchoolOptions(oldProvinceId)
     } catch (err) {
       schools.value = []
     } finally {
@@ -34,11 +34,11 @@ export function useSchoolOptions() {
   }
 
   return {
-    cities,
+    oldProvinces,
     schools,
-    loadingCities,
+    loadingOldProvinces,
     loadingSchools,
-    fetchCities,
+    fetchOldProvinces,
     fetchSchools
   }
 }

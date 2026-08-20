@@ -1,4 +1,4 @@
-const cityService = require('./cityService');
+const oldProvinceService = require('./oldProvinceService');
 
 const handleError = (res, error) => {
   const status = error.status || 500;
@@ -8,11 +8,11 @@ const handleError = (res, error) => {
   });
 };
 
-const getAllCities = async (req, res) => {
+const getAllOldProvinces = async (req, res) => {
   try {
-    const data = await cityService.getAllCities();
+    const data = await oldProvinceService.getAllOldProvinces();
     res.status(200).json({
-      message: 'Cities retrieved successfully',
+      message: 'Old Provinces retrieved successfully',
       data
     });
   } catch (error) {
@@ -20,4 +20,4 @@ const getAllCities = async (req, res) => {
   }
 };
 
-module.exports = { getAllCities };
+module.exports = { getAllOldProvinces };

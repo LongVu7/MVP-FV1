@@ -60,10 +60,7 @@ const getAllStudents = async ({ page, limit, skip, search, sortField, sortOrder,
       { fullName: { contains: search, mode: 'insensitive' } }
     ];
   }
-  //Filter by newSchoolCity
-  if (city) {
-    where.newSchoolCity = city;
-  }
+  //Filter by newSchoolCity will be refactored later
   //Filter by birthYear
   if (birthYear) {
     const year = parseInt(birthYear, 10);

@@ -3,16 +3,16 @@ model School {
   name       String     @db.VarChar(255)
   schoolType SchoolType? @map("school_type")
 
-  cityId Int  @map("city_id")
-  city   City @relation(fields: [cityId], references: [id])
+  oldProvinceId Int  @map("old_province_id")
+  oldProvince   OldProvince @relation(fields: [oldProvinceId], references: [id])
 
   students Student[]
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz()
 
-  @@unique([name, cityId])
-  @@index([cityId])
+  @@unique([name, oldProvinceId])
+  @@index([oldProvinceId])
   @@map("school")
 }
 

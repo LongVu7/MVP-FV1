@@ -44,8 +44,7 @@ const studentTemplate = ref({
   parentPhone: '',
   primaryAddress: '',
   schoolId: null,
-  newSchoolCity: null,
-  schoolCountry: null,
+
   specializedRegister: {
     interestedMajor: '',
     specificMajor: '',

@@ -45,8 +45,7 @@ const createStudentSchema = z.object({
   primaryAddress: z.string().max(255).nullable().optional(),
   schoolId: z.number().int().positive('schoolId must be a positive integer'),
   specializedRegister: specializedRegisterSchema.optional(),
-  newSchoolCity: z.string().max(255).nullable().optional(),
-  schoolCountry: z.string().max(255).nullable().optional()
+
 }).strict();
 
 const updateStudentSchema = z.object({
@@ -60,8 +59,7 @@ const updateStudentSchema = z.object({
   primaryAddress: z.string().max(255).nullable().optional(),
   schoolId: z.number().int().positive('schoolId must be a positive integer'),
   specializedRegister: specializedRegisterSchema.optional(),
-  newSchoolCity: z.string().max(255).nullable().optional(),
-  schoolCountry: z.string().max(255).nullable().optional()
+
 }).strict().refine(
   (data) => Object.keys(data).length > 0,
   { message: 'Request body cannot be empty' }
@@ -111,8 +109,7 @@ const importStudentSchema = z.object({
   // Excel-only columns for school name lookup (resolved to schoolId during preview)
   schoolCity: z.preprocess((val) => (val === '' ? undefined : val), z.string().max(255).optional()),
   school: z.preprocess((val) => (val === '' ? undefined : val), z.string().max(255).optional()),
-  newSchoolCity: z.string().max(255).nullable().optional(),
-  schoolCountry: z.string().max(255).nullable().optional()
+
 }).passthrough();
 
 const importStudentsPayloadSchema = z.object({

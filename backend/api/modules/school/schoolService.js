@@ -2,9 +2,9 @@ const prisma = require('../../../config/db');
 const { buildPaginationMeta } = require('../../utils/pagination');
 
 // ─── Get all schools
-const getAllSchools = async ({ page, limit, skip, cityId, search }) => {
+const getAllSchools = async ({ page, limit, skip, oldProvinceId, search }) => {
   const where = {};
-  if (cityId) where.cityId = Number(cityId);
+  if (oldProvinceId) where.oldProvinceId = Number(oldProvinceId);
   if (search) where.name = { contains: search, mode: 'insensitive' };
 
   const [schools, totalCount] = await prisma.$transaction([
@@ -12,7 +12,7 @@ const getAllSchools = async ({ page, limit, skip, cityId, search }) => {
       where,
       skip,
       take: limit,
-      include: { city: { select: { id: true, name: true } } },
+      include: { oldProvince: { select: { id: true, name: true } } },
       orderBy: { name: 'asc' }
     }),
     prisma.school.count({ where })
@@ -24,10 +24,10 @@ const getAllSchools = async ({ page, limit, skip, cityId, search }) => {
   };
 };
 
-// ─── Get school options by city 
-const getSchoolOptions = async (cityId) => {
+// ─── Get school options by old province 
+const getSchoolOptions = async (oldProvinceId) => {
   const where = {};
-  if (cityId) where.cityId = Number(cityId);
+  if (oldProvinceId) where.oldProvinceId = Number(oldProvinceId);
 
   return prisma.school.findMany({
     where,
@@ -40,7 +40,7 @@ const getSchoolOptions = async (cityId) => {
 const getSchoolById = async (id) => {
   const school = await prisma.school.findUnique({
     where: { id: Number(id) },
-    include: { city: { select: { id: true, name: true } } }
+    include: { oldProvince: { select: { id: true, name: true } } }
   });
 
   if (!school) {
@@ -54,10 +54,10 @@ const getSchoolById = async (id) => {
 
 // ─── Create a school
 const createSchool = async (data) => {
-  // Verify city exists
-  const city = await prisma.city.findUnique({ where: { id: data.cityId } });
-  if (!city) {
-    const err = new Error(`City with id ${data.cityId} does not exist`);
+  // Verify old province exists
+  const oldProvince = await prisma.oldProvince.findUnique({ where: { id: data.oldProvinceId } });
+  if (!oldProvince) {
+    const err = new Error(`Old Province with id ${data.oldProvinceId} does not exist`);
     err.status = 400;
 
     throw err;
@@ -68,7 +68,7 @@ const createSchool = async (data) => {
 
   } catch (error) {
     if (error.code === 'P2002') {
-      const err = new Error(`School "${data.name}" already exists in this city`);
+      const err = new Error(`School "${data.name}" already exists in this old province`);
       err.status = 409;
       
       throw err;
@@ -91,7 +91,7 @@ const updateSchool = async (id, data) => {
       throw err;
     }
     if (error.code === 'P2002') {
-      const err = new Error(`School "${data.name}" already exists in this city`);
+      const err = new Error(`School "${data.name}" already exists in this old province`);
       err.status = 409;
       throw err;
     }
@@ -123,10 +123,10 @@ const deleteSchool = async (id) => {
 
 // ─── Statistics
 const getStatistics = async () => {
-  const [totalSchools, totalStudents, schoolsByCity] = await prisma.$transaction([
+  const [totalSchools, totalStudents, schoolsByOldProvince] = await prisma.$transaction([
     prisma.school.count(),
     prisma.student.count(),
-    prisma.city.findMany({
+    prisma.oldProvince.findMany({
       select: {
         id: true,
         name: true,
@@ -139,9 +139,9 @@ const getStatistics = async () => {
   return {
     totalSchools,
     totalStudents,
-    schoolsByCity: schoolsByCity.map(c => ({
-      cityId: c.id,
-      cityName: c.name,
+    schoolsByOldProvince: schoolsByOldProvince.map(c => ({
+      oldProvinceId: c.id,
+      oldProvinceName: c.name,
       schoolCount: c._count.schools
     }))
   };

@@ -7,10 +7,10 @@
         <small v-if="errors.name" class="form-error">{{ errors.name }}</small>
       </div>
       <div class="form-field">
-        <label for="schf-city">City <span class="required">*</span></label>
-        <Select id="schf-city" v-model="form.cityId" :options="cities" optionLabel="name" optionValue="id"
-          placeholder="Select city" :loading="loadingCities" :invalid="!!errors.cityId" filter fluid />
-        <small v-if="errors.cityId" class="form-error">{{ errors.cityId }}</small>
+        <label for="schf-oldProvince">Old Province <span class="required">*</span></label>
+        <Select id="schf-oldProvince" v-model="form.oldProvinceId" :options="oldProvinces" optionLabel="name" optionValue="id"
+          placeholder="Select old province" :loading="loadingOldProvinces" :invalid="!!errors.oldProvinceId" filter fluid />
+        <small v-if="errors.oldProvinceId" class="form-error">{{ errors.oldProvinceId }}</small>
       </div>
     </div>
 
@@ -45,8 +45,8 @@ export default {
   },
   emits: ['submit'],
   setup() {
-    const { cities, loadingCities, fetchCities } = useSchoolOptions()
-    return { cities, loadingCities, fetchCities }
+    const { oldProvinces, loadingOldProvinces, fetchOldProvinces } = useSchoolOptions()
+    return { oldProvinces, loadingOldProvinces, fetchOldProvinces }
   },
   data() {
     return {
@@ -71,20 +71,20 @@ export default {
     }
   },
   created() {
-    this.fetchCities()
+    this.fetchOldProvinces()
   },
   methods: {
     validate() {
       const e = {}
       if (!this.form.name || !this.form.name.trim()) e.name = 'School name is required'
-      if (!this.form.cityId) e.cityId = 'City is required'
+      if (!this.form.oldProvinceId) e.oldProvinceId = 'Old Province is required'
       this.errors = e
       return Object.keys(e).length === 0
     },
     getPayload() {
       const payload = {}
       for (const [key, value] of Object.entries(this.form)) {
-        if (key === 'id' || key === 'createdAt' || key === 'updatedAt' || key === 'city') continue
+        if (key === 'id' || key === 'createdAt' || key === 'updatedAt' || key === 'oldProvince') continue
         if (value !== '' && value !== null && value !== undefined) {
           payload[key] = value
         }
