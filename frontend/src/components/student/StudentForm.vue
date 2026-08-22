@@ -49,6 +49,13 @@
 
     <div class="form-grid">
       <div class="form-field">
+        <label for="sf-priority">Priority</label>
+        <Select id="sf-priority" v-model="form.priority" :options="priorityOptions" optionLabel="label" optionValue="value" placeholder="Select priority" showClear fluid />
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-field">
         <label for="sf-schoolOldProvince">School Old Province <span class="required">*</span></label>
         <Select id="sf-schoolOldProvince" v-model="selectedOldProvinceId" :options="oldProvinces" optionLabel="name" optionValue="id" placeholder="Select old province" :loading="loadingOldProvinces" :invalid="!!errors.schoolOldProvince" filter showClear fluid @change="onOldProvinceChange" />
         <small v-if="errors.schoolOldProvince" class="form-error">{{ errors.schoolOldProvince }}</small>
@@ -66,7 +73,7 @@
         <Select id="sf-newProvince" v-model="form.education.newProvinceId" :options="newProvinces" optionLabel="name" optionValue="id" placeholder="Select new province" :loading="loadingNewProvinces" filter showClear fluid />
       </div>
       <div class="form-field">
-        <label for="sf-country">Country</label>
+        <label for="sf-country">School Country</label>
         <Select id="sf-country" v-model="form.education.countryId" :options="countries" optionLabel="name" optionValue="id" placeholder="Select country" :loading="loadingCountries" filter showClear fluid />
       </div>
     </div>
@@ -79,6 +86,13 @@
       <div class="form-field">
         <label for="sf-provinceGroup">Province Group</label>
         <Select id="sf-provinceGroup" v-model="form.education.provinceGroup" :options="provinceGroupOptions" optionLabel="label" optionValue="value" placeholder="Select province group" showClear fluid />
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="sf-class">Class</label>
+        <Select id="sf-class" v-model="form.education.class" :options="classOptions" optionLabel="label" optionValue="value" placeholder="Select class" showClear fluid />
       </div>
     </div>
 
@@ -223,6 +237,18 @@ export default {
         { label: 'Core Province', value: 'CORE_PROVINCE' },
         { label: 'Other Province', value: 'OTHER_PROVINCE' },
         { label: 'Foreign', value: 'FOREIGN' }
+      ],
+      priorityOptions: [
+        { label: 'I', value: 'I' },
+        { label: 'II', value: 'II' },
+        { label: 'III', value: 'III' },
+        { label: 'IV', value: 'IV' },
+        { label: 'V', value: 'V' }
+      ],
+      classOptions: [
+        { label: 'Lớp 11', value: 'GRADE_11' },
+        { label: 'Lớp 12', value: 'GRADE_12' },
+        { label: 'Thí sinh tự do', value: 'FREELANCE' }
       ]
     }
   },
@@ -313,8 +339,8 @@ export default {
     },
     getPayload() {
       // Allowlist: only include fields that the backend Zod schemas accept
-      const allowedStudentFields = ['fullName', 'gender', 'email', 'mobile', 'otherPhone', 'birthDate', 'parentPhone', 'primaryAddress']
-      const allowedEducationFields = ['schoolId', 'newProvinceId', 'countryId', 'provinceGroup', 'schoolType']
+      const allowedStudentFields = ['fullName', 'gender', 'email', 'mobile', 'otherPhone', 'birthDate', 'parentPhone', 'primaryAddress', 'priority']
+      const allowedEducationFields = ['schoolId', 'newProvinceId', 'countryId', 'provinceGroup', 'schoolType', 'class']
       const allowedSRFields = ['interestedMajorId', 'specificMajorId', 'admissionYear', 'englishCertificate', 'gpa', 'programScore']
 
       const payload = {}

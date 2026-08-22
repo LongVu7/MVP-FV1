@@ -11,6 +11,7 @@
     </div>
 
     <div class="cards-container">
+      <InquiryStudentAssign ref="studentAssignRef" />
       <div class="section-card">
         <div class="card-header">
           <h2><i class="pi pi-info-circle"></i> Inquiry Details</h2>
@@ -18,7 +19,6 @@
         <InquiryForm v-model="inquiryForm" />
       </div>
 
-      <InquiryStudentAssign ref="studentAssignRef" />
         
       <InquiryAccountAssign ref="accountAssignRef" />
     </div>

@@ -20,6 +20,13 @@ model Inquiry {
 
   groupTele String? @map("group_tele") @db.VarChar(50)
 
+  interactionAt DateTime? @map("interaction_at") @db.Timestamptz()
+  callCount Int? @map("call_count")
+  eventNames EventName[] @default([]) @map("event_names")
+  callLog String? @db.Text @map("call_log")
+  recordFile String? @map("record_file")
+  compensationStatus CompensationStatus? @map("compensation_status")
+
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
 
   updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz()
@@ -45,5 +52,20 @@ enum Regional {
   kv4
   kv5
   kv6
+}
+
+enum EventName {
+  TALKSHOW
+  LIVESTREAM
+  OPEN_DAY
+  COFFEE_TALK
+  CAMPUS_TOUR
+  WORKSHOP
+  ONE_ON_ONE_CONSULTATION
+}
+
+enum CompensationStatus {
+  REPORTED
+  COMPENSATED
 }
 

@@ -17,6 +17,8 @@ model Student {
 
   primaryAddress String? @map("primary_address") @db.VarChar(255)
 
+  priority Priority? @map("priority")
+
   education StudentEducation?
 
   specializedRegisterId Int?                @unique @map("specialized_register_id")
@@ -67,6 +69,20 @@ enum ProvinceGroup {
   FOREIGN
 }
 
+enum Priority {
+  I
+  II
+  III
+  IV
+  V
+}
+
+enum StudentClass {
+  GRADE_11
+  GRADE_12
+  FREELANCE
+}
+
 enum SchoolType {
   A_STAR
   A
@@ -93,6 +109,8 @@ model StudentEducation {
   provinceGroup ProvinceGroup? @map("province_group")
 
   schoolType SchoolType? @map("school_type")
+
+  class StudentClass? @map("class")
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz()

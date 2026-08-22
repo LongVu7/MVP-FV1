@@ -26,6 +26,8 @@
           <Select v-model="selectedCountryId" :options="countries" optionLabel="name" optionValue="id" placeholder="Country" showClear @change="onFilterChange" class="filter-select" />
           <Select v-model="selectedProvinceGroup" :options="provinceGroupOptions" optionLabel="label" optionValue="value" placeholder="Province Group" showClear @change="onFilterChange" class="filter-select" />
           <Select v-model="selectedSchoolType" :options="schoolTypeOptions" optionLabel="label" optionValue="value" placeholder="School Type" showClear @change="onFilterChange" class="filter-select" />
+          <Select v-model="selectedPriority" :options="priorityOptions" optionLabel="label" optionValue="value" placeholder="Priority" showClear @change="onFilterChange" class="filter-select" />
+          <Select v-model="selectedClass" :options="classOptions" optionLabel="label" optionValue="value" placeholder="Class" showClear @change="onFilterChange" class="filter-select" />
           <IconField>
             <InputIcon class="pi pi-search" />
             <InputText placeholder="Search..." @input="onSearch" :value="searchQuery" class="search-input" />
@@ -66,6 +68,12 @@
           <span v-else class="null-text">—</span>
         </template>
       </Column>
+      <Column field="priority" header="Priority" sortable style="width: 100px">
+        <template #body="{ data }">
+          <span v-if="data.priority">{{ data.priority }}</span>
+          <span v-else class="null-text">—</span>
+        </template>
+      </Column>
       <Column field="mobile" header="Mobile" sortable style="width: 140px">
         <template #body="{ data }">
           <span v-if="data.mobile">{{ data.mobile }}</span>
@@ -78,6 +86,12 @@
       <Column header="GPA" style="min-width: 160px">
         <template #body="{ data }">
           <span v-if="data.specializedRegister?.gpa" class="gpa-badge">{{ gpaLabel(data.specializedRegister.gpa) }}</span>
+          <span v-else class="null-text">—</span>
+        </template>
+      </Column>
+      <Column field="education.class" header="Class" sortable style="min-width: 140px">
+        <template #body="{ data }">
+          <span v-if="data.education?.class">{{ formatClass(data.education.class) }}</span>
           <span v-else class="null-text">—</span>
         </template>
       </Column>
@@ -180,7 +194,23 @@ const selectedCountryId = ref(null)
 const selectedProvinceGroup = ref(null)
 const selectedSchoolType = ref(null)
 const selectedBirthYear = ref(null)
+const selectedPriority = ref(null)
+const selectedClass = ref(null)
 let searchTimeout = null
+
+const classOptions = [
+  { label: 'Lớp 11', value: 'GRADE_11' },
+  { label: 'Lớp 12', value: 'GRADE_12' },
+  { label: 'Thí sinh tự do', value: 'FREELANCE' }
+]
+
+const priorityOptions = [
+  { label: 'I', value: 'I' },
+  { label: 'II', value: 'II' },
+  { label: 'III', value: 'III' },
+  { label: 'IV', value: 'IV' },
+  { label: 'V', value: 'V' }
+]
 
 const provinceGroupOptions = [
   { label: 'Ho Chi Minh', value: 'HO_CHI_MINH' },
@@ -228,7 +258,9 @@ const onFilterChange = () => {
     countryId: selectedCountryId.value,
     provinceGroup: selectedProvinceGroup.value,
     schoolType: selectedSchoolType.value,
-    birthYear: selectedBirthYear.value
+    birthYear: selectedBirthYear.value,
+    priority: selectedPriority.value,
+    class: selectedClass.value
   })
 }
 
@@ -278,6 +310,11 @@ const formatProvinceGroup = (value) => {
 
 const formatSchoolType = (value) => {
   const opt = schoolTypeOptions.find(o => o.value === value)
+  return opt ? opt.label : value
+}
+
+const formatClass = (value) => {
+  const opt = classOptions.find(o => o.value === value)
   return opt ? opt.label : value
 }
 

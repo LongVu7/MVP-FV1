@@ -33,12 +33,14 @@ const inquiryInclude = {
 };
 
 
-const buildInquiryData = ({ assignedToId, sourceDataId, statusDataId, dataReceived, ...rest }) => ({
+const buildInquiryData = ({ assignedToId, sourceDataId, statusDataId, dataReceived, interactionAt, eventNames, ...rest }) => ({
   ...rest,
-  ...(dataReceived  && { dataReceived: new Date(dataReceived) }),
-  ...(assignedToId  && { assignedTo: { connect: { id: parseInt(assignedToId, 10) } } }),
-  ...(sourceDataId  && { sourceData: { connect: { id: parseInt(sourceDataId, 10) } } }),
-  ...(statusDataId  && { statusData: { connect: { id: parseInt(statusDataId, 10) } } })
+  ...(eventNames !== undefined && { eventNames: eventNames === null ? [] : eventNames }),
+  ...(dataReceived !== undefined && { dataReceived: dataReceived ? new Date(dataReceived) : null }),
+  ...(interactionAt !== undefined && { interactionAt: interactionAt ? new Date(interactionAt) : null }),
+  ...(assignedToId !== undefined && { assignedTo: assignedToId ? { connect: { id: parseInt(assignedToId, 10) } } : { disconnect: true } }),
+  ...(sourceDataId !== undefined && { sourceData: sourceDataId ? { connect: { id: parseInt(sourceDataId, 10) } } : { disconnect: true } }),
+  ...(statusDataId !== undefined && { statusData: statusDataId ? { connect: { id: parseInt(statusDataId, 10) } } : { disconnect: true } })
 });
 
 

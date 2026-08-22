@@ -58,6 +58,48 @@
           @update:modelValue="emitField('description', $event)" />
       </div>
     </div>
+
+    <div class="section-divider">Interaction Information</div>
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label>Ngày tạo</label>
+        <DatePicker :modelValue="modelValue.createdAt ? new Date(modelValue.createdAt) : null" dateFormat="dd-mm-yy" disabled fluid />
+      </div>
+      <div class="form-field">
+        <label>Ngày tương tác</label>
+        <DatePicker :modelValue="modelValue.interactionAt ? new Date(modelValue.interactionAt) : null" dateFormat="dd-mm-yy" placeholder="Select date" :showIcon="true" fluid @update:modelValue="emitField('interactionAt', $event)" />
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label>Số lần gọi</label>
+        <Select :modelValue="modelValue.callCount" :options="callCountOptions" optionLabel="label" optionValue="value" placeholder="Select count" showClear fluid @update:modelValue="emitField('callCount', $event)" />
+      </div>
+      <div class="form-field">
+        <label>Tên sự kiện tham gia</label>
+        <MultiSelect :modelValue="modelValue.eventNames" :options="eventOptions" optionLabel="label" optionValue="value" placeholder="Select events" filter display="chip" fluid @update:modelValue="emitField('eventNames', $event)" />
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label>Báo bù</label>
+        <Select :modelValue="modelValue.compensationStatus" :options="compensationOptions" optionLabel="label" optionValue="value" placeholder="Select status" showClear fluid @update:modelValue="emitField('compensationStatus', $event)" />
+      </div>
+      <div class="form-field">
+        <label>File ghi âm cuộc gọi</label>
+        <InputText :modelValue="modelValue.recordFile" placeholder="Not available" disabled fluid />
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-field" style="grid-column: span 2;">
+        <label>Lịch sử cuộc gọi</label>
+        <Textarea :modelValue="modelValue.callLog" rows="3" placeholder="Enter call history" fluid @update:modelValue="emitField('callLog', $event)" />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -67,10 +109,31 @@ import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
 import Select from 'primevue/select'
 import DatePicker from 'primevue/datepicker'
+import MultiSelect from 'primevue/multiselect'
 import { useSourceData } from '@/composables/useSourceData'
 import { getSourceDataById } from '@/helpers/sourceDataHelper'
 import { useStatusData } from '@/composables/useStatusData'
 import { getStatusDataById } from '@/helpers/statusDataHelper'
+
+const callCountOptions = Array.from({ length: 10 }, (_, i) => ({
+  label: `${i + 1} lần`,
+  value: i + 1
+}))
+
+const eventOptions = [
+  { label: 'Talkshow', value: 'TALKSHOW' },
+  { label: 'Livestream', value: 'LIVESTREAM' },
+  { label: 'Open Day', value: 'OPEN_DAY' },
+  { label: 'Coffee Talk', value: 'COFFEE_TALK' },
+  { label: 'Campus Tour', value: 'CAMPUS_TOUR' },
+  { label: 'Workshop', value: 'WORKSHOP' },
+  { label: 'Tư vấn 1:1', value: 'ONE_ON_ONE_CONSULTATION' }
+]
+
+const compensationOptions = [
+  { label: 'Báo bù sổ', value: 'REPORTED' },
+  { label: 'Đã được bù', value: 'COMPENSATED' }
+]
 
 const props = defineProps({
   modelValue: { type: Object, required: true },
@@ -274,6 +337,14 @@ onMounted(async () => {
   display: flex;
   flex-direction: column;
   gap: 1.25rem;
+}
+
+.section-divider {
+  font-weight: 700;
+  color: var(--p-primary-color, #4f46e5);
+  margin-top: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--p-content-border-color, #e2e8f0);
 }
 
 .form-grid {

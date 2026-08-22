@@ -6,7 +6,7 @@ const dateString = z.string().refine((val) => !isNaN(Date.parse(val)), {
 
 
 
-const { EnglishCertificate, GPA, ProgramScore, SchoolType, ProvinceGroup } = require('@prisma/client');
+const { EnglishCertificate, GPA, ProgramScore, SchoolType, ProvinceGroup, Priority, StudentClass } = require('@prisma/client');
 
 const mobileString = z.preprocess(
   (val) => (val === '' || val === null ? null : val),
@@ -35,7 +35,8 @@ const educationSchema = z.object({
   newProvinceId: z.number().int().positive('newProvinceId must be a positive integer').nullable().optional(),
   countryId: z.number().int().positive('countryId must be a positive integer').nullable().optional(),
   provinceGroup: z.enum(ProvinceGroup).nullable().optional(),
-  schoolType: z.enum(SchoolType).nullable().optional()
+  schoolType: z.enum(SchoolType).nullable().optional(),
+  class: z.enum(StudentClass).nullable().optional()
 }).strict();
 
 
@@ -51,6 +52,7 @@ const createStudentSchema = z.object({
   birthDate: dateString.nullable().optional(),
   parentPhone: mobileString,
   primaryAddress: z.string().max(255).nullable().optional(),
+  priority: z.enum(Priority).nullable().optional(),
   education: educationSchema,
   specializedRegister: specializedRegisterSchema.optional(),
 
@@ -65,6 +67,7 @@ const updateStudentSchema = z.object({
   birthDate: dateString.nullable().optional(),
   parentPhone: mobileString,
   primaryAddress: z.string().max(255).nullable().optional(),
+  priority: z.enum(Priority).nullable().optional(),
   education: educationSchema.optional(),
   specializedRegister: specializedRegisterSchema.optional(),
 
@@ -91,6 +94,7 @@ const importStudentSchema = z.object({
   birthDate: dateString.optional(),
   parentPhone: mobileString,
   primaryAddress: z.string().max(255).optional(),
+  priority: cleanEnumForImport(Priority),
   education: educationSchema.optional(),
   specializedRegister: specializedRegisterSchema.optional(),
   // Flat SR fields from Excel columns — preprocessed to handle empty strings
