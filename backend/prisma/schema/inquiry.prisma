@@ -7,7 +7,6 @@ model Inquiry {
   statusDataId Int?        @map("status_data_id")
   statusData   StatusData? @relation(fields: [statusDataId], references: [id])
 
-  priority String? @db.VarChar(50)
 
   description String?
 
@@ -27,6 +26,7 @@ model Inquiry {
   recordFile String? @map("record_file")
   compensationStatus CompensationStatus? @map("compensation_status")
 
+  createDate DateTime? @map("create_date") @db.Timestamptz()
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
 
   updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz()

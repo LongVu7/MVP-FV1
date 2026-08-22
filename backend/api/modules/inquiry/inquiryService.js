@@ -33,11 +33,12 @@ const inquiryInclude = {
 };
 
 
-const buildInquiryData = ({ assignedToId, sourceDataId, statusDataId, dataReceived, interactionAt, eventNames, ...rest }) => ({
+const buildInquiryData = ({ assignedToId, sourceDataId, statusDataId, dataReceived, interactionAt, createDate, eventNames, ...rest }) => ({
   ...rest,
   ...(eventNames !== undefined && { eventNames: eventNames === null ? [] : eventNames }),
   ...(dataReceived !== undefined && { dataReceived: dataReceived ? new Date(dataReceived) : null }),
   ...(interactionAt !== undefined && { interactionAt: interactionAt ? new Date(interactionAt) : null }),
+  ...(createDate !== undefined && { createDate: createDate ? new Date(createDate) : null }),
   ...(assignedToId !== undefined && { assignedTo: assignedToId ? { connect: { id: parseInt(assignedToId, 10) } } : { disconnect: true } }),
   ...(sourceDataId !== undefined && { sourceData: sourceDataId ? { connect: { id: parseInt(sourceDataId, 10) } } : { disconnect: true } }),
   ...(statusDataId !== undefined && { statusData: statusDataId ? { connect: { id: parseInt(statusDataId, 10) } } : { disconnect: true } })

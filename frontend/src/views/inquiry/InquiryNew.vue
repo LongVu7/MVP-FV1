@@ -54,7 +54,6 @@ const accountAssignRef = ref(null)
 
 const inquiryForm = ref({
   statusDataId: null,
-  priority: '',
   description: '',
   dataReceived: null,
   sourceDataId: null

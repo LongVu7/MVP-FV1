@@ -37,12 +37,7 @@
           <span v-else class="null-text">—</span>
         </template>
       </Column>
-      <Column field="priority" header="Priority" sortable style="width: 100px">
-        <template #body="{ data }">
-          <span v-if="data.priority">{{ data.priority }}</span>
-          <span v-else class="null-text">—</span>
-        </template>
-      </Column>
+
       <Column header="Assigned Account" style="min-width: 150px">
         <template #body="{ data }">
           <span v-if="data.assignedTo">{{ data.assignedTo.fullName }}</span>

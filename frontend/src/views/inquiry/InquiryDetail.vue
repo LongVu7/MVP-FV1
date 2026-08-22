@@ -71,7 +71,6 @@ onMounted(async () => {
     const data = await fetchInquiryById(route.params.id)
     inquiryForm.value = {
       statusDataId: data.statusDataId || null,
-      priority: data.priority || '',
       description: data.description || '',
       dataReceived: data.dataReceived ? new Date(data.dataReceived) : null,
       sourceDataId: data.sourceDataId || null

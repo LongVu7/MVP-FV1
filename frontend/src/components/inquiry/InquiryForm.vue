@@ -40,11 +40,6 @@
 
     <div class="form-grid">
       <div class="form-field">
-        <label>Priority</label>
-        <InputText :modelValue="modelValue.priority" placeholder="e.g. High, Medium, Low" fluid
-          @update:modelValue="emitField('priority', $event)" />
-      </div>
-      <div class="form-field">
         <label>Data Received</label>
         <DatePicker :modelValue="modelValue.dataReceived" dateFormat="yy-mm-dd" placeholder="Select date"
           :showIcon="true" fluid @update:modelValue="emitField('dataReceived', $event)" />
@@ -64,7 +59,7 @@
     <div class="form-grid">
       <div class="form-field">
         <label>Ngày tạo</label>
-        <DatePicker :modelValue="modelValue.createdAt ? new Date(modelValue.createdAt) : null" dateFormat="dd-mm-yy" disabled fluid />
+        <DatePicker :modelValue="modelValue.createDate ? new Date(modelValue.createDate) : null" dateFormat="dd-mm-yy" placeholder="Select date" :showIcon="true" fluid @update:modelValue="emitField('createDate', $event)" />
       </div>
       <div class="form-field">
         <label>Ngày tương tác</label>

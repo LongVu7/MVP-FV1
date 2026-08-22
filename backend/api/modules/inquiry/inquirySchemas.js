@@ -15,7 +15,6 @@ const {
 const inquiryFields = {
   statusDataId: z.number().int('statusDataId must be an integer').optional(),
   regional: z.enum(Regional).optional(),
-  priority: z.string().max(50).optional(),
   description: z.string().optional(),
   dataReceived: dateString.optional(),
   groupTele: z.string().max(50).optional(),
@@ -23,6 +22,7 @@ const inquiryFields = {
   sourceDataId: z.number().int('sourceDataId must be an integer').optional(),
   studentId: z.number().int('studentId must be an integer').optional(),
   student: createStudentSchema.optional(),
+  createDate: dateString.optional(),
   interactionAt: dateString.optional(),
   callCount: z.number().int().min(1).max(10).optional(),
   eventNames: z.array(z.nativeEnum(EventName)).optional(),
@@ -35,13 +35,13 @@ const createInquirySchema = z.object(inquiryFields).strict();
 
 const updateInquirySchema = z.object({
   statusDataId: z.number().int().nullable().optional(),
-  priority: inquiryFields.priority,
   description: inquiryFields.description,
   dataReceived: dateString.nullable().optional(),
   regional: z.enum(Regional).nullable().optional(),
   groupTele: z.string().max(50).nullable().optional(),
   assignedToId: z.number().int().nullable().optional(),
   sourceDataId: z.number().int().nullable().optional(),
+  createDate: dateString.nullable().optional(),
   interactionAt: dateString.nullable().optional(),
   callCount: z.number().int().min(1).max(10).nullable().optional(),
   eventNames: z.array(z.nativeEnum(EventName)).nullable().optional(),
