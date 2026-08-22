@@ -8,7 +8,7 @@ const dateString = z.string().refine((val) => !isNaN(Date.parse(val)), {
 
 const { EnglishCertificate, GPA, ProgramScore, SchoolType, ProvinceGroup, Priority, StudentClass } = require('@prisma/client');
 
-const mobileString = z.preprocess(
+const optionalMobileString = z.preprocess(
   (val) => (val === '' || val === null ? null : val),
   z.string()
     .length(10, 'Mobile number must be exactly 10 digits long')
@@ -18,25 +18,33 @@ const mobileString = z.preprocess(
     .optional()
 );
 
+const mobileString = z.preprocess(
+  (val) => (val === '' || val === null ? undefined : val),
+  z.string({ required_error: 'mobile is required' })
+    .length(10, 'Mobile number must be exactly 10 digits long')
+    .startsWith('0', 'Mobile number must start with 0')
+    .regex(/^\d+$/, 'Mobile number must contain only numbers')
+);
+
 const specializedRegisterSchema = z.object({
-  interestedMajorId: z.number().int().positive('interestedMajorId must be a positive integer').nullable().optional(),
-  specificMajorId: z.number().int().positive('specificMajorId must be a positive integer').nullable().optional(),
+  interestedMajorId: z.number().int().positive('interestedMajorId must be a positive integer'),
+  specificMajorId: z.number().int().positive('specificMajorId must be a positive integer'),
   admissionYear: z.preprocess(
     (val) => (val === '' || val === null ? null : (val === undefined ? undefined : Number(val))),
     z.number().int().nullable().optional()
   ),
   englishCertificate: z.enum(EnglishCertificate).nullable().optional(),
-  gpa: z.enum(GPA).nullable().optional(),
-  programScore: z.enum(ProgramScore).nullable().optional()
+  gpa: z.enum(GPA),
+  programScore: z.enum(ProgramScore)
 }).strict();
 
 const educationSchema = z.object({
   schoolId: z.number().int().positive('schoolId must be a positive integer').nullable().optional(),
-  newProvinceId: z.number().int().positive('newProvinceId must be a positive integer').nullable().optional(),
-  countryId: z.number().int().positive('countryId must be a positive integer').nullable().optional(),
-  provinceGroup: z.enum(ProvinceGroup).nullable().optional(),
-  schoolType: z.enum(SchoolType).nullable().optional(),
-  class: z.enum(StudentClass).nullable().optional()
+  newProvinceId: z.number().int().positive('newProvinceId must be a positive integer'),
+  countryId: z.number().int().positive('countryId must be a positive integer'),
+  provinceGroup: z.enum(ProvinceGroup),
+  schoolType: z.enum(SchoolType),
+  class: z.enum(StudentClass)
 }).strict();
 
 
@@ -45,27 +53,27 @@ const createStudentSchema = z.object({
     required_error: 'fullName is required',
     invalid_type_error: 'fullName must be a string'
   }).min(1, 'fullName is required').max(255),
-  gender: z.string().max(20).nullable().optional(),
+  gender: z.string().max(20),
   email: z.email('email must be a valid email address').max(255).nullable().optional(),
   mobile: mobileString,
-  otherPhone: mobileString,
+  otherPhone: optionalMobileString,
   birthDate: dateString.nullable().optional(),
-  parentPhone: mobileString,
+  parentPhone: optionalMobileString,
   primaryAddress: z.string().max(255).nullable().optional(),
   priority: z.enum(Priority).nullable().optional(),
   education: educationSchema,
-  specializedRegister: specializedRegisterSchema.optional(),
+  specializedRegister: specializedRegisterSchema,
 
 }).strict();
 
 const updateStudentSchema = z.object({
   fullName: z.string().min(1).max(255).optional(),
-  gender: z.string().max(20).nullable().optional(),
+  gender: z.string().max(20).optional(),
   email: z.email('email must be a valid email address').max(255).nullable().optional(),
-  mobile: mobileString,
-  otherPhone: mobileString,
+  mobile: mobileString.optional(),
+  otherPhone: optionalMobileString.optional(),
   birthDate: dateString.nullable().optional(),
-  parentPhone: mobileString,
+  parentPhone: optionalMobileString.optional(),
   primaryAddress: z.string().max(255).nullable().optional(),
   priority: z.enum(Priority).nullable().optional(),
   education: educationSchema.optional(),

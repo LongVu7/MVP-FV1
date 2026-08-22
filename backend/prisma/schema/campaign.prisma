@@ -19,8 +19,8 @@ model Campaign {
   createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt   DateTime  @default(now()) @map("updated_at") @db.Timestamptz()
 
-  owner      Account             @relation("CampaignOwner", fields: [ownerId], references: [id])
-  createdBy  Account?            @relation("CampaignCreator", fields: [createdById], references: [id])
+  owner      Account            @relation("CampaignOwner", fields: [ownerId], references: [id])
+  createdBy  Account?           @relation("CampaignCreator", fields: [createdById], references: [id])
   activities CampaignActivity[]
 
   @@map("campaign")
@@ -32,7 +32,7 @@ model CampaignActivity {
   type        ActivityType
   name        String       @db.VarChar(255)
   subject     String?      @db.VarChar(255) // email only
-  content     String?      // plain text or rich HTML
+  content     String? // plain text or rich HTML
   templateId  Int?         @map("template_id")
   status      String       @default("draft") @db.VarChar(50) // draft, scheduled, sent, failed
   scheduledAt DateTime?    @map("scheduled_at")
@@ -57,7 +57,7 @@ model CampaignRecipient {
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz()
 
   activity CampaignActivity @relation(fields: [activityId], references: [id], onDelete: Cascade)
-  inquiry  Inquiry           @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
+  inquiry  Inquiry          @relation(fields: [inquiryId], references: [id], onDelete: Cascade)
 
   @@map("campaign_recipient")
 }
@@ -73,7 +73,7 @@ model CampaignTemplate {
   name        String                 @db.VarChar(255)
   channel     ActivityType
   subject     String?                @db.VarChar(255) // Only for "Email" channel
-  content     String                 // plain text or rich text html
+  content     String // plain text or rich text html
   status      CampaignTemplateStatus @default(ACTIVE)
   createdById Int?                   @map("created_by_id")
   createdAt   DateTime               @default(now()) @map("created_at") @db.Timestamptz()

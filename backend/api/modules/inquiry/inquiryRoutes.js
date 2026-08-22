@@ -6,6 +6,7 @@ const { validateBody, validateParams } = require('../../../middleware/validate')
 const { idParamSchema } = require('../../../schemas/commonSchemas');
 const { createInquirySchema, updateInquirySchema, assignStudentSchema, assignAccountSchema } = require('./inquirySchemas');
 const { resolveInquiryOwnership } = require('../../../authorization/scope/inquiryScope');
+const upload = require('../../../middleware/upload');
 const inquiryController = require('./inquiryController');
 
 const withOwnership = { ownership: { resolver: resolveInquiryOwnership } };
@@ -16,6 +17,16 @@ router.route('/search/students')
 
 router.route('/search/accounts')
     .get(authenticate, authorize('inquiry.assign'), inquiryController.searchAccounts);
+
+// ─── Import routes
+router.route('/import/template')
+    .get(authenticate, authorize('inquiry.import'), inquiryController.downloadTemplate);
+
+router.route('/import/preview')
+    .post(authenticate, authorize('inquiry.import'), upload.single('file'), inquiryController.previewImportInquiry);
+
+router.route('/import/confirm')
+    .post(authenticate, authorize('inquiry.import'), inquiryController.confirmImportInquiry);
 
 // ─── CRUD routes
 router.route('/')

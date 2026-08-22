@@ -12,9 +12,9 @@ model StatusData {
   sortOrder Int         @default(0) @map("sort_order")
   isActive  Boolean     @default(true) @map("is_active")
 
-  parentId  Int?          @map("parent_id")
-  parent    StatusData?   @relation("StatusHierarchy", fields: [parentId], references: [id])
-  children  StatusData[]  @relation("StatusHierarchy")
+  parentId Int?         @map("parent_id")
+  parent   StatusData?  @relation("StatusHierarchy", fields: [parentId], references: [id])
+  children StatusData[] @relation("StatusHierarchy")
 
   inquiries Inquiry[]
 

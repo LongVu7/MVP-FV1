@@ -7,7 +7,6 @@ model Inquiry {
   statusDataId Int?        @map("status_data_id")
   statusData   StatusData? @relation(fields: [statusDataId], references: [id])
 
-
   description String?
 
   dataReceived DateTime? @map("data_received") @db.Date
@@ -15,19 +14,17 @@ model Inquiry {
   sourceDataId Int?        @map("source_data_id")
   sourceData   SourceData? @relation(fields: [sourceDataId], references: [id])
 
-  regional String? @db.VarChar(10)
-
   groupTele String? @map("group_tele") @db.VarChar(50)
 
-  interactionAt DateTime? @map("interaction_at") @db.Timestamptz()
-  callCount Int? @map("call_count")
-  eventNames EventName[] @default([]) @map("event_names")
-  callLog String? @db.Text @map("call_log")
-  recordFile String? @map("record_file")
+  interactionAt      DateTime?           @map("interaction_at") @db.Timestamptz()
+  callCount          Int?                @map("call_count")
+  eventNames         EventName[]         @default([]) @map("event_names")
+  callLog            String?             @map("call_log") @db.Text
+  recordFile         String?             @map("record_file")
   compensationStatus CompensationStatus? @map("compensation_status")
 
   createDate DateTime? @map("create_date") @db.Timestamptz()
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz()
 
   updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz()
 
@@ -38,20 +35,9 @@ model Inquiry {
 
   campaignRecipients CampaignRecipient[]
 
-
   @@index([createdAt])
   @@index([sourceDataId])
   @@map("inquiry")
-}
-
-
-enum Regional {
-  kv1
-  kv2
-  kv3
-  kv4
-  kv5
-  kv6
 }
 
 enum EventName {
@@ -68,4 +54,3 @@ enum CompensationStatus {
   REPORTED
   COMPENSATED
 }
-

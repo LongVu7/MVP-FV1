@@ -1,10 +1,9 @@
 model School {
-  id         Int        @id @default(autoincrement())
-  name       String     @db.VarChar(255)
+  id   Int    @id @default(autoincrement())
+  name String @db.VarChar(255)
 
-  oldProvinceId Int  @map("old_province_id")
+  oldProvinceId Int         @map("old_province_id")
   oldProvince   OldProvince @relation(fields: [oldProvinceId], references: [id])
-
 
   studentEducations StudentEducation[]
 

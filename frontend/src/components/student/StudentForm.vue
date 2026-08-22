@@ -7,8 +7,9 @@
         <small v-if="errors.fullName" class="form-error">{{ errors.fullName }}</small>
       </div>
       <div class="form-field">
-        <label for="sf-gender">Gender</label>
-        <Select id="sf-gender" v-model="form.gender" :options="genderOptions" optionLabel="label" optionValue="value" placeholder="Select gender" fluid />
+        <label for="sf-gender">Gender <span class="required">*</span></label>
+        <Select id="sf-gender" v-model="form.gender" :options="genderOptions" optionLabel="label" optionValue="value" placeholder="Select gender" :invalid="!!errors.gender" fluid />
+        <small v-if="errors.gender" class="form-error">{{ errors.gender }}</small>
       </div>
     </div>
 
@@ -19,8 +20,8 @@
         <small v-if="errors.email" class="form-error">{{ errors.email }}</small>
       </div>
       <div class="form-field">
-        <label for="sf-mobile">Mobile</label>
-        <InputText id="sf-mobile" v-model="form.mobile" placeholder="Phone number" fluid />
+        <label for="sf-mobile">Mobile <span class="required">*</span></label>
+        <InputText id="sf-mobile" v-model="form.mobile" placeholder="Phone number" :invalid="!!errors.mobile" fluid />
         <small v-if="errors.mobile" class="form-error">{{ errors.mobile }}</small>
       </div>
     </div>
@@ -69,30 +70,35 @@
     
     <div class="form-grid">
       <div class="form-field">
-        <label for="sf-newProvince">New Province</label>
-        <Select id="sf-newProvince" v-model="form.education.newProvinceId" :options="newProvinces" optionLabel="name" optionValue="id" placeholder="Select new province" :loading="loadingNewProvinces" filter showClear fluid />
+        <label for="sf-newProvince">New Province <span class="required">*</span></label>
+        <Select id="sf-newProvince" v-model="form.education.newProvinceId" :options="newProvinces" optionLabel="name" optionValue="id" placeholder="Select new province" :loading="loadingNewProvinces" :invalid="!!errors.newProvince" filter showClear fluid />
+        <small v-if="errors.newProvince" class="form-error">{{ errors.newProvince }}</small>
       </div>
       <div class="form-field">
-        <label for="sf-country">School Country</label>
-        <Select id="sf-country" v-model="form.education.countryId" :options="countries" optionLabel="name" optionValue="id" placeholder="Select country" :loading="loadingCountries" filter showClear fluid />
-      </div>
-    </div>
-
-    <div class="form-grid">
-      <div class="form-field">
-        <label for="sf-schoolType">School Type</label>
-        <Select id="sf-schoolType" v-model="form.education.schoolType" :options="schoolTypeOptions" optionLabel="label" optionValue="value" placeholder="Select school type" showClear fluid />
-      </div>
-      <div class="form-field">
-        <label for="sf-provinceGroup">Province Group</label>
-        <Select id="sf-provinceGroup" v-model="form.education.provinceGroup" :options="provinceGroupOptions" optionLabel="label" optionValue="value" placeholder="Select province group" showClear fluid />
+        <label for="sf-country">School Country <span class="required">*</span></label>
+        <Select id="sf-country" v-model="form.education.countryId" :options="countries" optionLabel="name" optionValue="id" placeholder="Select country" :loading="loadingCountries" :invalid="!!errors.country" filter showClear fluid />
+        <small v-if="errors.country" class="form-error">{{ errors.country }}</small>
       </div>
     </div>
 
     <div class="form-grid">
       <div class="form-field">
-        <label for="sf-class">Class</label>
-        <Select id="sf-class" v-model="form.education.class" :options="classOptions" optionLabel="label" optionValue="value" placeholder="Select class" showClear fluid />
+        <label for="sf-schoolType">School Type <span class="required">*</span></label>
+        <Select id="sf-schoolType" v-model="form.education.schoolType" :options="schoolTypeOptions" optionLabel="label" optionValue="value" placeholder="Select school type" :invalid="!!errors.schoolType" showClear fluid />
+        <small v-if="errors.schoolType" class="form-error">{{ errors.schoolType }}</small>
+      </div>
+      <div class="form-field">
+        <label for="sf-provinceGroup">Province Group <span class="required">*</span></label>
+        <Select id="sf-provinceGroup" v-model="form.education.provinceGroup" :options="provinceGroupOptions" optionLabel="label" optionValue="value" placeholder="Select province group" :invalid="!!errors.provinceGroup" showClear fluid />
+        <small v-if="errors.provinceGroup" class="form-error">{{ errors.provinceGroup }}</small>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label for="sf-class">Class <span class="required">*</span></label>
+        <Select id="sf-class" v-model="form.education.class" :options="classOptions" optionLabel="label" optionValue="value" placeholder="Select class" :invalid="!!errors.class" showClear fluid />
+        <small v-if="errors.class" class="form-error">{{ errors.class }}</small>
       </div>
     </div>
 
@@ -100,8 +106,9 @@
 
     <div class="form-grid">
       <div class="form-field">
-        <label for="sf-gpa">GPA</label>
-        <Select id="sf-gpa" v-model="form.specializedRegister.gpa" :options="gpaOptions" optionLabel="label" optionValue="value" placeholder="Select GPA" showClear fluid />
+        <label for="sf-gpa">GPA <span class="required">*</span></label>
+        <Select id="sf-gpa" v-model="form.specializedRegister.gpa" :options="gpaOptions" optionLabel="label" optionValue="value" placeholder="Select GPA" :invalid="!!errors.gpa" showClear fluid />
+        <small v-if="errors.gpa" class="form-error">{{ errors.gpa }}</small>
       </div>
       <div class="form-field">
         <label for="sf-englishCert">English Certificate</label>
@@ -111,26 +118,29 @@
 
     <div class="form-grid">
       <div class="form-field">
-        <label for="sf-interestedMajor">Interested Major</label>
+        <label for="sf-interestedMajor">Interested Major <span class="required">*</span></label>
         <Select id="sf-interestedMajor" v-model="form.specializedRegister.interestedMajorId"
           :options="interestedMajors" optionLabel="name" optionValue="id"
           placeholder="Select major" :loading="loadingInterested"
-          filter showClear fluid @change="onInterestedMajorChange" />
+          :invalid="!!errors.interestedMajor" filter showClear fluid @change="onInterestedMajorChange" />
+        <small v-if="errors.interestedMajor" class="form-error">{{ errors.interestedMajor }}</small>
       </div>
       <div class="form-field">
-        <label for="sf-specificMajor">Specific Major</label>
+        <label for="sf-specificMajor">Specific Major <span class="required">*</span></label>
         <Select id="sf-specificMajor" v-model="form.specializedRegister.specificMajorId"
           :options="specificMajors" optionLabel="name" optionValue="id"
           placeholder="Select specific major" :loading="loadingSpecific"
           :disabled="!form.specializedRegister.interestedMajorId"
-          filter showClear fluid />
+          :invalid="!!errors.specificMajor" filter showClear fluid />
+        <small v-if="errors.specificMajor" class="form-error">{{ errors.specificMajor }}</small>
       </div>
     </div>
 
     <div class="form-grid">
       <div class="form-field">
-        <label for="sf-programScore">Program Score</label>
-        <Select id="sf-programScore" v-model="form.specializedRegister.programScore" :options="programScoreOptions" optionLabel="label" optionValue="value" placeholder="Select Program Score" showClear fluid />
+        <label for="sf-programScore">Program Score <span class="required">*</span></label>
+        <Select id="sf-programScore" v-model="form.specializedRegister.programScore" :options="programScoreOptions" optionLabel="label" optionValue="value" placeholder="Select Program Score" :invalid="!!errors.programScore" showClear fluid />
+        <small v-if="errors.programScore" class="form-error">{{ errors.programScore }}</small>
       </div>
       <div class="form-field">
         <label for="sf-admissionYear">Admission Year</label>
@@ -317,11 +327,24 @@ export default {
       if (!this.form.fullName || !this.form.fullName.trim()) e.fullName = 'Full name is required'
       if (this.form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email)) e.email = 'Invalid email format'
       
-      if (this.form.mobile) {
-        if (!/^0\d{9}$/.test(this.form.mobile)) {
-          e.mobile = 'Mobile number must be exactly 10 digits long and start with 0';
-        }
+      if (!this.form.mobile) {
+        e.mobile = 'Mobile is required'
+      } else if (!/^0\d{9}$/.test(this.form.mobile)) {
+        e.mobile = 'Mobile number must be exactly 10 digits long and start with 0'
       }
+
+      if (!this.form.gender) e.gender = 'Gender is required'
+
+      if (!this.form.education?.newProvinceId) e.newProvince = 'New Province is required'
+      if (!this.form.education?.countryId) e.country = 'Country is required'
+      if (!this.form.education?.schoolType) e.schoolType = 'School Type is required'
+      if (!this.form.education?.provinceGroup) e.provinceGroup = 'Province Group is required'
+      if (!this.form.education?.class) e.class = 'Class is required'
+
+      if (!this.form.specializedRegister?.gpa) e.gpa = 'GPA is required'
+      if (!this.form.specializedRegister?.interestedMajorId) e.interestedMajor = 'Interested Major is required'
+      if (!this.form.specializedRegister?.specificMajorId) e.specificMajor = 'Specific Major is required'
+      if (!this.form.specializedRegister?.programScore) e.programScore = 'Program Score is required'
 
       // Required field validation
       if (!this.selectedOldProvinceId && !this.form.education?.schoolId) {

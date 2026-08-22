@@ -1,14 +1,14 @@
 // !--- Specialized Register table ---! //
 model SpecializedRegister {
-  id                 Int                  @id @default(autoincrement())
-  interestedMajorId  Int?                 @map("interested_major_id")
-  interestedMajor    MajorData?           @relation("InterestedMajor", fields: [interestedMajorId], references: [id])
-  specificMajorId    Int?                 @map("specific_major_id")
-  specificMajor      MajorData?           @relation("SpecificMajor", fields: [specificMajorId], references: [id])
-  admissionYear      Int?                 @map("admission_year")
-  englishCertificate EnglishCertificate?  @map("english_certificate")
-  gpa                GPA?                 @map("gpa")
-  programScore       ProgramScore?        @map("program_score")
+  id                 Int                 @id @default(autoincrement())
+  interestedMajorId  Int                 @map("interested_major_id")
+  interestedMajor    MajorData           @relation("InterestedMajor", fields: [interestedMajorId], references: [id])
+  specificMajorId    Int                 @map("specific_major_id")
+  specificMajor      MajorData           @relation("SpecificMajor", fields: [specificMajorId], references: [id])
+  admissionYear      Int?                @map("admission_year")
+  englishCertificate EnglishCertificate? @map("english_certificate")
+  gpa                GPA                 @map("gpa")
+  programScore       ProgramScore        @map("program_score")
 
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz()
@@ -53,5 +53,4 @@ enum ProgramScore {
   CHEM_G11_HIGHER_7
   CHEM_G12_CUR1_HIGHER_7
   CHEM_G12_HIGHER_7
-  
 }

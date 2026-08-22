@@ -192,6 +192,64 @@ const searchAccounts = async (req, res) => {
   }
 };
 
+const fs = require('fs');
+const inquiryImportService = require('./inquiryImportService');
+
+// ─── Import Endpoints
+
+const downloadTemplate = (req, res) => {
+  try {
+    const buffer = inquiryImportService.generateTemplate();
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename="inquiry_import_template.xlsx"');
+    res.send(buffer);
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
+const previewImportInquiry = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const fileBuffer = fs.readFileSync(req.file.path);
+    const result = await inquiryImportService.previewImportInquiry(fileBuffer, req.user.accountId);
+
+    // Clean up uploaded file
+    if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+
+    res.status(200).json({
+      message: 'Preview generated successfully',
+      data: result
+    });
+  } catch (error) {
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    handleError(res, error);
+  }
+};
+
+const confirmImportInquiry = async (req, res) => {
+  try {
+    const { importToken } = req.body;
+    if (!importToken) {
+      return res.status(400).json({ error: 'importToken is required' });
+    }
+
+    const result = await inquiryImportService.confirmImportInquiry(importToken, req.user.accountId);
+
+    res.status(200).json({
+      message: 'Import confirmed successfully',
+      data: result
+    });
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
 module.exports = {
   getAllInquiries,
   getInquiryById,
@@ -202,5 +260,8 @@ module.exports = {
   unassignStudentFromInquiry,
   assignAccountToInquiry,
   searchStudents,
-  searchAccounts
+  searchAccounts,
+  downloadTemplate,
+  previewImportInquiry,
+  confirmImportInquiry
 };

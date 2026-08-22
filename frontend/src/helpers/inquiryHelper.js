@@ -49,3 +49,29 @@ export const searchStudents = async (query) => {
   const response = await api.get(`${prefix}/search/students`, { params: { q: query } })
   return response.data.results
 }
+
+export const downloadInquiryTemplate = async () => {
+  const response = await api.get(`${prefix}/import/template`, { responseType: 'blob' })
+  const url = window.URL.createObjectURL(new Blob([response.data]))
+  const link = document.createElement('a')
+  link.href = url
+  link.setAttribute('download', 'inquiry_import_template.xlsx')
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  window.URL.revokeObjectURL(url)
+}
+
+export const previewImportInquiry = async (file) => {
+  const formData = new FormData()
+  formData.append('file', file)
+  const response = await api.post(`${prefix}/import/preview`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' }
+  })
+  return response.data
+}
+
+export const confirmImportInquiry = async (importToken) => {
+  const response = await api.post(`${prefix}/import/confirm`, { importToken })
+  return response.data
+}
