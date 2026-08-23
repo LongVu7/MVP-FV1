@@ -105,12 +105,15 @@ const getAllStudents = async ({ page, limit, skip, search, sortField, sortOrder,
 
   let orderBy = { createdAt: 'desc' };
   if (sortField) {
-    const order = sortOrder === 1 ? 'asc' : 'desc';
-    if (sortField === 'education.school.name') {
-      orderBy = { education: { school: { name: order } } };
-    } else {
-      orderBy = { [sortField]: order };
+    const order = parseInt(sortOrder) === 1 ? 'asc' : 'desc';
+    const keys = sortField.split('.');
+    orderBy = {};
+    let current = orderBy;
+    for (let i = 0; i < keys.length - 1; i++) {
+      current[keys[i]] = {};
+      current = current[keys[i]];
     }
+    current[keys[keys.length - 1]] = order;
   }
 
   const [students, totalCount] = await prisma.$transaction([
@@ -483,6 +486,16 @@ const analyzeImport = async (parsedStudents) => {
         schoolWarnings.push({ mobile: s.mobile, fullName: s.fullName, fileName: s._mapping?.fileName, rowNumber: s._mapping?.rowNumber, message: `Interested Major "${intMajor}" not found.` });
       }
     }
+
+    const hasAcademicIntentions = s.gpa || s.programScore || s.englishCertificate || s.admissionYear || s.interestedMajorId;
+    if (hasAcademicIntentions) {
+      if (!s.interestedMajorId) {
+        schoolWarnings.push({ mobile: s.mobile, fullName: s.fullName, fileName: s._mapping?.fileName, rowNumber: s._mapping?.rowNumber, message: 'Interested Major is required when providing academic intentions (GPA, Program Score, etc.).' });
+      }
+      if (!s.specificMajorId) {
+        schoolWarnings.push({ mobile: s.mobile, fullName: s.fullName, fileName: s._mapping?.fileName, rowNumber: s._mapping?.rowNumber, message: 'Specific Major is required when providing academic intentions.' });
+      }
+    }
   }
 
   return {
@@ -576,7 +589,22 @@ const processImport = async (students) => {
     if (interestedMajorIdVal !== undefined) srFields.interestedMajorId = interestedMajorIdVal;
     if (specificMajorIdVal !== undefined) srFields.specificMajorId = specificMajorIdVal;
 
-    const specializedRegister = Object.keys(srFields).length > 0 
+    const hasAcademicIntentions = Object.keys(srFields).length > 0;
+    
+    if (hasAcademicIntentions) {
+      if (srFields.interestedMajorId === undefined && !existingSR?.interestedMajorId) {
+        const err = new Error(`Row ${i + 1} (${s.fullName}): Interested Major is required when providing academic intentions (GPA, Program Score, etc.).`);
+        err.status = 400;
+        throw err;
+      }
+      if (srFields.specificMajorId === undefined && !existingSR?.specificMajorId) {
+        const err = new Error(`Row ${i + 1} (${s.fullName}): Specific Major is required when providing academic intentions.`);
+        err.status = 400;
+        throw err;
+      }
+    }
+
+    const specializedRegister = hasAcademicIntentions 
       ? { ...(existingSR || {}), ...srFields } 
       : existingSR;
 
