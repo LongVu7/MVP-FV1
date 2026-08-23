@@ -214,26 +214,25 @@ export default {
         { label: 'Other', value: 'other' }
       ],
       gpaOptions: [
-        { label: 'Lower 21', value: 'LOWER_21' },
-        { label: 'Grade 11: 21 - 23', value: 'GRADE_11_FROM_21_TO_23' },
-        { label: 'Grade 12 (Curriculum 2): 24 - 25', value: 'GRADE_12_CUR_2_FROM_24_TO_25' },
-        { label: 'Grade 12: 21 - 23', value: 'GRADE_12_FROM_21_TO_23' },
-        { label: 'Grade 11: 24 - 26', value: 'GRADE_11_FROM_24_TO_26' },
-        { label: 'Grade 12: 24 - 26', value: 'GRADE_12_FROM_24_TO_26' },
-        { label: 'Grade 11: Higher 26', value: 'GRADE_11_HIGHER_26' },
-        { label: 'Grade 12 (Curriculum 1): Higher 26', value: 'GRADE_12_CUR_1_HIGHER_26' },
-        { label: 'Grade 12: Higher 26', value: 'GRADE_12_HIGHER_26' }
+        { label: '3 môn <21đ', value: 'LOWER_21' },
+        { label: '3 môn lớp 11 từ 21-23đ', value: 'G11_21_TO_23' },
+        { label: '3 môn HK1 12 từ 21-23đ', value: 'G12_SEM1_21_TO_23' },
+        { label: '3 môn cả năm 12 từ 21-23đ', value: 'G12_21_TO_23' },
+        { label: '3 môn lớp 11 từ 24-26đ', value: 'G11_24_TO_26' },
+        { label: '3 môn HK1 12 từ 24-26đ', value: 'G12_SEM1_24_TO_26' },
+        { label: '3 môn cả năm 12 từ 24-26đ', value: 'G12_24_TO_26' },
+        { label: '3 môn lớp 11 >26đ', value: 'G11_HIGHER_26' },
+        { label: '3 môn HK1 12 >26đ', value: 'G12_SEM1_HIGHER_26' },
+        { label: '3 môn cả năm 12 >26đ', value: 'G12_HIGHER_26' },
+        { label: 'Khác', value: 'OTHER' }
       ],
       programScoreOptions: [
-        { label: 'Math G11: Higher 7', value: 'MATH_G11_HIGHER_7' },
-        { label: 'Math G11 (Cur 1): Higher 7', value: 'MATH_G11_CUR1_HIGHER_7' },
-        { label: 'Math G12: Higher 7', value: 'MATH_G12_HIGHER_7' },
-        { label: 'Physics G11: Higher 7', value: 'PHY_G11_HIGHER_7' },
-        { label: 'Physics G12 (Cur 1): Higher 7', value: 'PHY_G12_CUR1_HIGHER_7' },
-        { label: 'Physics G12: Higher 7', value: 'PHY_G12_HIGHER_7' },
-        { label: 'Chemistry G11: Higher 7', value: 'CHEM_G11_HIGHER_7' },
-        { label: 'Chemistry G12 (Cur 1): Higher 7', value: 'CHEM_G12_CUR1_HIGHER_7' },
-        { label: 'Chemistry G12: Higher 7', value: 'CHEM_G12_HIGHER_7' }
+        { label: 'Đạt xét HB Talent', value: 'TALENT_SCHOLARSHIP' },
+        { label: 'Đạt xét HB khác', value: 'OTHER_SCHOLARSHIP' },
+        { label: 'Đạt - không có HB', value: 'ELIGIBLE_NO_SCHOLARSHIP' },
+        { label: 'Đang chờ xét duyệt', value: 'PENDING_REVIEW' },
+        { label: 'Chưa đủ điểm đầu vào', value: 'NOT_ELIGIBLE' },
+        { label: 'Khác', value: 'OTHER' }
       ],
       schoolTypeOptions: [
         { label: 'A*', value: 'A_STAR' },
@@ -243,10 +242,10 @@ export default {
         { label: 'D', value: 'D' }
       ],
       provinceGroupOptions: [
-        { label: 'Ho Chi Minh', value: 'HO_CHI_MINH' },
-        { label: 'Core Province', value: 'CORE_PROVINCE' },
-        { label: 'Other Province', value: 'OTHER_PROVINCE' },
-        { label: 'Foreign', value: 'FOREIGN' }
+        { label: 'TP HCM', value: 'HO_CHI_MINH' },
+        { label: 'Tỉnh ruột', value: 'CORE_PROVINCE' },
+        { label: 'Tỉnh ngoài', value: 'OTHER_PROVINCE' },
+        { label: 'Nước ngoài', value: 'FOREIGN' }
       ],
       priorityOptions: [
         { label: 'I', value: 'I' },

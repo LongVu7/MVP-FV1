@@ -3,7 +3,6 @@ const { ProvinceGroup, SchoolType, StudentClass, Priority, EnglishCertificate, G
 const prisma = require('../../../config/db');
 const crypto = require('crypto');
 
-// In-memory token storage (MVP). For multi-instance, use Redis/DB.
 // Map<token, { accountId, data, createdAt, expiresAt, status }>
 const importTokens = new Map();
 
@@ -27,7 +26,7 @@ const COLUMN_MAP = {
   'Parent Phone': { key: 'parentPhone', requiredStruct: true, requiredNew: false },
   'Primary Address': { key: 'primaryAddress', requiredStruct: true, requiredNew: false },
   'Priority': { key: 'priority', requiredStruct: true, requiredNew: false },
-  
+
   'Old Province': { key: 'oldProvince', requiredStruct: true, requiredNew: true },
   'School': { key: 'school', requiredStruct: true, requiredNew: true },
   'New Province': { key: 'newProvince', requiredStruct: true, requiredNew: true },
@@ -72,7 +71,7 @@ const normalizeMobile = (val) => {
   // We'll just enforce 10 digits starting with 0.
   let cleaned = str.replace(/\D/g, '');
   if (cleaned.length === 9 && !cleaned.startsWith('0')) {
-     cleaned = '0' + cleaned;
+    cleaned = '0' + cleaned;
   }
   return cleaned;
 };
@@ -99,19 +98,19 @@ const resolveHierarchy = (nodes, levelNames, levelsProvided) => {
     const val = levelsProvided[i];
 
     if (!val) {
-       // If subsequent levels are provided without this one, it's an INVALID_RELATION
-       for (let j = i + 1; j < levelNames.length; j++) {
-         if (levelsProvided[j]) {
-           return { error: `Missing parent level: ${levelName} when child level is provided` };
-         }
-       }
-       break; // Valid partial hierarchy end
+      // If subsequent levels are provided without this one, it's an INVALID_RELATION
+      for (let j = i + 1; j < levelNames.length; j++) {
+        if (levelsProvided[j]) {
+          return { error: `Missing parent level: ${levelName} when child level is provided` };
+        }
+      }
+      break; // Valid partial hierarchy end
     }
 
     // Match node
-    const node = nodes.find(n => 
-      n.level === levelName && 
-      n.parentId === currentParentId && 
+    const node = nodes.find(n =>
+      n.level === levelName &&
+      n.parentId === currentParentId &&
       (n.label ? n.label.toLowerCase() === val.toLowerCase() : n.name.toLowerCase() === val.toLowerCase())
     );
 
@@ -181,7 +180,7 @@ const previewImportInquiry = async (fileBuffer, accountId) => {
     where: { mobile: { in: mobiles } },
     include: { inquiry: true }
   });
-  
+
   const oldProvinces = await prisma.oldProvince.findMany();
   const schools = await prisma.school.findMany();
   const newProvinces = await prisma.newProvince.findMany();
@@ -241,23 +240,193 @@ const previewImportInquiry = async (fileBuffer, accountId) => {
         if (!c) row._meta.errors.push(`UNRESOLVED_MAPPING: Country "${row.country}"`);
         else row.countryId = c.id;
       }
+
+      // Enums (basic check and localized mapping)
+      const removeVietnameseTones = (str) => {
+        str = str.replace(/à|á|ạ|ả|ã|â|ầ|ấ|ậ|ẩ|ẫ|ă|ằ|ắ|ặ|ẳ|ẵ/g,"a"); 
+        str = str.replace(/è|é|ẹ|ẻ|ẽ|ê|ề|ế|ệ|ể|ễ/g,"e"); 
+        str = str.replace(/ì|í|ị|ỉ|ĩ/g,"i"); 
+        str = str.replace(/ò|ó|ọ|ỏ|õ|ô|ồ|ố|ộ|ổ|ỗ|ơ|ờ|ớ|ợ|ở|ỡ/g,"o"); 
+        str = str.replace(/ù|ú|ụ|ủ|ũ|ư|ừ|ứ|ự|ử|ữ/g,"u"); 
+        str = str.replace(/ỳ|ý|ỵ|ỷ|ỹ/g,"y"); 
+        str = str.replace(/đ/g,"d");
+        str = str.replace(/À|Á|Ạ|Ả|Ã|Â|Ầ|Ấ|Ậ|Ẩ|Ẫ|Ă|Ằ|Ắ|Ặ|Ẳ|Ẵ/g, "A");
+        str = str.replace(/È|É|Ẹ|Ẻ|Ẽ|Ê|Ề|Ế|Ệ|Ể|Ễ/g, "E");
+        str = str.replace(/Ì|Í|Ị|Ỉ|Ĩ/g, "I");
+        str = str.replace(/Ò|Ó|Ọ|Ỏ|Õ|Ô|Ồ|Ố|Ộ|Ổ|Ỗ|Ơ|Ờ|Ớ|Ợ|Ở|Ỡ/g, "O");
+        str = str.replace(/Ù|Ú|Ụ|Ủ|Ũ|Ư|Ừ|Ứ|Ự|Ử|Ữ/g, "U");
+        str = str.replace(/Ỳ|Ý|Ỵ|Ỷ|Ỹ/g, "Y");
+        str = str.replace(/Đ/g, "D");
+        return str;
+      };
+
+      const normalizeEnum = (val) => {
+        if (!val) return val;
+        let str = String(val).trim();
+        str = removeVietnameseTones(str).toUpperCase();
+        str = str.replace(/[\s\-*]+/g, '_');
+        return str;
+      };
+
+      const PROVINCE_MAP = {
+        'TP_HCM': 'HO_CHI_MINH',
+        'HO_CHI_MINH': 'HO_CHI_MINH',
+        'TINH_RUOT': 'CORE_PROVINCE',
+        'CORE_PROVINCE': 'CORE_PROVINCE',
+        'TINH_NGOAI': 'OTHER_PROVINCE',
+        'OTHER_PROVINCE': 'OTHER_PROVINCE',
+        'NUOC_NGOAI': 'FOREIGN',
+        'FOREIGN': 'FOREIGN'
+      };
+
+      const CLASS_MAP = {
+        'LOP_11': 'GRADE_11',
+        'GRADE_11': 'GRADE_11',
+        'LOP_12': 'GRADE_12',
+        'GRADE_12': 'GRADE_12',
+        'THI_SINH_TU_DO': 'FREELANCE',
+        'FREELANCE': 'FREELANCE'
+      };
+
+      const GPA_MAP = {
+        '3_MON_LT21D': 'LOWER_21', // Note: < becomes LT
+        '3_MON_<21D': 'LOWER_21',
+        '3_MON_LOP_11_TU_21_23D': 'G11_21_TO_23',
+        '3_MON_HK1_12_TU_21_23D': 'G12_SEM1_21_TO_23',
+        '3_MON_CA_NAM_12_TU_21_23D': 'G12_21_TO_23',
+        '3_MON_LOP_11_TU_24_26D': 'G11_24_TO_26',
+        '3_MON_HK1_12_TU_24_26D': 'G12_SEM1_24_TO_26',
+        '3_MON_CA_NAM_12_TU_24_26D': 'G12_24_TO_26',
+        '3_MON_LOP_11_>26D': 'G11_HIGHER_26',
+        '3_MON_HK1_12_>26D': 'G12_SEM1_HIGHER_26',
+        '3_MON_CA_NAM_12_>26D': 'G12_HIGHER_26',
+        'KHAC': 'OTHER',
+        // Support direct enum values
+        'LOWER_21': 'LOWER_21',
+        'G11_21_TO_23': 'G11_21_TO_23',
+        'G12_SEM1_21_TO_23': 'G12_SEM1_21_TO_23',
+        'G12_21_TO_23': 'G12_21_TO_23',
+        'G11_24_TO_26': 'G11_24_TO_26',
+        'G12_SEM1_24_TO_26': 'G12_SEM1_24_TO_26',
+        'G12_24_TO_26': 'G12_24_TO_26',
+        'G11_HIGHER_26': 'G11_HIGHER_26',
+        'G12_SEM1_HIGHER_26': 'G12_SEM1_HIGHER_26',
+        'G12_HIGHER_26': 'G12_HIGHER_26',
+        'OTHER': 'OTHER'
+      };
+
+      const PROGRAM_SCORE_MAP = {
+        'DAT_XET_HB_TALENT': 'TALENT_SCHOLARSHIP',
+        'DAT_XET_HB_KHAC': 'OTHER_SCHOLARSHIP',
+        'DAT_KHONG_CO_HB': 'ELIGIBLE_NO_SCHOLARSHIP',
+        'DANG_CHO_XET_DUYET': 'PENDING_REVIEW',
+        'CHUA_DU_DIEM_DAU_VAO': 'NOT_ELIGIBLE',
+        'KHAC': 'OTHER',
+        // Support direct enum values
+        'TALENT_SCHOLARSHIP': 'TALENT_SCHOLARSHIP',
+        'OTHER_SCHOLARSHIP': 'OTHER_SCHOLARSHIP',
+        'ELIGIBLE_NO_SCHOLARSHIP': 'ELIGIBLE_NO_SCHOLARSHIP',
+        'PENDING_REVIEW': 'PENDING_REVIEW',
+        'NOT_ELIGIBLE': 'NOT_ELIGIBLE',
+        'OTHER': 'OTHER'
+      };
       
-      // Enums (basic check)
-      if (row.provinceGroup && !Object.keys(ProvinceGroup).includes(row.provinceGroup)) row._meta.errors.push(`Invalid Province Group: ${row.provinceGroup}`);
-      if (row.schoolType && !Object.keys(SchoolType).includes(row.schoolType)) row._meta.errors.push(`Invalid School Type: ${row.schoolType}`);
-      if (row.class && !Object.keys(StudentClass).includes(row.class)) row._meta.errors.push(`Invalid Class: ${row.class}`);
-      
+      const ENGLISH_CERT_MAP = {
+        'IELTS': 'IELTS',
+        'TOEFL': 'TOEFL',
+        'TOEIC': 'TOEIC',
+        'VSTEP': 'VSTEP',
+        'APTIS': 'APTIS',
+        'LINGUASKILL': 'LINGUASKILL',
+        'PEIC': 'PEIC',
+        'CAMBRIDGE_EXAM': 'CAMBRIDGE_EXAM',
+        'PTE': 'PTE',
+        'OTHER': 'other',
+        'KHAC': 'other'
+      };
+
+      if (row.provinceGroup) {
+        let norm = normalizeEnum(row.provinceGroup);
+        row.provinceGroup = PROVINCE_MAP[norm] || norm;
+        if (!Object.keys(ProvinceGroup).includes(row.provinceGroup)) {
+          row._meta.errors.push(`Invalid Province Group: ${row.provinceGroup}`);
+        }
+      }
+
+      if (row.schoolType) {
+        row.schoolType = normalizeEnum(row.schoolType);
+        if (row.schoolType === 'A_') row.schoolType = 'A_STAR'; // Special case for A*
+        if (!Object.keys(SchoolType).includes(row.schoolType)) {
+          row._meta.errors.push(`Invalid School Type: ${row.schoolType}`);
+        }
+      }
+
+      if (row.class) {
+        let norm = normalizeEnum(row.class);
+        row.class = CLASS_MAP[norm] || norm;
+        if (!Object.keys(StudentClass).includes(row.class)) {
+          row._meta.errors.push(`Invalid Class: ${row.class}`);
+        }
+      }
+
+      if (row.priority) {
+        row.priority = normalizeEnum(row.priority);
+        if (!Object.keys(Priority).includes(row.priority)) {
+          row._meta.errors.push(`Invalid Priority: ${row.priority}`);
+        }
+      }
+
+      if (row.gpa) {
+        let norm = normalizeEnum(row.gpa);
+        // Sometimes `<` and `>` might not be replaced by the regex.
+        norm = norm.replace(/</g, '<').replace(/>/g, '>'); 
+        row.gpa = GPA_MAP[norm] || norm;
+        if (!Object.keys(GPA).includes(row.gpa)) {
+          row._meta.errors.push(`Invalid GPA: ${row.gpa}`);
+        }
+      } else {
+        row.gpa = null;
+      }
+
+      if (row.programScore) {
+        let norm = normalizeEnum(row.programScore);
+        row.programScore = PROGRAM_SCORE_MAP[norm] || norm;
+        if (!Object.keys(ProgramScore).includes(row.programScore)) {
+          row._meta.errors.push(`Invalid Program Score: ${row.programScore}`);
+        }
+      } else {
+        row.programScore = null;
+      }
+
+      if (row.englishCertificate) {
+        let norm = normalizeEnum(row.englishCertificate);
+        row.englishCertificate = ENGLISH_CERT_MAP[norm] || norm;
+        if (!Object.keys(EnglishCertificate).includes(row.englishCertificate)) {
+          row._meta.errors.push(`Invalid English Certificate: ${row.englishCertificate}`);
+        }
+      } else {
+        row.englishCertificate = null;
+      }
+
       // Major Hierarchy
       if (row.interestedMajor || row.specificMajor) {
         const majorRes = resolveHierarchy(majorData, ['interestedMajor', 'specificMajor'], [row.interestedMajor, row.specificMajor]);
         if (majorRes.error) row._meta.errors.push(`INVALID_RELATION (Major): ${majorRes.error}`);
         else {
           // Manually assign IDs since it could be partial
-          const im = majorData.find(m => m.level === 'interestedMajor' && m.name.toLowerCase() === (row.interestedMajor||'').toLowerCase());
-          const sm = majorData.find(m => m.level === 'specificMajor' && m.name.toLowerCase() === (row.specificMajor||'').toLowerCase() && m.parentId === im?.id);
+          const im = majorData.find(m => m.level === 'interestedMajor' && m.name.toLowerCase() === (row.interestedMajor || '').toLowerCase());
+          const sm = majorData.find(m => m.level === 'specificMajor' && m.name.toLowerCase() === (row.specificMajor || '').toLowerCase() && m.parentId === im?.id);
           row.interestedMajorId = im?.id;
           row.specificMajorId = sm?.id;
         }
+      }
+      
+      // Academic Intentions cross-validation
+      const hasAcademicIntentions = row.interestedMajorId || row.admissionYear || row.englishCertificate || row.gpa || row.programScore;
+      if (hasAcademicIntentions) {
+        if (!row.gpa) row._meta.errors.push(`GPA is required when Academic Intentions are provided`);
+        if (!row.programScore) row._meta.errors.push(`Program Score is required when Academic Intentions are provided`);
+        if (!row.interestedMajorId) row._meta.errors.push(`Interested Major is required when Academic Intentions are provided`);
       }
     } else {
       row._meta.warnings.push('Uploaded Student, Education, and Specialized Register data will be ignored as the student already exists.');
@@ -317,13 +486,13 @@ const previewImportInquiry = async (fileBuffer, accountId) => {
 
 const confirmImportInquiry = async (importToken, accountId) => {
   const tokenData = importTokens.get(importToken);
-  
+
   if (!tokenData) {
     const err = new Error('Import token is invalid or has expired');
     err.status = 400;
     throw err;
   }
-  
+
   if (tokenData.accountId !== accountId) {
     const err = new Error('Unauthorized token');
     err.status = 403;
@@ -401,7 +570,7 @@ const confirmImportInquiry = async (importToken, accountId) => {
               groupTele: row.groupTele,
               statusDataId: row.statusDataId,
               sourceDataId: row.sourceDataId,
-              students: { connect: { id: student.id } }
+              studentId: student.id
             }
           });
         });
@@ -410,7 +579,7 @@ const confirmImportInquiry = async (importToken, accountId) => {
         console.error(`Row ${row._meta.rowNumber} failed:`, err);
         skipped++; // e.g. unique constraint violation occurred before transaction started
       }
-    } 
+    }
     else if (row._meta.classification === 'READY_EXISTING_STUDENT_NEW_INQUIRY') {
       try {
         // Re-check Inquiry existence just in case
@@ -432,7 +601,7 @@ const confirmImportInquiry = async (importToken, accountId) => {
             groupTele: row.groupTele,
             statusDataId: row.statusDataId,
             sourceDataId: row.sourceDataId,
-            students: { connect: { id: row.existingStudentId } }
+            studentId: row.existingStudentId
           }
         });
         newInquiriesForExisting++;

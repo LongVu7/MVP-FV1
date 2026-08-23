@@ -213,10 +213,10 @@ const priorityOptions = [
 ]
 
 const provinceGroupOptions = [
-  { label: 'Ho Chi Minh', value: 'HO_CHI_MINH' },
-  { label: 'Core Province', value: 'CORE_PROVINCE' },
-  { label: 'Other Province', value: 'OTHER_PROVINCE' },
-  { label: 'Foreign', value: 'FOREIGN' }
+  { label: 'TP HCM', value: 'HO_CHI_MINH' },
+  { label: 'Tỉnh ruột', value: 'CORE_PROVINCE' },
+  { label: 'Tỉnh ngoài', value: 'OTHER_PROVINCE' },
+  { label: 'Nước ngoài', value: 'FOREIGN' }
 ]
 
 const schoolTypeOptions = [
@@ -291,15 +291,17 @@ const formatDateTime = (dateStr) => {
 }
 
 const gpaLabel = (g) => {
-  if (g === 'LOWER_21') return 'Lower 21'
-  if (g === 'GRADE_11_FROM_21_TO_23') return 'Grade 11: 21 - 23'
-  if (g === 'GRADE_12_CUR_2_FROM_24_TO_25') return 'Grade 12 (Cur 2): 24 - 25'
-  if (g === 'GRADE_12_FROM_21_TO_23') return 'Grade 12: 21 - 23'
-  if (g === 'GRADE_11_FROM_24_TO_26') return 'Grade 11: 24 - 26'
-  if (g === 'GRADE_12_FROM_24_TO_26') return 'Grade 12: 24 - 26'
-  if (g === 'GRADE_11_HIGHER_26') return 'Grade 11: Higher 26'
-  if (g === 'GRADE_12_CUR_1_HIGHER_26') return 'Grade 12 (Cur 1): Higher 26'
-  if (g === 'GRADE_12_HIGHER_26') return 'Grade 12: Higher 26'
+  if (g === 'LOWER_21') return '3 môn <21đ'
+  if (g === 'G11_21_TO_23') return '3 môn lớp 11 từ 21-23đ'
+  if (g === 'G12_SEM1_21_TO_23') return '3 môn HK1 12 từ 21-23đ'
+  if (g === 'G12_21_TO_23') return '3 môn cả năm 12 từ 21-23đ'
+  if (g === 'G11_24_TO_26') return '3 môn lớp 11 từ 24-26đ'
+  if (g === 'G12_SEM1_24_TO_26') return '3 môn HK1 12 từ 24-26đ'
+  if (g === 'G12_24_TO_26') return '3 môn cả năm 12 từ 24-26đ'
+  if (g === 'G11_HIGHER_26') return '3 môn lớp 11 >26đ'
+  if (g === 'G12_SEM1_HIGHER_26') return '3 môn HK1 12 >26đ'
+  if (g === 'G12_HIGHER_26') return '3 môn cả năm 12 >26đ'
+  if (g === 'OTHER') return 'Khác'
   return g
 }
 
