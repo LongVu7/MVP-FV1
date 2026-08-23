@@ -22,12 +22,7 @@
         <div class="table-toolbar">
           <Select v-model="selectedBirthYear" :options="birthYearOptions" optionLabel="label" optionValue="value" placeholder="Birth Year" showClear @change="onFilterChange" class="filter-select" />
           <Select v-model="selectedOldProvinceId" :options="oldProvinces" optionLabel="name" optionValue="id" placeholder="Old Province" showClear @change="onFilterChange" class="filter-select" />
-          <Select v-model="selectedNewProvinceId" :options="newProvinces" optionLabel="name" optionValue="id" placeholder="New Province" showClear @change="onFilterChange" class="filter-select" />
-          <Select v-model="selectedCountryId" :options="countries" optionLabel="name" optionValue="id" placeholder="Country" showClear @change="onFilterChange" class="filter-select" />
-          <Select v-model="selectedProvinceGroup" :options="provinceGroupOptions" optionLabel="label" optionValue="value" placeholder="Province Group" showClear @change="onFilterChange" class="filter-select" />
-          <Select v-model="selectedSchoolType" :options="schoolTypeOptions" optionLabel="label" optionValue="value" placeholder="School Type" showClear @change="onFilterChange" class="filter-select" />
-          <Select v-model="selectedPriority" :options="priorityOptions" optionLabel="label" optionValue="value" placeholder="Priority" showClear @change="onFilterChange" class="filter-select" />
-          <Select v-model="selectedClass" :options="classOptions" optionLabel="label" optionValue="value" placeholder="Class" showClear @change="onFilterChange" class="filter-select" />
+
           <IconField>
             <InputIcon class="pi pi-search" />
             <InputText placeholder="Search..." @input="onSearch" :value="searchQuery" class="search-input" />
@@ -107,6 +102,12 @@
           <span v-else class="null-text">—</span>
         </template>
       </Column>
+      <Column field="education.school.oldProvince.name" header="Old Province" sortable style="min-width: 140px">
+        <template #body="{ data }">
+          <span v-if="data.education?.school?.oldProvince">{{ data.education.school.oldProvince.name }}</span>
+          <span v-else class="null-text">—</span>
+        </template>
+      </Column>
       <Column field="education.newProvince.name" header="New Province" sortable style="min-width: 140px">
         <template #body="{ data }">
           <span v-if="data.education?.newProvince">{{ data.education.newProvince.name }}</span>
@@ -119,18 +120,7 @@
           <span v-else class="null-text">—</span>
         </template>
       </Column>
-      <Column field="education.provinceGroup" header="Province Group" sortable style="min-width: 140px">
-        <template #body="{ data }">
-          <span v-if="data.education?.provinceGroup">{{ formatProvinceGroup(data.education.provinceGroup) }}</span>
-          <span v-else class="null-text">—</span>
-        </template>
-      </Column>
-      <Column field="education.schoolType" header="School Type" sortable style="min-width: 140px">
-        <template #body="{ data }">
-          <span v-if="data.education?.schoolType">{{ formatSchoolType(data.education.schoolType) }}</span>
-          <span v-else class="null-text">—</span>
-        </template>
-      </Column>
+
       <Column field="createdAt" header="Created" sortable style="width: 160px">
         <template #body="{ data }"><span class="date-text">{{ formatDateTime(data.createdAt) }}</span></template>
       </Column>
@@ -162,8 +152,7 @@ import ConfirmDialog from 'primevue/confirmdialog'
 import Select from 'primevue/select'
 import { useConfirm } from 'primevue/useconfirm'
 import { useSchoolOptions } from '@/composables/useSchoolOptions'
-import { useNewProvinceOptions } from '@/composables/useNewProvinceOptions'
-import { useCountryOptions } from '@/composables/useCountryOptions'
+
 import { onMounted } from 'vue'
 
 const props = defineProps({
@@ -178,24 +167,14 @@ const router = useRouter()
 const confirm = useConfirm()
 
 const { oldProvinces, fetchOldProvinces } = useSchoolOptions()
-const { newProvinces, fetchNewProvinces } = useNewProvinceOptions()
-const { countries, fetchCountries } = useCountryOptions()
 
 onMounted(() => {
   fetchOldProvinces()
-  fetchNewProvinces()
-  fetchCountries()
 })
 
 const searchQuery = ref('')
 const selectedOldProvinceId = ref(null)
-const selectedNewProvinceId = ref(null)
-const selectedCountryId = ref(null)
-const selectedProvinceGroup = ref(null)
-const selectedSchoolType = ref(null)
 const selectedBirthYear = ref(null)
-const selectedPriority = ref(null)
-const selectedClass = ref(null)
 let searchTimeout = null
 
 const classOptions = [
@@ -212,20 +191,7 @@ const priorityOptions = [
   { label: 'V', value: 'V' }
 ]
 
-const provinceGroupOptions = [
-  { label: 'TP HCM', value: 'HO_CHI_MINH' },
-  { label: 'Tỉnh ruột', value: 'CORE_PROVINCE' },
-  { label: 'Tỉnh ngoài', value: 'OTHER_PROVINCE' },
-  { label: 'Nước ngoài', value: 'FOREIGN' }
-]
 
-const schoolTypeOptions = [
-  { label: 'A*', value: 'A_STAR' },
-  { label: 'A', value: 'A' },
-  { label: 'B', value: 'B' },
-  { label: 'C', value: 'C' },
-  { label: 'D', value: 'D' }
-]
 
 const currentYear = new Date().getFullYear()
 const birthYearOptions = Array.from({ length: 40 }, (_, i) => {
@@ -254,13 +220,7 @@ const onSearch = (e) => {
 const onFilterChange = () => {
   emit('filter', {
     oldProvinceId: selectedOldProvinceId.value,
-    newProvinceId: selectedNewProvinceId.value,
-    countryId: selectedCountryId.value,
-    provinceGroup: selectedProvinceGroup.value,
-    schoolType: selectedSchoolType.value,
-    birthYear: selectedBirthYear.value,
-    priority: selectedPriority.value,
-    class: selectedClass.value
+    birthYear: selectedBirthYear.value
   })
 }
 
@@ -305,15 +265,7 @@ const gpaLabel = (g) => {
   return g
 }
 
-const formatProvinceGroup = (value) => {
-  const opt = provinceGroupOptions.find(o => o.value === value)
-  return opt ? opt.label : value
-}
 
-const formatSchoolType = (value) => {
-  const opt = schoolTypeOptions.find(o => o.value === value)
-  return opt ? opt.label : value
-}
 
 const formatClass = (value) => {
   const opt = classOptions.find(o => o.value === value)

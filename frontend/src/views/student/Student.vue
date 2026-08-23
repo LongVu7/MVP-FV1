@@ -37,7 +37,7 @@ const toast = useToast()
 
 const currentParams = ref({ 
   page: 1, limit: 20, search: '', sortField: null, sortOrder: null, 
-  oldProvinceId: null, newProvinceId: null, countryId: null, provinceGroup: null, schoolType: null, birthYear: null, priority: null, class: null
+  oldProvinceId: null, birthYear: null
 })
 
 onMounted(async () => {
