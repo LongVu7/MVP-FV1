@@ -2,3 +2,4 @@ docs/*
 backup/*
 .vscode/*
 .agents/*
+test/*
