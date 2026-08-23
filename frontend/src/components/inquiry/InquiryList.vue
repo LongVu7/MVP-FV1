@@ -24,26 +24,35 @@
           <Button label="New Inquiry" icon="pi pi-plus" @click="$router.push('/inquiries/new')" />
         </div>
       </template>
-
-      <Column header="Student" style="min-width: 150px">
-        <template #body="{ data }">
-          <span v-if="data.student">{{ data.student.fullName }}</span>
-          <span v-else class="null-text">—</span>
-        </template>
-      </Column>
-      <Column header="Status" style="min-width: 220px">
-        <template #body="{ data }">
-          <span v-if="data.statusData" class="status-breadcrumb">{{ formatStatusBreadcrumb(data.statusData) }}</span>
-          <span v-else class="null-text">—</span>
-        </template>
-      </Column>
-
+      
       <Column header="Assigned Account" style="min-width: 150px">
         <template #body="{ data }">
           <span v-if="data.assignedTo">{{ data.assignedTo.fullName }}</span>
           <span v-else class="null-text">—</span>
         </template>
       </Column>
+      <Column header="Student" style="min-width: 150px">
+        <template #body="{ data }">
+          <span v-if="data.student">{{ data.student.fullName }}</span>
+          <span v-else class="null-text">—</span>
+        </template>
+      </Column>
+      <Column header="Interaction Status" style="min-width: 150px">
+        <template #body="{ data }">
+          <span class="status-breadcrumb">{{ getStatusLevel(data.statusData, 'interaction') }}</span>
+        </template>
+      </Column>
+      <Column header="General Status" style="min-width: 150px">
+        <template #body="{ data }">
+          <span class="status-breadcrumb">{{ getStatusLevel(data.statusData, 'general') }}</span>
+        </template>
+      </Column>
+      <Column header="Detail Status" style="min-width: 150px">
+        <template #body="{ data }">
+          <span class="status-breadcrumb">{{ getStatusLevel(data.statusData, 'detail') }}</span>
+        </template>
+      </Column>
+
       <Column field="description" header="Description" style="min-width: 200px">
         <template #body="{ data }">
           <span v-if="data.description" class="desc-text">{{ data.description.length > 60 ?
@@ -131,20 +140,25 @@ const formatDate = (dateStr) => {
   return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
-const formatStatusBreadcrumb = (statusData) => {
+const getStatusLevel = (statusData, level) => {
   if (!statusData) return '—'
-  const chain = []
-  if (statusData.level === 'interaction') {
-    chain.push(statusData.label)
-  } else if (statusData.level === 'general') {
-    if (statusData.parent) chain.push(statusData.parent.label)
-    chain.push(statusData.label)
-  } else if (statusData.level === 'detail') {
-    if (statusData.parent?.parent) chain.push(statusData.parent.parent.label)
-    if (statusData.parent) chain.push(statusData.parent.label)
-    chain.push(statusData.label)
+  
+  if (level === 'interaction') {
+    if (statusData.level === 'interaction') return statusData.label
+    if (statusData.level === 'general' && statusData.parent) return statusData.parent.label
+    if (statusData.level === 'detail' && statusData.parent?.parent) return statusData.parent.parent.label
   }
-  return chain.join(' → ')
+  
+  if (level === 'general') {
+    if (statusData.level === 'general') return statusData.label
+    if (statusData.level === 'detail' && statusData.parent) return statusData.parent.label
+  }
+  
+  if (level === 'detail') {
+    if (statusData.level === 'detail') return statusData.label
+  }
+  
+  return '—'
 }
 </script>
 
