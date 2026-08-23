@@ -98,9 +98,9 @@ const importStudentSchema = z.object({
   gender: z.string().max(20).optional(),
   email: z.preprocess((val) => (val === '' ? undefined : val), z.email('email must be a valid email address').max(255).optional()),
   mobile: mobileString,
-  otherPhone: mobileString,
+  otherPhone: optionalMobileString.optional(),
   birthDate: dateString.optional(),
-  parentPhone: mobileString,
+  parentPhone: optionalMobileString.optional(),
   primaryAddress: z.string().max(255).optional(),
   priority: cleanEnumForImport(Priority),
   education: educationSchema.optional(),
@@ -126,6 +126,11 @@ const importStudentSchema = z.object({
   // Excel-only columns for school name lookup (resolved to schoolId during preview)
   schoolCity: z.preprocess((val) => (val === '' ? undefined : val), z.string().max(255).optional()),
   school: z.preprocess((val) => (val === '' ? undefined : val), z.string().max(255).optional()),
+  newProvince: z.preprocess((val) => (val === '' ? undefined : val), z.string().max(255).optional()),
+  country: z.preprocess((val) => (val === '' ? undefined : val), z.string().max(255).optional()),
+  provinceGroup: cleanEnumForImport(ProvinceGroup),
+  schoolType: cleanEnumForImport(SchoolType),
+  "class": cleanEnumForImport(StudentClass),
 
 }).passthrough();
 

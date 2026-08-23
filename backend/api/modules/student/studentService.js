@@ -1,8 +1,16 @@
 const prisma = require('../../../config/db');
 const xlsx = require('xlsx');
 const { buildPaginationMeta } = require('../../utils/pagination');
-
-
+const {
+  removeVietnameseTones,
+  normalizeEnum,
+  PROVINCE_MAP,
+  CLASS_MAP,
+  GPA_MAP,
+  PROGRAM_SCORE_MAP,
+  ENGLISH_CERT_MAP
+} = require('../../utils/enumMapper');
+const { ProvinceGroup, SchoolType, StudentClass, EnglishCertificate, GPA, ProgramScore } = require('@prisma/client');
 
 // ─── Create a student
 const createStudent = async (data) => {
@@ -376,6 +384,107 @@ const analyzeImport = async (parsedStudents) => {
     }
   }
 
+  // ─── Resolve newProvince and country ───
+  const newProvinceNames = [...new Set(parsedStudents.map(s => String(s.newProvince || s['New Province'] || '').trim()).filter(Boolean))];
+  const countryNames = [...new Set(parsedStudents.map(s => String(s.country || s['Country'] || '').trim()).filter(Boolean))];
+
+  if (newProvinceNames.length > 0) {
+    const nps = await prisma.newProvince.findMany({ where: { name: { in: newProvinceNames, mode: 'insensitive' } } });
+    const npLookup = new Map(nps.map(p => [p.name.toLowerCase().trim(), p.id]));
+    for (const s of parsedStudents) {
+      const p = String(s.newProvince || s['New Province'] || '').trim();
+      if (p) {
+        const id = npLookup.get(p.toLowerCase());
+        if (id) s.newProvinceId = id;
+        else schoolWarnings.push({ mobile: s.mobile, fullName: s.fullName, fileName: s._mapping?.fileName, rowNumber: s._mapping?.rowNumber, message: `New Province "${p}" not found.` });
+      }
+    }
+  }
+
+  if (countryNames.length > 0) {
+    const cs = await prisma.country.findMany({ where: { name: { in: countryNames, mode: 'insensitive' } } });
+    const cLookup = new Map(cs.map(c => [c.name.toLowerCase().trim(), c.id]));
+    for (const s of parsedStudents) {
+      const c = String(s.country || s['Country'] || '').trim();
+      if (c) {
+        const id = cLookup.get(c.toLowerCase());
+        if (id) s.countryId = id;
+        else schoolWarnings.push({ mobile: s.mobile, fullName: s.fullName, fileName: s._mapping?.fileName, rowNumber: s._mapping?.rowNumber, message: `Country "${c}" not found.` });
+      }
+    }
+  }
+
+  const majorData = await prisma.majorData.findMany({ where: { isActive: true } });
+
+  for (const s of parsedStudents) {
+    let pgVal = s.provinceGroup || s['Province Group'];
+    if (pgVal) {
+      let norm = normalizeEnum(pgVal);
+      s.provinceGroup = PROVINCE_MAP[norm] || norm;
+      if (!Object.keys(ProvinceGroup).includes(s.provinceGroup)) {
+        schoolWarnings.push({ mobile: s.mobile, fullName: s.fullName, fileName: s._mapping?.fileName, rowNumber: s._mapping?.rowNumber, message: `Invalid Province Group: ${pgVal}` });
+      }
+    }
+    
+    let stVal = s.schoolType || s['School Type'];
+    if (stVal) {
+      stVal = normalizeEnum(stVal);
+      if (stVal === 'A_') stVal = 'A_STAR';
+      s.schoolType = stVal;
+      if (!Object.keys(SchoolType).includes(s.schoolType)) {
+        schoolWarnings.push({ mobile: s.mobile, fullName: s.fullName, fileName: s._mapping?.fileName, rowNumber: s._mapping?.rowNumber, message: `Invalid School Type: ${s.schoolType || stVal}` });
+      }
+    }
+    
+    let clsVal = s.class || s['Class'];
+    if (clsVal) {
+      let norm = normalizeEnum(clsVal);
+      s.class = CLASS_MAP[norm] || norm;
+      if (!Object.keys(StudentClass).includes(s.class)) {
+        schoolWarnings.push({ mobile: s.mobile, fullName: s.fullName, fileName: s._mapping?.fileName, rowNumber: s._mapping?.rowNumber, message: `Invalid Class: ${clsVal}` });
+      }
+    }
+
+    let gpaVal = s.gpa || s['GPA'];
+    if (gpaVal) {
+      let norm = normalizeEnum(gpaVal);
+      norm = norm.replace(/</g, '<').replace(/>/g, '>'); 
+      s.gpa = GPA_MAP[norm] || norm;
+    }
+
+    let psVal = s.programScore || s['Program Score'];
+    if (psVal) {
+      let norm = normalizeEnum(psVal);
+      s.programScore = PROGRAM_SCORE_MAP[norm] || norm;
+    }
+
+    let ecVal = s.englishCertificate || s['English Certificate'];
+    if (ecVal) {
+      let norm = normalizeEnum(ecVal);
+      s.englishCertificate = ENGLISH_CERT_MAP[norm] || norm;
+    }
+
+    let intMajor = s.interestedMajor || s['Interested Major'];
+    let specMajor = s.specificMajor || s['Specific Major'];
+    if (intMajor || specMajor) {
+      const im = majorData.find(m => m.level === 'interestedMajor' && m.name.toLowerCase() === (intMajor || '').toLowerCase().trim());
+      let sm;
+      if (im) {
+        s.interestedMajorId = im.id;
+        if (specMajor) {
+          sm = majorData.find(m => m.level === 'specificMajor' && m.name.toLowerCase() === (specMajor || '').toLowerCase().trim() && m.parentId === im.id);
+          if (sm) {
+            s.specificMajorId = sm.id;
+          } else {
+            schoolWarnings.push({ mobile: s.mobile, fullName: s.fullName, fileName: s._mapping?.fileName, rowNumber: s._mapping?.rowNumber, message: `Specific Major "${specMajor}" not found under Interested Major "${intMajor}".` });
+          }
+        }
+      } else {
+        schoolWarnings.push({ mobile: s.mobile, fullName: s.fullName, fileName: s._mapping?.fileName, rowNumber: s._mapping?.rowNumber, message: `Interested Major "${intMajor}" not found.` });
+      }
+    }
+  }
+
   return {
     totalParsed: parsedStudents.length,
     duplicateCount: duplicates.length,
@@ -430,10 +539,19 @@ const processImport = async (students) => {
       interestedMajor, specificMajor,
       interestedMajorId, specificMajorId,
       admissionYear, programScore,
-      schoolId,
+      schoolId, newProvinceId, countryId,
       school: _school, schoolCity: _schoolCity,  // Excel-only lookup fields (already resolved to schoolId)
+      newProvince: _np, 'New Province': _np2,
+      country: _c, 'Country': _c2,
+      provinceGroup, 'Province Group': _pg,
+      schoolType, 'School Type': _st,
+      class: studentClass, 'Class': _cls,
       ...dbData 
     } = studentData;
+
+    let pgVal = provinceGroup || _pg;
+    let stVal = schoolType || _st;
+    let clsVal = studentClass || _cls;
 
     // Build SR fields — convert empty strings to null for enum fields
     const cleanEnum = (val) => (val === '' || val === null || val === undefined) ? undefined : val;
@@ -473,10 +591,24 @@ const processImport = async (students) => {
       dbData.birthDate = new Date(dbData.birthDate);
     }
     
-    const educationUpsert = schoolId !== undefined ? {
+    const educationUpsert = (schoolId !== undefined || newProvinceId !== undefined) ? {
       upsert: {
-        create: { schoolId: schoolId === null ? undefined : schoolId },
-        update: { schoolId: schoolId === null ? null : schoolId }
+        create: {
+          schoolId: schoolId === null ? undefined : schoolId,
+          newProvinceId: newProvinceId,
+          countryId: countryId,
+          provinceGroup: pgVal,
+          schoolType: stVal,
+          class: clsVal
+        },
+        update: {
+          ...(schoolId !== undefined && { schoolId: schoolId === null ? null : schoolId }),
+          ...(newProvinceId !== undefined && { newProvinceId }),
+          ...(countryId !== undefined && { countryId }),
+          ...(pgVal !== undefined && { provinceGroup: pgVal }),
+          ...(stVal !== undefined && { schoolType: stVal }),
+          ...(clsVal !== undefined && { class: clsVal })
+        }
       }
     } : undefined;
 
@@ -496,9 +628,16 @@ const processImport = async (students) => {
       },
       create: {
         ...dbData,
-        ...(schoolId ? {
+        ...((schoolId !== undefined || newProvinceId !== undefined) ? {
           education: {
-            create: { schoolId }
+            create: {
+              schoolId: schoolId || undefined,
+              newProvinceId: newProvinceId,
+              countryId: countryId,
+              provinceGroup: pgVal,
+              schoolType: stVal,
+              class: clsVal
+            }
           }
         } : {}),
         ...(specializedRegister && {
