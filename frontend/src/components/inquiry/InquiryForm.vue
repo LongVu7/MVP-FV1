@@ -23,17 +23,17 @@
     <div class="form-grid three-col">
       <div class="form-field">
         <label>Source</label>
-        <Select v-model="selectedSource" :options="sources" optionLabel="name" optionValue="id"
+        <Select v-model="selectedSource" :options="sources" optionLabel="label" optionValue="id"
           placeholder="Select source" :loading="loadingSources" fluid showClear />
       </div>
       <div class="form-field">
         <label>Source Detail</label>
-        <Select v-model="selectedSourceDetail" :options="sourceDetails" optionLabel="name" optionValue="id"
+        <Select v-model="selectedSourceDetail" :options="sourceDetails" optionLabel="label" optionValue="id"
           placeholder="Select detail" :loading="loadingSourceDetails" :disabled="!selectedSource" fluid showClear />
       </div>
       <div class="form-field">
         <label>Approach Method</label>
-        <Select v-model="selectedApproachMethod" :options="approachMethods" optionLabel="name" optionValue="id"
+        <Select v-model="selectedApproachMethod" :options="approachMethods" optionLabel="label" optionValue="id"
           placeholder="Select method" :loading="loadingMethods" :disabled="!selectedSourceDetail" fluid showClear />
       </div>
     </div>

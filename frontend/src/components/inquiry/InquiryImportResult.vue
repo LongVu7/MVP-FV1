@@ -1,16 +1,3 @@
-<script setup>
-import Button from 'primevue/button'
-
-const props = defineProps({
-  resultStats: {
-    type: Object,
-    required: true
-  }
-})
-
-const emit = defineEmits(['reset'])
-</script>
-
 <template>
   <div class="result-container">
     <i class="pi pi-check-circle result-icon"></i>
@@ -35,6 +22,18 @@ const emit = defineEmits(['reset'])
   </div>
 </template>
 
+<script setup>
+import Button from 'primevue/button'
+
+const props = defineProps({
+  resultStats: {
+    type: Object,
+    required: true
+  }
+})
+
+const emit = defineEmits(['reset'])
+</script>
 <style scoped>
 .result-container {
   display: flex;

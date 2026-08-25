@@ -4,7 +4,7 @@ const prisma = require('../../../config/db');
 const getRootOptions = async () => {
   return prisma.sourceData.findMany({
     where: { parentId: null, isActive: true },
-    select: { id: true, name: true },
+    select: { id: true, name: true, label: true },
     orderBy: { sortOrder: 'asc' }
   });
 };
@@ -13,7 +13,7 @@ const getRootOptions = async () => {
 const getChildrenById = async (id) => {
   return prisma.sourceData.findMany({
     where: { parentId: Number(id), isActive: true },
-    select: { id: true, name: true },
+    select: { id: true, name: true, label: true },
     orderBy: { sortOrder: 'asc' }
   });
 };
