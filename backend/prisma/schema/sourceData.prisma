@@ -1,7 +1,7 @@
 enum SourceLevel {
   source
-  sourceDetail
-  approachMethod
+  sourceDetail   @map("source_detail")
+  approachMethod @map("approach_method")
 }
 
 model SourceData {
