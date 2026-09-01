@@ -120,7 +120,7 @@
       <div class="form-field">
         <label for="sf-interestedMajor">Interested Major <span class="required">*</span></label>
         <Select id="sf-interestedMajor" v-model="form.specializedRegister.interestedMajorId"
-          :options="interestedMajors" optionLabel="name" optionValue="id"
+          :options="interestedMajors" optionLabel="label" optionValue="id"
           placeholder="Select major" :loading="loadingInterested"
           :invalid="!!errors.interestedMajor" filter showClear fluid @change="onInterestedMajorChange" />
         <small v-if="errors.interestedMajor" class="form-error">{{ errors.interestedMajor }}</small>
@@ -128,7 +128,7 @@
       <div class="form-field">
         <label for="sf-specificMajor">Specific Major <span class="required">*</span></label>
         <Select id="sf-specificMajor" v-model="form.specializedRegister.specificMajorId"
-          :options="specificMajors" optionLabel="name" optionValue="id"
+          :options="specificMajors" optionLabel="label" optionValue="id"
           placeholder="Select specific major" :loading="loadingSpecific"
           :disabled="!form.specializedRegister.interestedMajorId"
           :invalid="!!errors.specificMajor" filter showClear fluid />

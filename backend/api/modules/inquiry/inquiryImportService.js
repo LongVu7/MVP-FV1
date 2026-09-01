@@ -321,8 +321,8 @@ const previewImportInquiry = async (fileBuffer, accountId) => {
         if (majorRes.error) row._meta.errors.push(`INVALID_RELATION (Major): ${majorRes.error}`);
         else {
           // Manually assign IDs since it could be partial
-          const im = majorData.find(m => m.level === 'interestedMajor' && m.name.toLowerCase() === (row.interestedMajor || '').toLowerCase());
-          const sm = majorData.find(m => m.level === 'specificMajor' && m.name.toLowerCase() === (row.specificMajor || '').toLowerCase() && m.parentId === im?.id);
+          const im = majorData.find(m => m.level === 'interested_major' && (m.label ? m.label.toLowerCase() : m.name.toLowerCase()) === (row.interestedMajor || '').toLowerCase());
+          const sm = majorData.find(m => m.level === 'specific_major' && (m.label ? m.label.toLowerCase() : m.name.toLowerCase()) === (row.specificMajor || '').toLowerCase() && m.parentId === im?.id);
           row.interestedMajorId = im?.id;
           row.specificMajorId = sm?.id;
         }

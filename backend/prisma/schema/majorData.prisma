@@ -1,11 +1,12 @@
 enum MajorLevel {
-  interestedMajor
-  specificMajor
+  interestedMajor @map("interested_major")
+  specificMajor   @map("specific_major")
 }
 
 model MajorData {
   id        Int        @id @default(autoincrement())
   name      String     @db.VarChar(255)
+  label     String     @db.VarChar(255)
   level     MajorLevel
   sortOrder Int        @default(0) @map("sort_order")
   isActive  Boolean    @default(true) @map("is_active")
