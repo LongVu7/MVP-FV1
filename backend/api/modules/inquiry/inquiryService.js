@@ -1,5 +1,6 @@
 const prisma = require('../../../config/db');
 const { buildInquiryScope } = require('../../../authorization/scope/inquiryScope');
+const { applyStatusTransition } = require('../../utils/statusTransition');
 
 // ─── Error factory
 const handleError = (message, status) => {
@@ -135,10 +136,16 @@ const _createWithExistingStudent = async (inquiryData, studentId) => {
   }
 
   try {
-    const { id } = await prisma.inquiry.create({ 
-      data: { ...inquiryData, student: { connect: { id: sid } } } 
+    return await prisma.$transaction(async (tx) => {
+      let milestoneUpdates = {};
+      if (inquiryData.statusData?.connect?.id) {
+        milestoneUpdates = await applyStatusTransition({ tx, inquiry: {}, newStatusDataId: inquiryData.statusData.connect.id });
+      }
+      const { id } = await tx.inquiry.create({ 
+        data: { ...inquiryData, ...milestoneUpdates, student: { connect: { id: sid } } } 
+      });
+      return fetchInquiry(tx, id);
     });
-    return fetchInquiry(prisma, id);
   } catch (error) {
     if (error.code === 'P2002') {
       const fields = error.meta?.target || error.meta?.driverAdapterError?.cause?.constraint?.fields || [];
@@ -158,28 +165,35 @@ const _createWithExistingStudent = async (inquiryData, studentId) => {
 const _createWithNewStudent = async (inquiryData, student) => {
   const { specializedRegister, education, ...studentData } = student;
   try {
-    const { id } = await prisma.inquiry.create({
-      data: {
-        ...inquiryData,
-        student: {
-          create: {
-            ...studentData,
-            ...(studentData.birthDate && { birthDate: new Date(studentData.birthDate) }),
-            ...(education && {
-              education: {
-                create: education
-              }
-            }),
-            ...(specializedRegister && {
-              specializedRegister: {
-                create: specializedRegister
-              }
-            })
+    return await prisma.$transaction(async (tx) => {
+      let milestoneUpdates = {};
+      if (inquiryData.statusData?.connect?.id) {
+        milestoneUpdates = await applyStatusTransition({ tx, inquiry: {}, newStatusDataId: inquiryData.statusData.connect.id });
+      }
+      const { id } = await tx.inquiry.create({
+        data: {
+          ...inquiryData,
+          ...milestoneUpdates,
+          student: {
+            create: {
+              ...studentData,
+              ...(studentData.birthDate && { birthDate: new Date(studentData.birthDate) }),
+              ...(education && {
+                education: {
+                  create: education
+                }
+              }),
+              ...(specializedRegister && {
+                specializedRegister: {
+                  create: specializedRegister
+                }
+              })
+            }
           }
         }
-      }
+      });
+      return fetchInquiry(tx, id);
     });
-    return fetchInquiry(prisma, id);
   } catch (error) {
     if (error.code === 'P2002') {
       const fields = error.meta?.target || error.meta?.driverAdapterError?.cause?.constraint?.fields || [];
@@ -198,8 +212,14 @@ const _createWithNewStudent = async (inquiryData, student) => {
 };
 
 const _createAlone = async (inquiryData) => {
-  const { id } = await prisma.inquiry.create({ data: inquiryData });
-  return fetchInquiry(prisma, id);
+  return await prisma.$transaction(async (tx) => {
+    let milestoneUpdates = {};
+    if (inquiryData.statusData?.connect?.id) {
+      milestoneUpdates = await applyStatusTransition({ tx, inquiry: {}, newStatusDataId: inquiryData.statusData.connect.id });
+    }
+    const { id } = await tx.inquiry.create({ data: { ...inquiryData, ...milestoneUpdates } });
+    return fetchInquiry(tx, id);
+  });
 };
 
 
@@ -235,10 +255,26 @@ const updateInquiry = async (id, updateData) => {
   }
 
   try {
-    return await prisma.inquiry.update({
-      where: { id: parseInt(id, 10) },
-      data,
-      include: inquiryInclude
+    return await prisma.$transaction(async (tx) => {
+      const currentInquiry = await tx.inquiry.findUnique({ where: { id: parseInt(id, 10) } });
+      if (!currentInquiry) throw handleError('Inquiry not found', 404);
+
+      let milestoneUpdates = {};
+      const newStatusDataId = statusDataId !== undefined ? (statusDataId ? parseInt(statusDataId, 10) : null) : currentInquiry.statusDataId;
+      
+      if (newStatusDataId && newStatusDataId !== currentInquiry.statusDataId) {
+        milestoneUpdates = await applyStatusTransition({ 
+          tx, 
+          inquiry: currentInquiry, 
+          newStatusDataId 
+        });
+      }
+
+      return await tx.inquiry.update({
+        where: { id: parseInt(id, 10) },
+        data: { ...data, ...milestoneUpdates },
+        include: inquiryInclude
+      });
     });
   } catch (error) {
     if (error.code === 'P2002') {

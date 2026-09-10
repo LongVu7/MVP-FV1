@@ -21,4 +21,16 @@ const validateParams = (schema) => {
   };
 };
 
-module.exports = { validateBody, validateParams };
+const validateQuery = (schema) => {
+  return (req, res, next) => {
+    const result = schema.safeParse(req.query);
+    if (!result.success) {
+      const details = result.error.issues.map(e => e.message).join('; ');
+      return res.status(400).json({ error: 'Validation failed', details });
+    }
+    req.query = result.data;
+    next();
+  };
+};
+
+module.exports = { validateBody, validateParams, validateQuery };

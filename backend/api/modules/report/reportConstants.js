@@ -1,0 +1,7 @@
+const { PROCESSED_INTERACTIONS, INTERACTED_INTERACTIONS, NB_GENERAL } = require('../../utils/statusGroups');
+
+module.exports = {
+  PROCESSED_INTERACTIONS,
+  INTERACTED_INTERACTIONS,
+  NB_GENERAL
+};

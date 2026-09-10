@@ -22,6 +22,8 @@ const majorDataRoutes = require('./api/modules/majorData/majorDataRoutes');
 const permissionRoutes = require('./api/modules/permission/permissionRoutes');
 const newProvinceRoutes = require('./api/modules/newProvince/newProvinceRoutes');
 const countryRoutes = require('./api/modules/country/countryRoutes');
+const reportRoutes = require('./api/modules/report/reportRoutes');
+
 const app = express();
 const port = process.env.PORT || 3003;
 
@@ -55,6 +57,7 @@ app.use('/api/campaigns', campaignRoutes);
 app.use('/api/campaign-templates', campaignTemplateRoutes);
 app.use('/api/error-reports', errorReportRoutes);
 app.use('/api/permissions', permissionRoutes);
+app.use('/api/reports', reportRoutes);
 
 app.listen(port);
 

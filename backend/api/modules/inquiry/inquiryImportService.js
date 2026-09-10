@@ -11,6 +11,7 @@ const {
   PROGRAM_SCORE_MAP,
   ENGLISH_CERT_MAP
 } = require('../../utils/enumMapper');
+const { applyStatusTransition } = require('../../utils/statusTransition');
 
 // Map<token, { accountId, data, createdAt, expiresAt, status }>
 const importTokens = new Map();
@@ -469,6 +470,10 @@ const confirmImportInquiry = async (importToken, accountId) => {
           });
 
           // 4. Create Inquiry
+          let milestoneUpdates = {};
+          if (row.statusDataId) {
+            milestoneUpdates = await applyStatusTransition({ tx, inquiry: {}, newStatusDataId: row.statusDataId });
+          }
           await tx.inquiry.create({
             data: {
               assignedToId: row.assignedToId,
@@ -477,7 +482,8 @@ const confirmImportInquiry = async (importToken, accountId) => {
               groupTele: row.groupTele,
               statusDataId: row.statusDataId,
               sourceDataId: row.sourceDataId,
-              studentId: student.id
+              studentId: student.id,
+              ...milestoneUpdates
             }
           });
         });
@@ -500,16 +506,23 @@ const confirmImportInquiry = async (importToken, accountId) => {
           continue;
         }
 
-        await prisma.inquiry.create({
-          data: {
-            assignedToId: row.assignedToId,
-            description: row.description,
-            dataReceived: row.dataReceived,
-            groupTele: row.groupTele,
-            statusDataId: row.statusDataId,
-            sourceDataId: row.sourceDataId,
-            studentId: row.existingStudentId
+        await prisma.$transaction(async (tx) => {
+          let milestoneUpdates = {};
+          if (row.statusDataId) {
+            milestoneUpdates = await applyStatusTransition({ tx, inquiry: {}, newStatusDataId: row.statusDataId });
           }
+          await tx.inquiry.create({
+            data: {
+              assignedToId: row.assignedToId,
+              description: row.description,
+              dataReceived: row.dataReceived,
+              groupTele: row.groupTele,
+              statusDataId: row.statusDataId,
+              sourceDataId: row.sourceDataId,
+              studentId: row.existingStudentId,
+              ...milestoneUpdates
+            }
+          });
         });
         newInquiriesForExisting++;
       } catch (err) {

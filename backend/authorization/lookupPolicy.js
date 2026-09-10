@@ -6,6 +6,7 @@ const lookupDependencies = {
   'old_province.read':   ['old_province.read', 'student.create', 'student.update'],
   'new_province.read':   ['new_province.read', 'student.create', 'student.update'],
   'country.read':        ['country.read', 'student.create', 'student.update'],
+  'report.read':         ['report.read', 'report.read_group', 'report.read_all'],
 }
 
 const authorizeLookup = (lookupKey) => (req, res, next) => {

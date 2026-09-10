@@ -26,6 +26,10 @@ model Inquiry {
   createDate DateTime? @map("create_date") @db.Timestamptz()
   createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz()
 
+  firstProcessedAt  DateTime? @map("first_processed_at") @db.Timestamptz()
+  firstInteractedAt DateTime? @map("first_interacted_at") @db.Timestamptz()
+  nbAt              DateTime? @map("nb_at") @db.Timestamptz()
+
   updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz()
 
   assignedTo Account? @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
@@ -37,6 +41,9 @@ model Inquiry {
 
   @@index([createdAt])
   @@index([sourceDataId])
+  @@index([firstProcessedAt])
+  @@index([firstInteractedAt])
+  @@index([nbAt])
   @@map("inquiry")
 }
 
