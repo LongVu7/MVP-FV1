@@ -39,7 +39,7 @@ const dashboardQuerySchema = z.object({
   majorInterestTypes: csvToStringArray(['right_major_interest', 'related_major_interest', 'different_major_interest']),
   regionGroups: csvToStringArray(['HO_CHI_MINH', 'CORE_PROVINCE', 'OTHER_PROVINCE', 'FOREIGN']),
   oldProvinceIds: csvToIntArray,
-}).strict().refine((data) => data.from <= data.to, {
+}).refine((data) => data.from <= data.to, {
   message: '"from" date must be on or before "to" date',
   path: ['from'],
 });

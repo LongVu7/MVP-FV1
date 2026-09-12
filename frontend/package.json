@@ -18,12 +18,14 @@
     "@casl/vue": "^3.0.1",
     "@primeuix/themes": "^2.0.3",
     "axios": "^1.16.1",
+    "chart.js": "^4.5.1",
     "pinia": "^3.0.4",
     "primeflex": "^4.0.0",
     "primeicons": "^7.0.0",
     "primevue": "^4.5.5",
     "quill": "^2.0.3",
     "vue": "^3.5.32",
+    "vue-chartjs": "^5.3.4",
     "vue-router": "^5.0.4"
   },
   "devDependencies": {

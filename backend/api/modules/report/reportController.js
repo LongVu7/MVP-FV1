@@ -30,7 +30,9 @@ const getDashboardReport = async (req, res) => {
       data
     });
   } catch (error) {
-    console.error('Error fetching dashboard:', error);
+    console.error('Error fetching dashboard:', error.message);
+    console.error('Stack:', error.stack);
+    if (error.meta) console.error('Prisma meta:', error.meta);
     handleError(res, error);
   }
 };

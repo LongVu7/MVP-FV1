@@ -280,7 +280,7 @@ const genderSeverity = (gender) => {
 </script>
 
 <style scoped>
-.table-container { background: var(--p-content-background); border-radius: 12px; overflow: hidden; border: 1px solid var(--p-surface-200); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06); }
+.table-container { background: var(--p-content-background);  border-radius: 12px; overflow: hidden; border: 1px solid var(--p-surface-200); box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06); }
 .table-toolbar { display: flex; justify-content: flex-end; gap: 0.5rem; flex-wrap: wrap; }
 .filter-select { width: 140px; }
 .search-input { width: 220px; }

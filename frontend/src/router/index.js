@@ -7,8 +7,13 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: HomeView,
+      redirect: '/inquiries',
+    },
+    {
+      path: '/dashboard',
+      name: 'dashboard',
+      component: () => import('../views/dashboard/DashboardView.vue'),
+      meta: { permission: 'report.read' }
     },
     {
       path: '/students',

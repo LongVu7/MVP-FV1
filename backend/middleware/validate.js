@@ -5,7 +5,7 @@ const validateBody = (schema) => {
       const details = result.error.issues.map(e => e.message).join('; ');
       return res.status(400).json({ error: 'Validation failed', details });
     }
-    req.body = result.data;
+    Object.defineProperty(req, 'body', { value: result.data, writable: true, configurable: true, enumerable: true });
     next();
   };
 };
@@ -17,6 +17,7 @@ const validateParams = (schema) => {
       const details = result.error.issues.map(e => e.message).join('; ');
       return res.status(400).json({ error: 'Validation failed', details });
     }
+    Object.defineProperty(req, 'params', { value: result.data, writable: true, configurable: true, enumerable: true });
     next();
   };
 };
@@ -28,7 +29,7 @@ const validateQuery = (schema) => {
       const details = result.error.issues.map(e => e.message).join('; ');
       return res.status(400).json({ error: 'Validation failed', details });
     }
-    req.query = result.data;
+    Object.defineProperty(req, 'query', { value: result.data, writable: true, configurable: true, enumerable: true });
     next();
   };
 };

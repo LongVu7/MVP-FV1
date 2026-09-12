@@ -1,12 +1,12 @@
 const { Prisma } = require('@prisma/client');
 const prisma = require('../../../config/db');
-const { getIctDateBoundaries, BUSINESS_TZ } = require('./reportDateUtils');
-const { buildReportScope } = require('../../../authorization/scope/reportScope');
+const { BUSINESS_TZ } = require('./reportDateUtils');
 const { STATUS_BUCKETS } = require('./reportConstants');
 
 function buildFilters(filters) {
   let sourceFilter = Prisma.empty;
   if (filters.sourceIds && filters.sourceIds.length > 0) {
+    console.log('buildFilters - sourceIds:', filters.sourceIds, 'isArray:', Array.isArray(filters.sourceIds));
     sourceFilter = Prisma.sql`AND resolved_source_id IN (${Prisma.join(filters.sourceIds)})`;
   }
   let sourceDetailFilter = Prisma.empty;
@@ -269,7 +269,15 @@ const getMajorCounts = async (scope, { fromInstant, toExclusiveInstant }, filter
       )::int AS nb
     FROM FilteredInquiry fi
     WHERE fi.resolved_major_key IS NOT NULL
-    GROUP BY fi.resolved_major_key, fi.resolved_major_label;
+    GROUP BY fi.resolved_major_key, fi.resolved_major_label
+    HAVING COUNT(DISTINCT fi.id) FILTER (
+      WHERE fi.created_at >= ${fromInstant}::timestamptz 
+        AND fi.created_at < ${toExclusiveInstant}::timestamptz
+    ) > 0
+    OR COUNT(DISTINCT fi.id) FILTER (
+      WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
+        AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
+    ) > 0;
   `;
 };
 
@@ -279,17 +287,7 @@ const getSourceCounts = async (scope, { fromInstant, toExclusiveInstant }, filte
   const cte = baseCte(scopeCond, filterCond);
 
   return await prisma.$queryRaw`
-    ${cte},
-    AllPairs AS (
-      SELECT p.id as source_id, s.id as source_detail_id
-      FROM source_data p
-      JOIN source_data s ON s.parent_id = p.id AND s.level = 'source_detail'
-      WHERE p.level = 'source'
-      UNION ALL
-      SELECT p.id as source_id, NULL as source_detail_id
-      FROM source_data p
-      WHERE p.level = 'source'
-    )
+    ${cte}
     SELECT
       s.id AS "sourceDetailId",
       s.name AS "sourceDetailKey",
@@ -322,11 +320,18 @@ const getSourceCounts = async (scope, { fromInstant, toExclusiveInstant }, filte
           AND fi.nb_at < ${toExclusiveInstant}::timestamptz
       )::int AS nb
 
-    FROM AllPairs ap
-    JOIN source_data p ON p.id = ap.source_id
-    LEFT JOIN source_data s ON s.id = ap.source_detail_id
-    LEFT JOIN FilteredInquiry fi ON fi.resolved_source_id = p.id AND fi.resolved_source_detail_id IS NOT DISTINCT FROM s.id
+    FROM FilteredInquiry fi
+    JOIN source_data p ON p.id = fi.resolved_source_id
+    LEFT JOIN source_data s ON s.id = fi.resolved_source_detail_id
     GROUP BY p.id, p.name, p.label, p.sort_order, s.id, s.name, s.label, s.sort_order
+    HAVING COUNT(DISTINCT fi.id) FILTER (
+      WHERE fi.created_at >= ${fromInstant}::timestamptz 
+        AND fi.created_at < ${toExclusiveInstant}::timestamptz
+    ) > 0
+    OR COUNT(DISTINCT fi.id) FILTER (
+      WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
+        AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
+    ) > 0
     ORDER BY p.sort_order ASC, s.sort_order ASC NULLS FIRST;
   `;
 };
@@ -366,7 +371,15 @@ const getRegionCounts = async (scope, { fromInstant, toExclusiveInstant }, filte
       )::int AS nb
     FROM FilteredInquiry fi
     WHERE fi.resolved_region_group IS NOT NULL
-    GROUP BY fi.resolved_region_group;
+    GROUP BY fi.resolved_region_group
+    HAVING COUNT(DISTINCT fi.id) FILTER (
+      WHERE fi.created_at >= ${fromInstant}::timestamptz 
+        AND fi.created_at < ${toExclusiveInstant}::timestamptz
+    ) > 0
+    OR COUNT(DISTINCT fi.id) FILTER (
+      WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
+        AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
+    ) > 0;
   `;
 };
 
