@@ -1,12 +1,11 @@
 const lookupDependencies = {
   'school.options':      ['school.read', 'student.create', 'student.update'],
   'status_data.read':    ['status_data.read', 'inquiry.create', 'inquiry.update'],
-  'source_data.read':    ['source_data.read', 'inquiry.create', 'inquiry.update'],
-  'major_data.read':     ['major_data.read', 'student.create', 'student.update'],
-  'old_province.read':   ['old_province.read', 'student.create', 'student.update'],
+  'source_data.read':    ['source_data.read', 'inquiry.create', 'inquiry.update', 'report.read'],
+  'major_data.read':     ['major_data.read', 'student.create', 'student.update', 'report.read'],
+  'old_province.read':   ['old_province.read', 'student.create', 'student.update', 'report.read'],
   'new_province.read':   ['new_province.read', 'student.create', 'student.update'],
   'country.read':        ['country.read', 'student.create', 'student.update'],
-  'report.read':         ['report.read', 'report.read_group', 'report.read_all'],
 }
 
 const authorizeLookup = (lookupKey) => (req, res, next) => {

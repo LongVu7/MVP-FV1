@@ -1,45 +1,39 @@
-const { Prisma } = require('@prisma/client');
 const prisma = require('../../config/db');
 
-async function buildReportScope(user) {
-  const account = await prisma.account.findUnique({
-    where: { id: user.accountId },
-    include: { role: { include: { permissions: { include: { permission: true } } } } }
+async function getManagedGroupMemberIds(accountId) {
+  const ug = await prisma.userGroup.findFirst({
+    where: {
+      OR: [
+        { groupLeader: accountId },
+        { accounts: { some: { id: accountId } } }
+      ]
+    },
+    include: { accounts: true }
   });
 
-  if (!account) return Prisma.sql`AND 1 = 0`; // Deny all
-
-  const hasPermission = (code) =>
-    account.role.permissions.some(rp => rp.permission.code === code);
-
-  // Allow seeing all if report.read_all
-  if (hasPermission('report.read_all')) {
-    return Prisma.empty; // No restrictions
-  }
-
-  // Allow seeing team if report.read_group
-  if (hasPermission('report.read_group')) {
-    const ug = await prisma.userGroup.findFirst({
-      where: {
-        OR: [
-          { groupLeader: user.accountId },
-          { accounts: { some: { id: user.accountId } } }
-        ]
-      },
-      include: { accounts: true }
-    });
-
-    if (ug) {
-      const accountIds = ug.accounts.map(a => a.id);
-      if (!accountIds.includes(ug.groupLeader)) {
-         accountIds.push(ug.groupLeader);
-      }
-      return Prisma.sql`AND inquiry.assigned_to_id IN (${Prisma.join(accountIds)})`;
+  if (ug) {
+    const ids = ug.accounts.map(a => a.id);
+    if (!ids.includes(ug.groupLeader)) {
+       ids.push(ug.groupLeader);
     }
+    return ids;
+  }
+  return [];
+}
+
+async function buildReportScope(user) {
+  if (user.permissions.has('report.read_all')) {
+    return { mode: 'all', assignedToIds: null };
   }
 
-  // Default: only see own
-  return Prisma.sql`AND inquiry.assigned_to_id = ${user.accountId}`;
+  const ids = [user.accountId];
+
+  if (user.permissions.has('report.read_group')) {
+    const memberIds = await getManagedGroupMemberIds(user.accountId);
+    ids.push(...memberIds);
+  }
+
+  return { mode: 'assigned', assignedToIds: [...new Set(ids)] };
 }
 
 module.exports = {

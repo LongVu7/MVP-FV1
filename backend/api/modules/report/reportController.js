@@ -1,22 +1,37 @@
-const { getDashboardReportService } = require('./reportService');
+const reportService = require('./reportService');
 
-const getDashboardReport = async (req, res, next) => {
+// const handleError = (res, error) => {
+//   const status = error.status || 500;
+//   res.status(status).json({
+//     error: error.message,
+//     ...(status === 500 && { details: error.message })
+//   });
+// };
+const handleError = (res, error) => {
+  const status = error.status || 500;
+
+  if (status === 500) {
+    return res.status(500).json({
+      error: 'Internal Server Error'
+    });
+  }
+
+  return res.status(status).json({
+    error: error.message
+  });
+};
+
+
+const getDashboardReport = async (req, res) => {
   try {
-    const params = req.query; // Validated by Zod
-    const user = req.user;
-
-    const data = await getDashboardReportService(user, params);
-
-    res.json({
-      message: 'Dashboard report fetched successfully',
-      requestedByRole: user.role,
-      requestedByAccountId: user.accountId,
-      data,
-      pagination: null
+    const data = await reportService.getDashboard(req.query, req.user);
+    res.status(200).json({
+      message: 'Dashboard retrieved successfully',
+      data
     });
   } catch (error) {
-    if (!error.status) error.status = 500;
-    next(error);
+    console.error('Error fetching dashboard:', error);
+    handleError(res, error);
   }
 };
 

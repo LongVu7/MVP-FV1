@@ -1,6 +1,6 @@
 const inquiryService = require('./inquiryService');
 
-// Helper: translate service errors to HTTP responses
+// Error handling
 const handleError = (res, error) => {
   const status = error.status || 500;
   res.status(status).json({ error: error.message, ...(status === 500 && { details: error.message }) });

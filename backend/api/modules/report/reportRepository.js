@@ -1,230 +1,380 @@
 const { Prisma } = require('@prisma/client');
 const prisma = require('../../../config/db');
-const { getIctDateBoundaries } = require('./reportDateUtils');
+const { getIctDateBoundaries, BUSINESS_TZ } = require('./reportDateUtils');
 const { buildReportScope } = require('../../../authorization/scope/reportScope');
+const { STATUS_BUCKETS } = require('./reportConstants');
 
-async function getDashboardReport(user, params) {
-  const { fromDate, toDate, sourceIds, sourceDetailIds, majorIds, regionIds } = params;
-  const { fromInclusiveIct, toExclusiveIct } = getIctDateBoundaries(fromDate, toDate);
-  const scopeSql = await buildReportScope(user);
-
+function buildFilters(filters) {
   let sourceFilter = Prisma.empty;
-  if (sourceIds && sourceIds.length > 0) {
-    sourceFilter = Prisma.sql`AND resolved_source_id IN (${Prisma.join(sourceIds)})`;
+  if (filters.sourceIds && filters.sourceIds.length > 0) {
+    sourceFilter = Prisma.sql`AND resolved_source_id IN (${Prisma.join(filters.sourceIds)})`;
   }
   let sourceDetailFilter = Prisma.empty;
-  if (sourceDetailIds && sourceDetailIds.length > 0) {
-    sourceDetailFilter = Prisma.sql`AND resolved_source_detail_id IN (${Prisma.join(sourceDetailIds)})`;
+  if (filters.sourceDetailIds && filters.sourceDetailIds.length > 0) {
+    sourceDetailFilter = Prisma.sql`AND resolved_source_detail_id IN (${Prisma.join(filters.sourceDetailIds)})`;
   }
   let majorFilter = Prisma.empty;
-  if (majorIds && majorIds.length > 0) {
-    majorFilter = Prisma.sql`AND COALESCE(sr.interested_major_id, sr.specific_major_id) IN (${Prisma.join(majorIds)})`;
+  if (filters.majorInterestTypes && filters.majorInterestTypes.length > 0) {
+    majorFilter = Prisma.sql`AND resolved_major_key IN (${Prisma.join(filters.majorInterestTypes)})`;
   }
   let regionFilter = Prisma.empty;
-  if (regionIds && regionIds.length > 0) {
-    regionFilter = Prisma.sql`AND se.new_province_id IN (${Prisma.join(regionIds)})`;
+  if (filters.regionGroups && filters.regionGroups.length > 0) {
+    regionFilter = Prisma.sql`AND resolved_region_group::text IN (${Prisma.join(filters.regionGroups)})`;
+  }
+  let oldProvinceFilter = Prisma.empty;
+  if (filters.oldProvinceIds && filters.oldProvinceIds.length > 0) {
+    oldProvinceFilter = Prisma.sql`AND resolved_old_province_id IN (${Prisma.join(filters.oldProvinceIds)})`;
   }
 
-  const baseCte = Prisma.sql`
-    WITH RECURSIVE
-    StatusHierarchy AS (
-      SELECT id, name, level, parent_id, id AS base_id
-      FROM status_data
-      UNION ALL
-      SELECT s.id, s.name, s.level, s.parent_id, h.base_id
-      FROM status_data s
-      INNER JOIN StatusHierarchy h ON h.parent_id = s.id
-    ),
-    SourceHierarchy AS (
-      SELECT id, name, level, parent_id, id AS base_id
-      FROM source_data
-      UNION ALL
-      SELECT s.id, s.name, s.level, s.parent_id, h.base_id
-      FROM source_data s
-      INNER JOIN SourceHierarchy h ON h.parent_id = s.id
-    ),
-    InquiryBase AS (
-      SELECT 
-        i.id,
-        i.created_at,
-        i.first_processed_at,
-        i.first_interacted_at,
-        i.nb_at,
-        i.status_data_id,
-        i.source_data_id,
-        COALESCE(sr.interested_major_id, sr.specific_major_id) AS resolved_major_id,
-        se.new_province_id AS resolved_region_id,
-        (SELECT id FROM SourceHierarchy WHERE base_id = i.source_data_id AND level = 'source' LIMIT 1) AS resolved_source_id,
-        (SELECT id FROM SourceHierarchy WHERE base_id = i.source_data_id AND level = 'source_detail' LIMIT 1) AS resolved_source_detail_id
-      FROM inquiry i
-      LEFT JOIN student st ON i.student_id = st.id
-      LEFT JOIN specialized_register sr ON st.specialized_register_id = sr.id
-      LEFT JOIN student_education se ON st.id = se.student_id
-      WHERE 1=1
-        ${scopeSql}
-    ),
-    FilteredInquiry AS (
-      SELECT *
-      FROM InquiryBase
-      WHERE 1=1
-        ${sourceFilter}
-        ${sourceDetailFilter}
-        ${majorFilter}
-        ${regionFilter}
-    )
+  return Prisma.sql`
+    ${sourceFilter}
+    ${sourceDetailFilter}
+    ${majorFilter}
+    ${regionFilter}
+    ${oldProvinceFilter}
   `;
-
-  const getGeneralQuery = () => Prisma.sql`
-    ${baseCte}
-    SELECT
-      COUNT(*) FILTER (
-        WHERE created_at >= ${fromInclusiveIct}::timestamptz 
-          AND created_at < ${toExclusiveIct}::timestamptz
-      )::int AS total,
-      
-      COUNT(*) FILTER (
-        WHERE first_processed_at >= ${fromInclusiveIct}::timestamptz 
-          AND first_processed_at < ${toExclusiveIct}::timestamptz
-      )::int AS processed,
-      
-      COUNT(*) FILTER (
-        WHERE first_processed_at >= ${fromInclusiveIct}::timestamptz 
-          AND first_processed_at < ${toExclusiveIct}::timestamptz
-          AND first_interacted_at IS NOT NULL
-          AND first_interacted_at < ${toExclusiveIct}::timestamptz
-      )::int AS interacted,
-      
-      COUNT(*) FILTER (
-        WHERE first_processed_at >= ${fromInclusiveIct}::timestamptz 
-          AND first_processed_at < ${toExclusiveIct}::timestamptz
-          AND nb_at IS NOT NULL
-          AND nb_at < ${toExclusiveIct}::timestamptz
-      )::int AS nb
-    FROM FilteredInquiry;
-  `;
-
-  const getMajorQuery = () => Prisma.sql`
-    ${baseCte}
-    SELECT
-      m.id AS "majorId",
-      m.name AS "majorName",
-      COUNT(fi.id) FILTER (
-        WHERE fi.created_at >= ${fromInclusiveIct}::timestamptz 
-          AND fi.created_at < ${toExclusiveIct}::timestamptz
-      )::int AS total,
-      
-      COUNT(fi.id) FILTER (
-        WHERE fi.first_processed_at >= ${fromInclusiveIct}::timestamptz 
-          AND fi.first_processed_at < ${toExclusiveIct}::timestamptz
-      )::int AS processed,
-      
-      COUNT(fi.id) FILTER (
-        WHERE fi.first_processed_at >= ${fromInclusiveIct}::timestamptz 
-          AND fi.first_processed_at < ${toExclusiveIct}::timestamptz
-          AND fi.first_interacted_at IS NOT NULL
-          AND fi.first_interacted_at < ${toExclusiveIct}::timestamptz
-      )::int AS interacted,
-      
-      COUNT(fi.id) FILTER (
-        WHERE fi.first_processed_at >= ${fromInclusiveIct}::timestamptz 
-          AND fi.first_processed_at < ${toExclusiveIct}::timestamptz
-          AND fi.nb_at IS NOT NULL
-          AND fi.nb_at < ${toExclusiveIct}::timestamptz
-      )::int AS nb
-    FROM major_data m
-    LEFT JOIN FilteredInquiry fi ON fi.resolved_major_id = m.id
-    WHERE m.level = 'interested_major' AND m.is_active = true
-    GROUP BY m.id, m.name, m.sort_order
-    ORDER BY m.sort_order ASC;
-  `;
-
-  const getRegionQuery = () => Prisma.sql`
-    ${baseCte}
-    SELECT
-      p.id AS "regionId",
-      p.name AS "regionName",
-      COUNT(fi.id) FILTER (
-        WHERE fi.created_at >= ${fromInclusiveIct}::timestamptz 
-          AND fi.created_at < ${toExclusiveIct}::timestamptz
-      )::int AS total,
-      
-      COUNT(fi.id) FILTER (
-        WHERE fi.first_processed_at >= ${fromInclusiveIct}::timestamptz 
-          AND fi.first_processed_at < ${toExclusiveIct}::timestamptz
-      )::int AS processed,
-      
-      COUNT(fi.id) FILTER (
-        WHERE fi.first_processed_at >= ${fromInclusiveIct}::timestamptz 
-          AND fi.first_processed_at < ${toExclusiveIct}::timestamptz
-          AND fi.first_interacted_at IS NOT NULL
-          AND fi.first_interacted_at < ${toExclusiveIct}::timestamptz
-      )::int AS interacted,
-      
-      COUNT(fi.id) FILTER (
-        WHERE fi.first_processed_at >= ${fromInclusiveIct}::timestamptz 
-          AND fi.first_processed_at < ${toExclusiveIct}::timestamptz
-          AND fi.nb_at IS NOT NULL
-          AND fi.nb_at < ${toExclusiveIct}::timestamptz
-      )::int AS nb
-    FROM new_province p
-    LEFT JOIN FilteredInquiry fi ON fi.resolved_region_id = p.id
-    GROUP BY p.id, p.name
-    ORDER BY p.name ASC;
-  `;
-
-  const getSourceQuery = () => Prisma.sql`
-    ${baseCte}
-    SELECT
-      s.id AS "sourceDetailId",
-      s.name AS "sourceDetailName",
-      p.id AS "sourceId",
-      p.name AS "sourceName",
-      COUNT(fi.id) FILTER (
-        WHERE fi.created_at >= ${fromInclusiveIct}::timestamptz 
-          AND fi.created_at < ${toExclusiveIct}::timestamptz
-      )::int AS total,
-      
-      COUNT(fi.id) FILTER (
-        WHERE fi.first_processed_at >= ${fromInclusiveIct}::timestamptz 
-          AND fi.first_processed_at < ${toExclusiveIct}::timestamptz
-      )::int AS processed,
-      
-      COUNT(fi.id) FILTER (
-        WHERE fi.first_processed_at >= ${fromInclusiveIct}::timestamptz 
-          AND fi.first_processed_at < ${toExclusiveIct}::timestamptz
-          AND fi.first_interacted_at IS NOT NULL
-          AND fi.first_interacted_at < ${toExclusiveIct}::timestamptz
-      )::int AS interacted,
-      
-      COUNT(fi.id) FILTER (
-        WHERE fi.first_processed_at >= ${fromInclusiveIct}::timestamptz 
-          AND fi.first_processed_at < ${toExclusiveIct}::timestamptz
-          AND fi.nb_at IS NOT NULL
-          AND fi.nb_at < ${toExclusiveIct}::timestamptz
-      )::int AS nb
-    FROM source_data s
-    LEFT JOIN source_data p ON s.parent_id = p.id
-    LEFT JOIN FilteredInquiry fi ON fi.resolved_source_detail_id = s.id
-    WHERE s.level = 'source_detail' AND s.is_active = true
-    GROUP BY s.id, s.name, s.sort_order, p.id, p.name, p.sort_order
-    ORDER BY p.sort_order ASC, s.sort_order ASC;
-  `;
-
-  const [generalRes, majorRes, regionRes, sourceRes] = await prisma.$transaction([
-    prisma.$queryRaw(getGeneralQuery()),
-    prisma.$queryRaw(getMajorQuery()),
-    prisma.$queryRaw(getRegionQuery()),
-    prisma.$queryRaw(getSourceQuery()),
-  ]);
-
-  return {
-    general: generalRes[0] || { total: 0, processed: 0, interacted: 0, nb: 0 },
-    byMajor: majorRes,
-    byRegion: regionRes,
-    bySource: sourceRes,
-  };
 }
 
+function buildScopeCondition(scope) {
+  if (scope.mode === 'all') return Prisma.sql`TRUE`;
+  if (!scope.assignedToIds || scope.assignedToIds.length === 0) return Prisma.sql`FALSE`;
+  return Prisma.sql`i.assigned_to_id IN (${Prisma.join(scope.assignedToIds)})`;
+}
+
+const baseCte = (scopeCondition, filterCondition) => Prisma.sql`
+WITH RECURSIVE
+resolved_status AS (
+  SELECT
+    leaf.id AS status_data_id,
+    COALESCE(interaction.name, general.name, leaf.name) AS interaction_status,
+    CASE
+      WHEN interaction.id IS NOT NULL THEN general.name
+      WHEN general.id IS NOT NULL THEN leaf.name
+      ELSE NULL
+    END AS general_status,
+    CASE
+      WHEN interaction.id IS NOT NULL THEN leaf.name
+      ELSE NULL
+    END AS detail_status
+  FROM status_data leaf
+  LEFT JOIN status_data general ON leaf.parent_id = general.id
+  LEFT JOIN status_data interaction ON general.parent_id = interaction.id
+),
+SourceHierarchy AS (
+  SELECT id, name, level, parent_id, id AS base_id
+  FROM source_data
+  UNION ALL
+  SELECT s.id, s.name, s.level, s.parent_id, h.base_id
+  FROM source_data s
+  INNER JOIN SourceHierarchy h ON h.parent_id = s.id
+),
+MajorHierarchy AS (
+  SELECT id, name, level, parent_id, id AS base_id
+  FROM major_data
+  UNION ALL
+  SELECT m.id, m.name, m.level, m.parent_id, h.base_id
+  FROM major_data m
+  INNER JOIN MajorHierarchy h ON h.parent_id = m.id
+),
+InquiryBase AS (
+  SELECT 
+    i.id,
+    i.created_at,
+    i.first_processed_at,
+    i.first_interacted_at,
+    i.nb_at,
+    i.assigned_to_id,
+    rs.interaction_status,
+    rs.general_status,
+    (SELECT id FROM SourceHierarchy WHERE base_id = i.source_data_id AND level = 'source' LIMIT 1) AS resolved_source_id,
+    (SELECT id FROM SourceHierarchy WHERE base_id = i.source_data_id AND level = 'source_detail' LIMIT 1) AS resolved_source_detail_id,
+    (SELECT m2.name FROM MajorHierarchy mh JOIN major_data m2 ON m2.id = mh.id WHERE mh.base_id = COALESCE(sr.interested_major_id, sr.specific_major_id) AND mh.level = 'interested_major' LIMIT 1) AS resolved_major_key,
+    (SELECT m2.label FROM MajorHierarchy mh JOIN major_data m2 ON m2.id = mh.id WHERE mh.base_id = COALESCE(sr.interested_major_id, sr.specific_major_id) AND mh.level = 'interested_major' LIMIT 1) AS resolved_major_label,
+    se.province_group AS resolved_region_group,
+    sc.old_province_id AS resolved_old_province_id
+  FROM inquiry i
+  LEFT JOIN student st ON i.student_id = st.id
+  LEFT JOIN specialized_register sr ON st.specialized_register_id = sr.id
+  LEFT JOIN student_education se ON st.id = se.student_id
+  LEFT JOIN school sc ON se.school_id = sc.id
+  LEFT JOIN resolved_status rs ON i.status_data_id = rs.status_data_id
+  WHERE ${scopeCondition}
+),
+FilteredInquiry AS (
+  SELECT *
+  FROM InquiryBase
+  WHERE 1=1
+    ${filterCondition}
+)
+`;
+
+const getSummaryCounts = async (scope, { fromInstant, toExclusiveInstant }, filters) => {
+  const scopeCond = buildScopeCondition(scope);
+  const filterCond = buildFilters(filters);
+  const cte = baseCte(scopeCond, filterCond);
+
+  const res = await prisma.$queryRaw`
+    ${cte}
+    SELECT
+      COUNT(DISTINCT fi.id) FILTER (
+        WHERE fi.created_at >= ${fromInstant}::timestamptz 
+          AND fi.created_at < ${toExclusiveInstant}::timestamptz
+      )::int AS total,
+      
+      COUNT(DISTINCT fi.id) FILTER (
+        WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
+          AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
+      )::int AS processed,
+      
+      COUNT(DISTINCT fi.id) FILTER (
+        WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
+          AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
+          AND fi.first_interacted_at IS NOT NULL
+          AND fi.first_interacted_at < ${toExclusiveInstant}::timestamptz
+      )::int AS interacted,
+      
+      COUNT(DISTINCT fi.id) FILTER (
+        WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
+          AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
+          AND fi.nb_at IS NOT NULL
+          AND fi.nb_at < ${toExclusiveInstant}::timestamptz
+      )::int AS nb
+    FROM FilteredInquiry fi;
+  `;
+  return res[0] || { total: 0, processed: 0, interacted: 0, nb: 0 };
+};
+
+const getTimelineCounts = async (scope, { fromInstant, toExclusiveInstant }, filters) => {
+  const scopeCond = buildScopeCondition(scope);
+  const filterCond = buildFilters(filters);
+  const cte = baseCte(scopeCond, filterCond);
+
+  const [processedTimeline, interactedTimeline, nbTimeline] = await Promise.all([
+    prisma.$queryRaw`
+      ${cte}
+      SELECT
+        to_char(first_processed_at AT TIME ZONE ${BUSINESS_TZ}, 'YYYY-MM') AS month_val,
+        COUNT(DISTINCT id)::int AS count_val
+      FROM FilteredInquiry
+      WHERE first_processed_at >= ${fromInstant}::timestamptz 
+        AND first_processed_at < ${toExclusiveInstant}::timestamptz
+      GROUP BY month_val
+    `,
+    prisma.$queryRaw`
+      ${cte}
+      SELECT
+        to_char(first_interacted_at AT TIME ZONE ${BUSINESS_TZ}, 'YYYY-MM') AS month_val,
+        COUNT(DISTINCT id)::int AS count_val
+      FROM FilteredInquiry
+      WHERE first_interacted_at >= ${fromInstant}::timestamptz 
+        AND first_interacted_at < ${toExclusiveInstant}::timestamptz
+      GROUP BY month_val
+    `,
+    prisma.$queryRaw`
+      ${cte}
+      SELECT
+        to_char(nb_at AT TIME ZONE ${BUSINESS_TZ}, 'YYYY-MM') AS month_val,
+        COUNT(DISTINCT id)::int AS count_val
+      FROM FilteredInquiry
+      WHERE nb_at >= ${fromInstant}::timestamptz 
+        AND nb_at < ${toExclusiveInstant}::timestamptz
+      GROUP BY month_val
+    `
+  ]);
+
+  return { processedTimeline, interactedTimeline, nbTimeline };
+};
+
+const getStaffCounts = async (scope, { fromInstant, toExclusiveInstant }, filters) => {
+  const scopeCond = buildScopeCondition(scope);
+  const filterCond = buildFilters(filters);
+  const cte = baseCte(scopeCond, filterCond);
+
+  const statusFilters = Object.entries(STATUS_BUCKETS).map(([key, info]) => {
+    const levelCol = info.level === 'general' ? Prisma.raw('fi.general_status') : Prisma.raw('fi.interaction_status');
+    return Prisma.sql`,
+      COUNT(DISTINCT fi.id) FILTER (
+        WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
+          AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
+          AND ${levelCol} = ${key}
+      )::int AS ${Prisma.raw(`"${info.field}"`)}
+    `;
+  });
+
+  return await prisma.$queryRaw`
+    ${cte}
+    SELECT
+      a.id AS "advisorId",
+      a.full_name AS "advisorName",
+      
+      COUNT(DISTINCT fi.id) FILTER (
+        WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
+          AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
+      )::int AS processed,
+      
+      COUNT(DISTINCT fi.id) FILTER (
+        WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
+          AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
+          AND fi.first_interacted_at IS NOT NULL
+          AND fi.first_interacted_at < ${toExclusiveInstant}::timestamptz
+      )::int AS interacted,
+      
+      COUNT(DISTINCT fi.id) FILTER (
+        WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
+          AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
+          AND fi.nb_at IS NOT NULL
+          AND fi.nb_at < ${toExclusiveInstant}::timestamptz
+      )::int AS nb
+      ${Prisma.join(statusFilters, '')}
+
+    FROM account a
+    INNER JOIN FilteredInquiry fi ON fi.assigned_to_id = a.id
+    GROUP BY a.id, a.full_name
+    ORDER BY a.full_name ASC;
+  `;
+};
+
+const getMajorCounts = async (scope, { fromInstant, toExclusiveInstant }, filters) => {
+  const scopeCond = buildScopeCondition(scope);
+  const filterCond = buildFilters(filters);
+  const cte = baseCte(scopeCond, filterCond);
+
+  return await prisma.$queryRaw`
+    ${cte}
+    SELECT
+      fi.resolved_major_key AS "majorKey",
+      fi.resolved_major_label AS "majorLabel",
+      COUNT(DISTINCT fi.id) FILTER (
+        WHERE fi.created_at >= ${fromInstant}::timestamptz 
+          AND fi.created_at < ${toExclusiveInstant}::timestamptz
+      )::int AS total,
+      
+      COUNT(DISTINCT fi.id) FILTER (
+        WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
+          AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
+      )::int AS processed,
+      
+      COUNT(DISTINCT fi.id) FILTER (
+        WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
+          AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
+          AND fi.first_interacted_at IS NOT NULL
+          AND fi.first_interacted_at < ${toExclusiveInstant}::timestamptz
+      )::int AS interacted,
+      
+      COUNT(DISTINCT fi.id) FILTER (
+        WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
+          AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
+          AND fi.nb_at IS NOT NULL
+          AND fi.nb_at < ${toExclusiveInstant}::timestamptz
+      )::int AS nb
+    FROM FilteredInquiry fi
+    WHERE fi.resolved_major_key IS NOT NULL
+    GROUP BY fi.resolved_major_key, fi.resolved_major_label;
+  `;
+};
+
+const getSourceCounts = async (scope, { fromInstant, toExclusiveInstant }, filters) => {
+  const scopeCond = buildScopeCondition(scope);
+  const filterCond = buildFilters(filters);
+  const cte = baseCte(scopeCond, filterCond);
+
+  return await prisma.$queryRaw`
+    ${cte},
+    AllPairs AS (
+      SELECT p.id as source_id, s.id as source_detail_id
+      FROM source_data p
+      JOIN source_data s ON s.parent_id = p.id AND s.level = 'source_detail'
+      WHERE p.level = 'source'
+      UNION ALL
+      SELECT p.id as source_id, NULL as source_detail_id
+      FROM source_data p
+      WHERE p.level = 'source'
+    )
+    SELECT
+      s.id AS "sourceDetailId",
+      s.name AS "sourceDetailKey",
+      s.label AS "sourceDetailLabel",
+      p.id AS "sourceId",
+      p.name AS "sourceKey",
+      p.label AS "sourceLabel",
+      
+      COUNT(DISTINCT fi.id) FILTER (
+        WHERE fi.created_at >= ${fromInstant}::timestamptz 
+          AND fi.created_at < ${toExclusiveInstant}::timestamptz
+      )::int AS total,
+      
+      COUNT(DISTINCT fi.id) FILTER (
+        WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
+          AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
+      )::int AS processed,
+      
+      COUNT(DISTINCT fi.id) FILTER (
+        WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
+          AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
+          AND fi.first_interacted_at IS NOT NULL
+          AND fi.first_interacted_at < ${toExclusiveInstant}::timestamptz
+      )::int AS interacted,
+      
+      COUNT(DISTINCT fi.id) FILTER (
+        WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
+          AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
+          AND fi.nb_at IS NOT NULL
+          AND fi.nb_at < ${toExclusiveInstant}::timestamptz
+      )::int AS nb
+
+    FROM AllPairs ap
+    JOIN source_data p ON p.id = ap.source_id
+    LEFT JOIN source_data s ON s.id = ap.source_detail_id
+    LEFT JOIN FilteredInquiry fi ON fi.resolved_source_id = p.id AND fi.resolved_source_detail_id IS NOT DISTINCT FROM s.id
+    GROUP BY p.id, p.name, p.label, p.sort_order, s.id, s.name, s.label, s.sort_order
+    ORDER BY p.sort_order ASC, s.sort_order ASC NULLS FIRST;
+  `;
+};
+
+const getRegionCounts = async (scope, { fromInstant, toExclusiveInstant }, filters) => {
+  const scopeCond = buildScopeCondition(scope);
+  const filterCond = buildFilters(filters);
+  const cte = baseCte(scopeCond, filterCond);
+
+  return await prisma.$queryRaw`
+    ${cte}
+    SELECT
+      fi.resolved_region_group::text AS "regionGroup",
+      
+      COUNT(DISTINCT fi.id) FILTER (
+        WHERE fi.created_at >= ${fromInstant}::timestamptz 
+          AND fi.created_at < ${toExclusiveInstant}::timestamptz
+      )::int AS total,
+      
+      COUNT(DISTINCT fi.id) FILTER (
+        WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
+          AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
+      )::int AS processed,
+      
+      COUNT(DISTINCT fi.id) FILTER (
+        WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
+          AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
+          AND fi.first_interacted_at IS NOT NULL
+          AND fi.first_interacted_at < ${toExclusiveInstant}::timestamptz
+      )::int AS interacted,
+      
+      COUNT(DISTINCT fi.id) FILTER (
+        WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
+          AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
+          AND fi.nb_at IS NOT NULL
+          AND fi.nb_at < ${toExclusiveInstant}::timestamptz
+      )::int AS nb
+    FROM FilteredInquiry fi
+    WHERE fi.resolved_region_group IS NOT NULL
+    GROUP BY fi.resolved_region_group;
+  `;
+};
+
 module.exports = {
-  getDashboardReport
+  getSummaryCounts,
+  getTimelineCounts,
+  getStaffCounts,
+  getMajorCounts,
+  getSourceCounts,
+  getRegionCounts
 };
