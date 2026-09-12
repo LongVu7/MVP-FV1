@@ -6,7 +6,6 @@ const { STATUS_BUCKETS } = require('./reportConstants');
 function buildFilters(filters) {
   let sourceFilter = Prisma.empty;
   if (filters.sourceIds && filters.sourceIds.length > 0) {
-    console.log('buildFilters - sourceIds:', filters.sourceIds, 'isArray:', Array.isArray(filters.sourceIds));
     sourceFilter = Prisma.sql`AND resolved_source_id IN (${Prisma.join(filters.sourceIds)})`;
   }
   let sourceDetailFilter = Prisma.empty;

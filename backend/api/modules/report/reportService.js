@@ -60,6 +60,7 @@ async function getDashboard(query, user) {
   const statusByAdvisor = staffCountsRaw.map(s => ({
     advisorId: s.advisorId,
     advisorName: s.advisorName,
+    processed: s.processed,
     paymentCompletedNb: s.paymentCompletedNb,
     applicationSubmitted: s.applicationSubmitted,
     considering: s.considering,
