@@ -1,4 +1,5 @@
 <template>
+  <div v-if="$can('assign', 'inquiry')">
   <div class="section-card">
     <div class="card-header">
       <h2><i class="pi pi-briefcase"></i> Account Assignment</h2>
@@ -37,6 +38,7 @@
         <p>No account assigned. Inquiry will be unassigned.</p>
       </div>
     </div>
+  </div>
   </div>
 </template>
 

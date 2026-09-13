@@ -6,28 +6,35 @@
 
     <!-- Filters -->
     <DashboardFilters @filter-change="handleFilterChange" :loading="loading" />
-
+    
+    <!-- Loading template -->
     <div v-if="loading" class="text-center mt-4">
       <ProgressSpinner />
     </div>
-    
+
+    <!-- Error message -->
     <div v-else-if="error" class="text-red-500 mt-4 text-center">
       {{ error }}
     </div>
-    
+
+    <!-- Data template -->
     <div v-else-if="data" class="dashboard-content mt-4">
       <!-- Summary Cards -->
-      <DashboardSummary :summary="data.summary" />
+      <div class="overview-grid">
+        <DashboardSummary :summary="data.summary" />
+        <TimelineChart :timeline="data.timeline" />
+      </div>
       
       <!-- Charts Section -->
       <div class="charts-grid mt-4">
-        <TimelineChart :timeline="data.timeline" />
         <MajorChart :byMajor="data.byMajor" />
         <RegionChart :byRegion="data.byRegion" />
         <SourceChart :bySource="data.bySource" />
         <AdvisorStatusChart :statusByAdvisor="data.statusByAdvisor" />
         <AdvisorRatesChart :ratesByAdvisor="data.ratesByAdvisor" />
       </div>
+
+
     </div>
   </div>
 </template>
@@ -46,13 +53,13 @@ import AdvisorRatesChart from '@/components/dashboard/AdvisorRatesChart.vue'
 
 import ProgressSpinner from 'primevue/progressspinner'
 
+// Initial fetch with default filters handled by DashboardFilters
 const { data, loading, error, fetchDashboard } = useDashboard()
 
 const handleFilterChange = (filters) => {
   fetchDashboard(filters)
 }
 
-// Initial fetch with default filters is handled by DashboardFilters emitting on mount
 </script>
 
 <style scoped>
@@ -61,14 +68,35 @@ const handleFilterChange = (filters) => {
   flex-direction: column;
   gap: 1rem;
 }
+
+/* Summary + Timeline */
+.overview-grid {
+  display: grid;
+  grid-template-columns:
+    minmax(350px, 0.95fr)
+    minmax(0, 2.15fr);
+
+  gap: 1rem;
+  align-items: stretch;
+}
+
+/* Other charts */
 .charts-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 1.5rem;
 }
+
 @media (min-width: 1024px) {
   .charts-grid {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Tablet/mobile */
+@media (max-width: 1023px) {
+  .overview-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

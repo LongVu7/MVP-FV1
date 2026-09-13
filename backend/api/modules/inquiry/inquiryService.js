@@ -105,7 +105,7 @@ const getInquiryById = async (id) => {
  *   3. Create with inquiry only
  */
 const createInquiry = async ({ studentId, student, assignedToId, ...inquiryFields }, user) => {
-  // Auto-assign to creator if no explicit assignment
+  // Auto assign staff who created inquiry 
   const creatorAssignedToId = assignedToId || user.accountId;
   const inquiryData = buildInquiryData({ assignedToId: creatorAssignedToId, ...inquiryFields });
 

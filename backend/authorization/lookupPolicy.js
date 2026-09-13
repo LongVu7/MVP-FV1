@@ -6,7 +6,8 @@ const lookupDependencies = {
   'old_province.read':   ['old_province.read', 'student.create', 'student.update', 'report.read'],
   'new_province.read':   ['new_province.read', 'student.create', 'student.update'],
   'country.read':        ['country.read', 'student.create', 'student.update'],
-  'inquiry.assign' : ['inquiry.assign', 'account.read']
+  'inquiry.assign' : ['inquiry.assign']
+
 }
 
 const authorizeLookup = (lookupKey) => (req, res, next) => {
