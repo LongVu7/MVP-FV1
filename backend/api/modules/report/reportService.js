@@ -95,7 +95,11 @@ async function getDashboard(query, user) {
     nbRate: calcRate(m.nb, m.interacted)
   }));
 
-  const byRegion = regionCountsRaw.map(r => ({
+  const regionChartRows = regionCountsRaw.filter(
+    row => (row.total ?? 0) > 0 || (row.processed ?? 0) > 0
+  );
+
+  const byRegion = regionChartRows.map(r => ({
     regionGroup: r.regionGroup,
     regionLabel: REGION_LABELS[r.regionGroup] || r.regionGroup,
     total: r.total,
@@ -105,6 +109,57 @@ async function getDashboard(query, user) {
     nb: r.nb,
     nbRate: calcRate(r.nb, r.interacted)
   }));
+
+  // ── New regionPerformance ──
+  function buildRegionPerformanceMetrics(row) {
+    const interacted =
+      (row.paymentCompletedNb || 0) +
+      (row.applicationSubmitted || 0) +
+      (row.considering || 0) +
+      (row.interested || 0) +
+      (row.scheduledCallback || 0) +
+      (row.notInterested || 0);
+
+    const notInteracted =
+      (row.noAnswer || 0) +
+      (row.unreachable || 0);
+
+    const totalProcessed = interacted + notInteracted + (row.wrongNumber || 0);
+
+    return {
+      regionGroup: row.regionGroup,
+      regionLabel: REGION_LABELS[row.regionGroup] || row.regionGroup,
+      totalProcessed,
+      interacted,
+      interactionRate: calcRate(interacted, totalProcessed),
+      nb: row.paymentCompletedNb || 0,
+      nbRate: calcRate(row.paymentCompletedNb, interacted),
+      notInteracted,
+      notInteractedRate: calcRate(notInteracted, totalProcessed),
+      wrongNumber: row.wrongNumber || 0,
+      wrongNumberRate: calcRate(row.wrongNumber, totalProcessed),
+      notInterested: row.notInterested || 0,
+      notInterestedRate: calcRate(row.notInterested, totalProcessed),
+      unprocessed: row.unprocessed || 0
+    };
+  }
+
+  const REGION_ORDER = [
+    'HO_CHI_MINH',
+    'CORE_PROVINCE',
+    'OTHER_PROVINCE',
+    'FOREIGN'
+  ];
+
+  const regionPerformance = regionCountsRaw
+    .map(buildRegionPerformanceMetrics)
+    .sort((a, b) => {
+      const aIndex = REGION_ORDER.indexOf(a.regionGroup);
+      const bIndex = REGION_ORDER.indexOf(b.regionGroup);
+      const aSort = aIndex === -1 ? 999 : aIndex;
+      const bSort = bIndex === -1 ? 999 : bIndex;
+      return aSort - bSort;
+    });
 
   const sourceMap = new Map();
 
@@ -242,6 +297,7 @@ async function getDashboard(query, user) {
     bySource,
     sourcePerformance,
     byRegion,
+    regionPerformance,
     timeline,
     meta: {
       from,

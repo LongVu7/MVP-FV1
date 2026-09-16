@@ -337,6 +337,17 @@ const getRegionCounts = async (scope, { fromInstant, toExclusiveInstant }, filte
   const filterCond = buildFilters(filters);
   const cte = baseCte(scopeCond, filterCond);
 
+  const statusFilters = Object.entries(STATUS_BUCKETS).map(([key, info]) => {
+    const levelCol = info.level === 'general' ? Prisma.raw('fi.general_status') : Prisma.raw('fi.interaction_status');
+    return Prisma.sql`,
+      COUNT(DISTINCT fi.id) FILTER (
+        WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
+          AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
+          AND ${levelCol} = ${key}
+      )::int AS ${Prisma.raw(`"${info.field}"`)}
+    `;
+  });
+
   return await prisma.$queryRaw`
     ${cte}
     SELECT
@@ -364,7 +375,14 @@ const getRegionCounts = async (scope, { fromInstant, toExclusiveInstant }, filte
           AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
           AND fi.nb_at IS NOT NULL
           AND fi.nb_at < ${toExclusiveInstant}::timestamptz
-      )::int AS nb
+      )::int AS nb,
+
+      COUNT(DISTINCT fi.id) FILTER (
+        WHERE fi.interaction_status = 'pending'
+      )::int AS "unprocessed"
+
+      ${Prisma.join(statusFilters, '')}
+
     FROM FilteredInquiry fi
     WHERE fi.resolved_region_group IS NOT NULL
     GROUP BY fi.resolved_region_group
@@ -375,6 +393,9 @@ const getRegionCounts = async (scope, { fromInstant, toExclusiveInstant }, filte
     OR COUNT(DISTINCT fi.id) FILTER (
       WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
         AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
+    ) > 0
+    OR COUNT(DISTINCT fi.id) FILTER (
+      WHERE fi.interaction_status = 'pending'
     ) > 0;
   `;
 };

@@ -32,6 +32,7 @@
         <SourceChart :bySource="data.bySource" />
         <SourcePerformanceTable :sourcePerformance="data.sourcePerformance" />
         <AdvisorStatusChart :statusByAdvisor="data.statusByAdvisor" />
+        <RegionPerformanceTable :regionPerformance="data.regionPerformance" />
         <AdvisorRatesChart :ratesByAdvisor="data.ratesByAdvisor" />
       </div>
 
@@ -48,6 +49,7 @@ import DashboardSummary from '@/components/dashboard/DashboardSummary.vue'
 import TimelineChart from '@/components/dashboard/TimelineChart.vue'
 import MajorChart from '@/components/dashboard/MajorChart.vue'
 import RegionChart from '@/components/dashboard/RegionChart.vue'
+import RegionPerformanceTable from '@/components/dashboard/RegionPerformanceTable.vue'
 import SourceChart from '@/components/dashboard/SourceChart.vue'
 import SourcePerformanceTable from '@/components/dashboard/SourcePerformanceTable.vue'
 import AdvisorStatusChart from '@/components/dashboard/AdvisorStatusChart.vue'

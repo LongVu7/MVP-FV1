@@ -15,9 +15,9 @@ const STATUS_BUCKETS = {
 const MAJOR_ROOT_KEYS = ['right_major_interest', 'related_major_interest', 'different_major_interest'];
 
 const REGION_LABELS = {
-  HO_CHI_MINH: 'TP. Hồ Chí Minh',
-  CORE_PROVINCE: 'Tỉnh trọng điểm',
-  OTHER_PROVINCE: 'Tỉnh khác',
+  HO_CHI_MINH: 'TP HCM',
+  CORE_PROVINCE: 'Tỉnh ruột',
+  OTHER_PROVINCE: 'Tỉnh ngoài',
   FOREIGN: 'Nước ngoài',
 };
 
