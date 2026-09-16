@@ -1,7 +1,7 @@
 const reportRepository = require('./reportRepository');
 const { getIctDateBoundaries, BUSINESS_TZ } = require('./reportDateUtils');
 const { buildReportScope } = require('../../../authorization/scope/reportScope');
-const { REGION_LABELS } = require('./reportConstants');
+const { REGION_LABELS, STATUS_BUCKETS } = require('./reportConstants');
 
 function calcRate(num, den) {
   if (!den || den === 0) return 0;
@@ -11,10 +11,10 @@ function calcRate(num, den) {
 function getMonthsArray(from, to) {
   const months = [];
   let current = new Date(from);
-  current.setUTCDate(1); 
+  current.setUTCDate(1);
   const end = new Date(to);
   const endCompare = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), 1));
-  
+
   while (current <= endCompare) {
     const y = current.getUTCFullYear();
     const m = String(current.getUTCMonth() + 1).padStart(2, '0');
@@ -27,7 +27,7 @@ function getMonthsArray(from, to) {
 async function getDashboard(query, user) {
   const { from, to, sourceIds, sourceDetailIds, majorInterestTypes, regionGroups, oldProvinceIds } = query;
   const { fromInstant, toExclusiveInstant } = getIctDateBoundaries(from, to);
-  
+
   const scope = await buildReportScope(user);
   const dateRange = { fromInstant, toExclusiveInstant };
   const filters = { sourceIds, sourceDetailIds, majorInterestTypes, regionGroups, oldProvinceIds };
@@ -107,43 +107,116 @@ async function getDashboard(query, user) {
   }));
 
   const sourceMap = new Map();
-  sourceCountsRaw.forEach(row => {
+
+  const STATUS_FIELDS = Object.values(STATUS_BUCKETS).map(b => b.field);
+
+  // ── Split: prevent regression in existing bySource ──
+  // Only rows belonging to the processed cohort feed the existing status table
+  const sourceStatusRows = sourceCountsRaw.filter(
+    row => (row.processedCohortCount ?? 0) > 0
+  );
+
+  // ── Existing bySource (unchanged behavior) ──
+  sourceStatusRows.forEach(row => {
     if (!sourceMap.has(row.sourceId)) {
-      sourceMap.set(row.sourceId, {
+      const init = {
+        sourceId: row.sourceId,
         sourceKey: row.sourceKey,
-        sourceLabel: row.sourceLabel || row.sourceKey, 
-        total: 0, processed: 0, interacted: 0, nb: 0,
+        sourceLabel: row.sourceLabel || row.sourceKey,
+        totalProcessed: 0,
         details: []
-      });
+      };
+      STATUS_FIELDS.forEach(f => { init[f] = 0; });
+      sourceMap.set(row.sourceId, init);
     }
     const src = sourceMap.get(row.sourceId);
-    src.total += row.total;
-    src.processed += row.processed;
-    src.interacted += row.interacted;
-    src.nb += row.nb;
 
-    if (row.sourceDetailId) {
-      src.details.push({
-        sourceDetailKey: row.sourceDetailKey,
-        sourceDetailLabel: row.sourceDetailLabel || row.sourceDetailKey,
-        total: row.total,
-        processed: row.processed,
-        interacted: row.interacted,
-        interactionRate: calcRate(row.interacted, row.processed),
-        nb: row.nb,
-        nbRate: calcRate(row.nb, row.interacted)
-      });
+    const rowProcessed = STATUS_FIELDS.reduce((sum, f) => sum + (row[f] || 0), 0);
+
+    src.totalProcessed += rowProcessed;
+    STATUS_FIELDS.forEach(f => { src[f] += (row[f] || 0); });
+
+    const detail = {
+      sourceDetailId: row.sourceDetailId,
+      sourceDetailKey: row.sourceDetailKey || 'unspecified',
+      sourceDetailLabel: row.sourceDetailLabel || (row.sourceDetailId ? row.sourceDetailKey : 'Khác (Không xác định)'),
+      totalProcessed: rowProcessed
+    };
+    STATUS_FIELDS.forEach(f => { detail[f] = row[f] || 0; });
+
+    src.details.push(detail);
+  });
+
+  const bySource = Array.from(sourceMap.values());
+
+  // ── New sourcePerformance (full dataset: processed OR pending) ──
+  function buildSourcePerformanceMetrics(row) {
+    const interacted =
+      (row.paymentCompletedNb || 0) +
+      (row.applicationSubmitted || 0) +
+      (row.considering || 0) +
+      (row.interested || 0) +
+      (row.scheduledCallback || 0) +
+      (row.notInterested || 0);
+
+    const notInteracted =
+      (row.noAnswer || 0) +
+      (row.unreachable || 0);
+
+    return {
+      totalProcessed: row.totalProcessed || 0,
+      interacted,
+      interactionRate: calcRate(interacted, row.totalProcessed),
+      nb: row.paymentCompletedNb || 0,
+      nbRate: calcRate(row.paymentCompletedNb, interacted),
+      notInteracted,
+      notInteractedRate: calcRate(notInteracted, row.totalProcessed),
+      wrongNumberRate: calcRate(row.wrongNumber, row.totalProcessed),
+      notInterestedRate: calcRate(row.notInterested, row.totalProcessed),
+      unprocessed: row.unprocessed || 0
+    };
+  }
+
+  const perfMap = new Map();
+  sourceCountsRaw.forEach(row => {
+    if (!perfMap.has(row.sourceId)) {
+      const init = {
+        sourceId: row.sourceId,
+        sourceKey: row.sourceKey,
+        sourceLabel: row.sourceLabel || row.sourceKey,
+        totalProcessed: 0,
+        unprocessed: 0,
+        details: []
+      };
+      STATUS_FIELDS.forEach(f => { init[f] = 0; });
+      perfMap.set(row.sourceId, init);
     }
+    const src = perfMap.get(row.sourceId);
+
+    const rowProcessed = STATUS_FIELDS.reduce((sum, f) => sum + (row[f] || 0), 0);
+
+    src.totalProcessed += rowProcessed;
+    STATUS_FIELDS.forEach(f => { src[f] += (row[f] || 0); });
+    src.unprocessed += (row.unprocessed || 0);
+
+    const detail = {
+      sourceDetailId: row.sourceDetailId,
+      sourceDetailKey: row.sourceDetailKey || 'unspecified',
+      sourceDetailLabel: row.sourceDetailLabel || (row.sourceDetailId ? row.sourceDetailKey : 'Khác (Không xác định)'),
+      totalProcessed: rowProcessed,
+      unprocessed: row.unprocessed || 0
+    };
+    STATUS_FIELDS.forEach(f => { detail[f] = row[f] || 0; });
+
+    src.details.push(Object.assign(detail, buildSourcePerformanceMetrics(detail)));
   });
 
-  const bySource = Array.from(sourceMap.values()).map(s => {
-    s.interactionRate = calcRate(s.interacted, s.processed);
-    s.nbRate = calcRate(s.nb, s.interacted);
-    return s;
-  });
+  const sourcePerformance = Array.from(perfMap.values()).map(s =>
+    Object.assign(s, buildSourcePerformanceMetrics(s))
+  );
 
   const allMonths = getMonthsArray(from, to);
-  
+
   const mapTimeline = (rawArr) => {
     const m = new Map();
     rawArr.forEach(item => m.set(item.month_val, item.count_val));
@@ -167,6 +240,7 @@ async function getDashboard(query, user) {
     ratesByAdvisor,
     byMajor,
     bySource,
+    sourcePerformance,
     byRegion,
     timeline,
     meta: {

@@ -285,6 +285,17 @@ const getSourceCounts = async (scope, { fromInstant, toExclusiveInstant }, filte
   const filterCond = buildFilters(filters);
   const cte = baseCte(scopeCond, filterCond);
 
+  const statusFilters = Object.entries(STATUS_BUCKETS).map(([key, info]) => {
+    const levelCol = info.level === 'general' ? Prisma.raw('fi.general_status') : Prisma.raw('fi.interaction_status');
+    return Prisma.sql`,
+      COUNT(DISTINCT fi.id) FILTER (
+        WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
+          AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
+          AND ${levelCol} = ${key}
+      )::int AS ${Prisma.raw(`"${info.field}"`)}
+    `;
+  });
+
   return await prisma.$queryRaw`
     ${cte}
     SELECT
@@ -294,42 +305,28 @@ const getSourceCounts = async (scope, { fromInstant, toExclusiveInstant }, filte
       p.id AS "sourceId",
       p.name AS "sourceKey",
       p.label AS "sourceLabel",
-      
-      COUNT(DISTINCT fi.id) FILTER (
-        WHERE fi.created_at >= ${fromInstant}::timestamptz 
-          AND fi.created_at < ${toExclusiveInstant}::timestamptz
-      )::int AS total,
-      
+
       COUNT(DISTINCT fi.id) FILTER (
         WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
           AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
-      )::int AS processed,
-      
+      )::int AS "processedCohortCount",
+
       COUNT(DISTINCT fi.id) FILTER (
-        WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
-          AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
-          AND fi.first_interacted_at IS NOT NULL
-          AND fi.first_interacted_at < ${toExclusiveInstant}::timestamptz
-      )::int AS interacted,
-      
-      COUNT(DISTINCT fi.id) FILTER (
-        WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
-          AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
-          AND fi.nb_at IS NOT NULL
-          AND fi.nb_at < ${toExclusiveInstant}::timestamptz
-      )::int AS nb
+        WHERE fi.interaction_status = 'pending'
+      )::int AS "unprocessed"
+
+      ${Prisma.join(statusFilters, '')}
 
     FROM FilteredInquiry fi
     JOIN source_data p ON p.id = fi.resolved_source_id
     LEFT JOIN source_data s ON s.id = fi.resolved_source_detail_id
     GROUP BY p.id, p.name, p.label, p.sort_order, s.id, s.name, s.label, s.sort_order
     HAVING COUNT(DISTINCT fi.id) FILTER (
-      WHERE fi.created_at >= ${fromInstant}::timestamptz 
-        AND fi.created_at < ${toExclusiveInstant}::timestamptz
-    ) > 0
-    OR COUNT(DISTINCT fi.id) FILTER (
       WHERE fi.first_processed_at >= ${fromInstant}::timestamptz 
         AND fi.first_processed_at < ${toExclusiveInstant}::timestamptz
+    ) > 0
+    OR COUNT(DISTINCT fi.id) FILTER (
+      WHERE fi.interaction_status = 'pending'
     ) > 0
     ORDER BY p.sort_order ASC, s.sort_order ASC NULLS FIRST;
   `;

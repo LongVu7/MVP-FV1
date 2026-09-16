@@ -6,7 +6,7 @@
 
     <!-- Filters -->
     <DashboardFilters @filter-change="handleFilterChange" :loading="loading" />
-    
+
     <!-- Loading template -->
     <div v-if="loading" class="text-center mt-4">
       <ProgressSpinner />
@@ -24,12 +24,13 @@
         <DashboardSummary :summary="data.summary" />
         <TimelineChart :timeline="data.timeline" />
       </div>
-      
+
       <!-- Charts Section -->
       <div class="charts-grid mt-4">
         <MajorChart :byMajor="data.byMajor" />
         <RegionChart :byRegion="data.byRegion" />
         <SourceChart :bySource="data.bySource" />
+        <SourcePerformanceTable :sourcePerformance="data.sourcePerformance" />
         <AdvisorStatusChart :statusByAdvisor="data.statusByAdvisor" />
         <AdvisorRatesChart :ratesByAdvisor="data.ratesByAdvisor" />
       </div>
@@ -48,6 +49,7 @@ import TimelineChart from '@/components/dashboard/TimelineChart.vue'
 import MajorChart from '@/components/dashboard/MajorChart.vue'
 import RegionChart from '@/components/dashboard/RegionChart.vue'
 import SourceChart from '@/components/dashboard/SourceChart.vue'
+import SourcePerformanceTable from '@/components/dashboard/SourcePerformanceTable.vue'
 import AdvisorStatusChart from '@/components/dashboard/AdvisorStatusChart.vue'
 import AdvisorRatesChart from '@/components/dashboard/AdvisorRatesChart.vue'
 
@@ -73,8 +75,7 @@ const handleFilterChange = (filters) => {
 .overview-grid {
   display: grid;
   grid-template-columns:
-    minmax(350px, 0.95fr)
-    minmax(0, 2.15fr);
+    minmax(350px, 0.95fr) minmax(0, 2.15fr);
 
   gap: 1rem;
   align-items: stretch;
