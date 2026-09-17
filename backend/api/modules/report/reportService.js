@@ -84,7 +84,11 @@ async function getDashboard(query, user) {
     notInterestedRate: calcRate(s.notInterested, s.processed)
   }));
 
-  const byMajor = majorCountsRaw.map(m => ({
+  const majorChartRows = majorCountsRaw.filter(
+    row => (row.total ?? 0) > 0 || (row.processed ?? 0) > 0
+  );
+
+  const byMajor = majorChartRows.map(m => ({
     majorKey: m.majorKey,
     majorLabel: m.majorLabel || m.majorKey,
     total: m.total,
@@ -94,6 +98,56 @@ async function getDashboard(query, user) {
     nb: m.nb,
     nbRate: calcRate(m.nb, m.interacted)
   }));
+
+  // ── New majorPerformance ──
+  function buildMajorPerformanceMetrics(row) {
+    const interacted =
+      (row.paymentCompletedNb || 0) +
+      (row.applicationSubmitted || 0) +
+      (row.considering || 0) +
+      (row.interested || 0) +
+      (row.scheduledCallback || 0) +
+      (row.notInterested || 0);
+
+    const notInteracted =
+      (row.noAnswer || 0) +
+      (row.unreachable || 0);
+
+    const totalProcessed = interacted + notInteracted + (row.wrongNumber || 0);
+
+    return {
+      majorKey: row.majorKey,
+      majorLabel: row.majorLabel || row.majorKey,
+      totalProcessed,
+      interacted,
+      interactionRate: calcRate(interacted, totalProcessed),
+      nb: row.paymentCompletedNb || 0,
+      nbRate: calcRate(row.paymentCompletedNb, interacted),
+      notInteracted,
+      notInteractedRate: calcRate(notInteracted, totalProcessed),
+      wrongNumber: row.wrongNumber || 0,
+      wrongNumberRate: calcRate(row.wrongNumber, totalProcessed),
+      notInterested: row.notInterested || 0,
+      notInterestedRate: calcRate(row.notInterested, totalProcessed),
+      unprocessed: row.unprocessed || 0
+    };
+  }
+
+  const MAJOR_ORDER = [
+    'right_major_interest',
+    'related_major_interest',
+    'different_major_interest'
+  ];
+
+  const majorPerformance = majorCountsRaw
+    .map(buildMajorPerformanceMetrics)
+    .sort((a, b) => {
+      const aIndex = MAJOR_ORDER.indexOf(a.majorKey);
+      const bIndex = MAJOR_ORDER.indexOf(b.majorKey);
+      const aSort = aIndex === -1 ? 999 : aIndex;
+      const bSort = bIndex === -1 ? 999 : bIndex;
+      return aSort - bSort;
+    });
 
   const regionChartRows = regionCountsRaw.filter(
     row => (row.total ?? 0) > 0 || (row.processed ?? 0) > 0
@@ -294,6 +348,7 @@ async function getDashboard(query, user) {
     statusByAdvisor,
     ratesByAdvisor,
     byMajor,
+    majorPerformance,
     bySource,
     sourcePerformance,
     byRegion,

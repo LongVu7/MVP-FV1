@@ -1,13 +1,8 @@
 <template>
   <div class="chart-container bg-white dark:bg-gray-800 border rounded shadow-sm p-4 col-span-1 md:col-span-2">
-    <h3 class="text-lg font-semibold mb-4">Thống kê tình trạng xử lý data</h3>
+    <h3 class="text-lg font-semibold mb-4">2.Thống kê tình trạng xử lý data</h3>
     <DataTable :value="statusByAdvisor" dataKey="advisorId" responsiveLayout="scroll" :paginator="true" :rows="10" scrollable scrollHeight="400px">
       <Column field="advisorName" header="Tư vấn" frozen class="font-semibold"></Column>
-      <Column field="processed" header="Tổng xử lý" class="font-semibold">
-        <template #body="{ data }">
-          <span class="font-bold">{{ data.processed ?? 0 }}</span>
-        </template>
-      </Column>
       <Column field="paymentCompletedNb" header="Đã đóng phí (NB)"></Column>
       <Column field="applicationSubmitted" header="Đã nộp hồ sơ"></Column>
       <Column field="considering" header="Cân nhắc"></Column>
@@ -17,6 +12,11 @@
       <Column field="unreachable" header="Không liên lạc được"></Column>
       <Column field="notInterested" header="Không quan tâm"></Column>
       <Column field="wrongNumber" header="Sai số"></Column>
+      <Column field="processed" header="Tổng  data xử lý" class="font-semibold">
+        <template #body="{ data }">
+          <span class="font-bold">{{ data.processed ?? 0 }}</span>
+        </template>
+      </Column>
 
       <!-- Footer total row — aggregates the FULL dataset, not just visible page -->
       <ColumnGroup type="footer">

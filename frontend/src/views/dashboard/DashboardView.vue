@@ -27,11 +27,17 @@
 
       <!-- Charts Section -->
       <div class="charts-grid mt-4">
+        <!-- Thống kê tình trạng theo ngành -->
         <MajorChart :byMajor="data.byMajor" />
+        <!-- Thống kê tình trạng theo Tỉnh/ TP -->
         <RegionChart :byRegion="data.byRegion" />
+        <MajorPerformanceTable :majorPerformance="data.majorPerformance" />
+        <!-- Thống kê tình trạng theo Nguồn -->
         <SourceChart :bySource="data.bySource" />
         <SourcePerformanceTable :sourcePerformance="data.sourcePerformance" />
+        <!-- Thống kê tỷ lệ xử lý data -->
         <AdvisorStatusChart :statusByAdvisor="data.statusByAdvisor" />
+        
         <RegionPerformanceTable :regionPerformance="data.regionPerformance" />
         <AdvisorRatesChart :ratesByAdvisor="data.ratesByAdvisor" />
       </div>
@@ -48,6 +54,7 @@ import DashboardFilters from '@/components/dashboard/DashboardFilters.vue'
 import DashboardSummary from '@/components/dashboard/DashboardSummary.vue'
 import TimelineChart from '@/components/dashboard/TimelineChart.vue'
 import MajorChart from '@/components/dashboard/MajorChart.vue'
+import MajorPerformanceTable from '@/components/dashboard/MajorPerformanceTable.vue'
 import RegionChart from '@/components/dashboard/RegionChart.vue'
 import RegionPerformanceTable from '@/components/dashboard/RegionPerformanceTable.vue'
 import SourceChart from '@/components/dashboard/SourceChart.vue'

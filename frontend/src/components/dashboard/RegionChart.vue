@@ -47,7 +47,7 @@ const chartOptions = {
       stacked: true,
     },
     y: {
-      stacked: false,
+      stacked: true,
       beginAtZero: true
     }
   }

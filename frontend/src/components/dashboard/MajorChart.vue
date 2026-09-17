@@ -1,8 +1,8 @@
 <template>
   <div class="chart-container bg-white dark:bg-gray-800 border rounded shadow-sm p-4 flex flex-col">
-    <h3 class="text-lg font-semibold mb-4">Major Interest (Processed)</h3>
-    <div class="flex-1 flex justify-center items-center min-h-[300px]">
-      <Chart type="doughnut" :data="chartData" :options="chartOptions" class="w-[80%] max-w-[400px]" />
+    <h3 class="text-lg font-semibold mb-4">Thống kê lead theo ngành</h3>
+    <div class="flex-1 flex justify-center items-center min-h-[100px]">
+      <Chart type="doughnut" :data="chartData" :options="chartOptions" class="w-[100%] max-w-[400px]" />
     </div>
   </div>
 </template>
@@ -36,7 +36,7 @@ const chartData = computed(() => {
 })
 
 const chartOptions = {
-  cutout: '60%',
+  cutout: '40%',
   plugins: {
     legend: {
       position: 'bottom'
