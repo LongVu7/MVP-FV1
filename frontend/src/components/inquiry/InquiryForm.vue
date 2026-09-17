@@ -115,21 +115,7 @@ const callCountOptions = Array.from({ length: 10 }, (_, i) => ({
   value: i + 1
 }))
 
-const eventOptions = [
-  { label: 'Talkshow', value: 'TALKSHOW' },
-  { label: 'Livestream', value: 'LIVESTREAM' },
-  { label: 'Open Day', value: 'OPEN_DAY' },
-  { label: 'Coffee Talk', value: 'COFFEE_TALK' },
-  { label: 'Campus Tour', value: 'CAMPUS_TOUR' },
-  { label: 'Workshop', value: 'WORKSHOP' },
-  { label: 'Tư vấn 1:1', value: 'ONE_ON_ONE_CONSULTATION' }
-]
-
-const compensationOptions = [
-  { label: 'Báo bù sổ', value: 'REPORTED' },
-  { label: 'Đã được bù', value: 'COMPENSATED' }
-]
-
+import { eventOptions, compensationOptions } from '@/helpers/inquiryEnums'
 const props = defineProps({
   modelValue: { type: Object, required: true },
   initialSourceDataId: { type: Number, default: null },

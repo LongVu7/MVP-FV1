@@ -20,6 +20,12 @@
       @delete="onDelete"
       @sort="onSort"
       @filter="onFilter"
+      @show="onShow"
+    />
+
+    <StudentShowDialog
+      v-model:visible="showDialogVisible"
+      :studentId="showDialogStudentId"
     />
   </div>
 </template>
@@ -29,6 +35,7 @@ import { onMounted, ref } from 'vue'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import StudentList from '@/components/student/StudentList.vue'
+import StudentShowDialog from '@/components/student/StudentShowDialog.vue'
 import { useStudent } from '@/composables/useStudent'
 import { useToast } from 'primevue/usetoast'
 
@@ -39,6 +46,10 @@ const currentParams = ref({
   page: 1, limit: 20, search: '', sortField: null, sortOrder: null, 
   oldProvinceId: null, birthYear: null
 })
+
+// Show dialog state
+const showDialogVisible = ref(false)
+const showDialogStudentId = ref(null)
 
 onMounted(async () => {
   await loadData()
@@ -84,6 +95,11 @@ const onDelete = async (id) => {
   } catch (e) {
     toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete student', life: 5000 })
   }
+}
+
+const onShow = (studentId) => {
+  showDialogStudentId.value = studentId
+  showDialogVisible.value = true
 }
 </script>
 

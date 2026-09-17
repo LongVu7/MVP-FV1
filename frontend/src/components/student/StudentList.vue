@@ -127,8 +127,8 @@
       <Column header="Actions" style="width: 120px" :exportable="false" frozen alignFrozen="right">
         <template #body="{ data }">
           <div class="action-buttons">
-            <Button icon="pi pi-pencil" rounded text severity="info" size="small" v-tooltip.top="'Edit'" @click="$router.push('/students/' + data.id)" />
-            <Button icon="pi pi-trash" rounded text severity="danger" size="small" v-tooltip.top="'Delete'" @click="confirmDeleteAction(data)" />
+            <Button icon="pi pi-eye" rounded text severity="info" size="small" v-tooltip.top="'Show'" @click="emit('show', data.id)" />
+            <Button v-if="$can('delete', 'student')" icon="pi pi-trash" rounded text severity="danger" size="small" v-tooltip.top="'Delete'" @click="confirmDeleteAction(data)" />
           </div>
         </template>
       </Column>
@@ -161,7 +161,7 @@ const props = defineProps({
   pagination: { type: Object, default: null }
 })
 
-const emit = defineEmits(['page-change', 'search', 'delete', 'sort', 'filter'])
+const emit = defineEmits(['page-change', 'search', 'delete', 'sort', 'filter', 'show'])
 
 const router = useRouter()
 const confirm = useConfirm()

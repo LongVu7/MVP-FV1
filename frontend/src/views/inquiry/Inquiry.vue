@@ -17,6 +17,12 @@
       @page-change="onPageChange"
       @search="onSearch"
       @delete="onDelete"
+      @show="onShow"
+    />
+
+    <InquiryShowDialog
+      v-model:visible="showDialogVisible"
+      :inquiryId="showDialogInquiryId"
     />
   </div>
 </template>
@@ -26,6 +32,7 @@ import { computed, onMounted, ref } from 'vue'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import InquiryList from '@/components/inquiry/InquiryList.vue'
+import InquiryShowDialog from '@/components/inquiry/InquiryShowDialog.vue'
 import { useInquiry } from '@/composables/useInquiry'
 import { useToast } from 'primevue/usetoast'
 
@@ -33,6 +40,10 @@ const { inquiries, pagination, loading, fetchInquiries, deleteInquiry } = useInq
 const toast = useToast()
 
 const currentParams = ref({ page: 1, limit: 20, search: '' })
+
+// Show dialog state
+const showDialogVisible = ref(false)
+const showDialogInquiryId = ref(null)
 
 onMounted(async () => {
   await loadData()
@@ -66,6 +77,11 @@ const onDelete = async (id) => {
   } catch (e) {
     toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to delete inquiry', life: 5000 })
   }
+}
+
+const onShow = (inquiryId) => {
+  showDialogInquiryId.value = inquiryId
+  showDialogVisible.value = true
 }
 </script>
 
