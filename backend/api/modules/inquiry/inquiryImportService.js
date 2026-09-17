@@ -61,7 +61,6 @@ const COLUMN_MAP = {
   'Approach Method': { key: 'approachMethod', requiredStruct: true, requiredNew: false },
   'Description': { key: 'description', requiredStruct: true, requiredNew: false },
   'Data Received': { key: 'dataReceived', requiredStruct: true, requiredNew: false },
-  'Group Tele': { key: 'groupTele', requiredStruct: true, requiredNew: false }
 };
 
 const generateTemplate = () => {
