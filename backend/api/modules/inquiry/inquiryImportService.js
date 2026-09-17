@@ -76,8 +76,7 @@ const normalizeMobile = (val) => {
   if (!val) return null;
   const str = String(val).trim();
   if (!str) return null;
-  // Basic normalization: if it's 9 digits and starts with non-zero, maybe prepend 0?
-  // We'll just enforce 10 digits starting with 0.
+  // Normalize Mobile: enforce 10 digits starting with 0.
   let cleaned = str.replace(/\D/g, '');
   if (cleaned.length === 9 && !cleaned.startsWith('0')) {
     cleaned = '0' + cleaned;
