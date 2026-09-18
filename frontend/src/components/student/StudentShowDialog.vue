@@ -60,7 +60,7 @@ const navigateToEdit = () => {
     :contentStyle="{ padding: '0' }"
   >
     <div v-if="loading" class="loading-state">
-      <i class="pi pi-spin pi-spinner" style="fontSize: 2rem"></i>
+      <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
       <p>Loading student data...</p>
     </div>
 
