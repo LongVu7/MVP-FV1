@@ -1,6 +1,3 @@
-// ─── Student enum options & label helpers
-// Shared across StudentForm, StudentList, StudentShowDialog, etc.
-
 export const genderOptions = [
   { label: 'Male', value: 'Male' },
   { label: 'Female', value: 'Female' }
@@ -18,13 +15,6 @@ export const schoolTypeOptions = [
   { label: 'B', value: 'B' },
   { label: 'C', value: 'C' },
   { label: 'D', value: 'D' }
-]
-
-export const provinceGroupOptions = [
-  { label: 'TP HCM', value: 'HO_CHI_MINH' },
-  { label: 'Tỉnh ruột', value: 'CORE_PROVINCE' },
-  { label: 'Tỉnh ngoài', value: 'OTHER_PROVINCE' },
-  { label: 'Nước ngoài', value: 'FOREIGN' }
 ]
 
 export const priorityOptions = [
@@ -70,28 +60,3 @@ export const englishCertOptions = [
   { label: 'PTE', value: 'PTE' },
   { label: 'Other', value: 'other' }
 ]
-
-// ─── Label lookup helpers (value → label)
-// Build lookup map from option array for O(1) access
-
-function buildLabelMap(options) {
-  const map = {}
-  for (const opt of options) {
-    map[opt.value] = opt.label
-  }
-  return map
-}
-
-const classLabelMap = buildLabelMap(classOptions)
-const schoolTypeLabelMap = buildLabelMap(schoolTypeOptions)
-const provinceGroupLabelMap = buildLabelMap(provinceGroupOptions)
-const gpaLabelMap = buildLabelMap(gpaOptions)
-const programScoreLabelMap = buildLabelMap(programScoreOptions)
-const englishCertLabelMap = buildLabelMap(englishCertOptions)
-
-export const getClassLabel = (value) => classLabelMap[value] || value || '—'
-export const getSchoolTypeLabel = (value) => schoolTypeLabelMap[value] || value || '—'
-export const getProvinceGroupLabel = (value) => provinceGroupLabelMap[value] || value || '—'
-export const getGpaLabel = (value) => gpaLabelMap[value] || value || '—'
-export const getProgramScoreLabel = (value) => programScoreLabelMap[value] || value || '—'
-export const getEnglishCertLabel = (value) => englishCertLabelMap[value] || value || '—'

@@ -1,6 +1,6 @@
 import { ref } from 'vue'
-import * as roleApi from '@/helpers/roleHelper'
-import { getAllPermissions } from '@/helpers/permissionHelper'
+import * as roleApi from '@/services/roleService'
+import { getAllPermissions } from '@/services/permissionService'
 
 export function useRole() {
   const roles = ref([])

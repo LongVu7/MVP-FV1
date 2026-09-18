@@ -64,9 +64,9 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import Button from 'primevue/button'
-import { getAllStudents } from '@/helpers/studentHelper'
-import { getAllInquiries } from '@/helpers/inquiryHelper'
-import { getAllAccounts } from '@/helpers/accountHelper'
+import { getAllStudents } from '@/services/studentService'
+import { getAllInquiries } from '@/services/inquiryService'
+import { getAllAccounts } from '@/services/accountService'
 import { useAuthStore } from '@/stores/auth'
 import { useAbility } from '@casl/vue'
 

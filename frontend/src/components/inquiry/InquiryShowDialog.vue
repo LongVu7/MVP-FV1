@@ -4,12 +4,12 @@ import { useRouter } from 'vue-router'
 import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import { useInquiry } from '@/composables/useInquiry'
-import { formatDate, formatDateTime } from '@/helpers/dateUtils'
+import { formatDate, formatDateTime } from '@/utils/dateUtils'
 import {
   getStatusLevel,
   formatEventNames,
   getCompensationLabel
-} from '@/helpers/inquiryEnums'
+} from '@/utils/inquiryLabels'
 
 const props = defineProps({
   visible: { type: Boolean, default: false },

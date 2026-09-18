@@ -24,7 +24,7 @@ app.use(pinia)
 
 import { abilitiesPlugin } from '@casl/vue'
 import { ability } from '@/services/ability'
-import api, { setupInterceptors } from '@/helpers/helper'
+import api, { setupInterceptors } from '@/services/apiClient'
 
 app.use(abilitiesPlugin, ability, { useGlobalProperties: true })
 

@@ -36,7 +36,7 @@
 <script setup>
 import { computed, onMounted } from 'vue'
 import Checkbox from 'primevue/checkbox'
-import { getAllPermissions } from '@/helpers/permissionHelper'
+import { getAllPermissions } from '@/services/permissionService'
 import { ref } from 'vue'
 
 const props = defineProps({

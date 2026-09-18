@@ -106,16 +106,16 @@ import Select from 'primevue/select'
 import DatePicker from 'primevue/datepicker'
 import MultiSelect from 'primevue/multiselect'
 import { useSourceData } from '@/composables/useSourceData'
-import { getSourceDataById } from '@/helpers/sourceDataHelper'
+import { getSourceDataById } from '@/services/sourceDataService'
 import { useStatusData } from '@/composables/useStatusData'
-import { getStatusDataById } from '@/helpers/statusDataHelper'
+import { getStatusDataById } from '@/services/statusDataService'
 
 const callCountOptions = Array.from({ length: 10 }, (_, i) => ({
   label: `${i + 1} lần`,
   value: i + 1
 }))
 
-import { eventOptions, compensationOptions } from '@/helpers/inquiryEnums'
+import { eventOptions, compensationOptions } from '@/constants/inquiry'
 const props = defineProps({
   modelValue: { type: Object, required: true },
   initialSourceDataId: { type: Number, default: null },

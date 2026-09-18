@@ -90,7 +90,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import Button from 'primevue/button'
 import Select from 'primevue/select'
 import StudentForm from '@/components/student/StudentForm.vue'
-import { getAllStudents } from '@/helpers/studentHelper'
+import { getAllStudents } from '@/services/studentService'
 
 const props = defineProps({
   readonly: {

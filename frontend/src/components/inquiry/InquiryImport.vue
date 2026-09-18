@@ -44,7 +44,7 @@
   import { ref, computed } from 'vue'
   import Button from 'primevue/button'
   import { useToast } from 'primevue/usetoast'
-  import { downloadInquiryTemplate, previewImportInquiry, confirmImportInquiry } from '@/helpers/inquiryHelper'
+  import { downloadInquiryTemplate, previewImportInquiry, confirmImportInquiry } from '@/services/inquiryService'
   
   import InquiryImportUpload from './InquiryImportUpload.vue'
   import InquiryImportReview from './InquiryImportReview.vue'

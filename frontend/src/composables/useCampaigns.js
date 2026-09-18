@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import * as api from '@/helpers/campaignHelper'
+import * as api from '@/services/campaignService'
 
 export function useCampaigns() {
   const campaigns = ref([])

@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import * as api from '@/helpers/studentHelper'
+import * as api from '@/services/studentService'
 
 export function useStudent() {
   const students = ref([])

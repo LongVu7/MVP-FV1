@@ -46,7 +46,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import Button from 'primevue/button'
 import Select from 'primevue/select'
-import { getAllAccounts } from '@/helpers/accountHelper'
+import { getAllAccounts } from '@/services/accountService'
 
 const props = defineProps({
   initialAccount: {

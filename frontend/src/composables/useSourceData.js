@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { getRootOptions, getChildrenById } from '@/helpers/sourceDataHelper'
+import { getRootOptions, getChildrenById } from '@/services/sourceDataService'
 
 export function useSourceData() {
   const sources = ref([])

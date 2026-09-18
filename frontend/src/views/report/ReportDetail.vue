@@ -82,7 +82,7 @@ import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import Select from 'primevue/select'
 import { useToast } from 'primevue/usetoast'
-import api from '@/helpers/helper'
+import api from '@/services/apiClient'
 
 const route = useRoute()
 const toast = useToast()

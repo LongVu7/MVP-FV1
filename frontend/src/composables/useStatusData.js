@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { getRootOptions, getChildrenById } from '@/helpers/statusDataHelper'
+import { getRootOptions, getChildrenById } from '@/services/statusDataService'
 
 export function useStatusData() {
   const interactions = ref([])

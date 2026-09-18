@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { login as apiLogin, logout as apiLogout, getMe as apiGetMe } from '@/helpers/authHelper'
+import { login as apiLogin, logout as apiLogout, getMe as apiGetMe } from '@/services/authService'
 import { ability, permissionsToCaslRules } from '@/services/ability'
 
 export const useAuthStore = defineStore('auth', {

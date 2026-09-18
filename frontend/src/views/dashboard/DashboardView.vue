@@ -35,8 +35,9 @@
         <!-- Thống kê tình trạng theo Nguồn -->
         <SourceChart :bySource="data.bySource" />
         <SourcePerformanceTable :sourcePerformance="data.sourcePerformance" />
-        <!-- Thống kê tỷ lệ xử lý data -->
+        <!-- Thống kê tình trạng xử lý data (Chart and Table) -->
         <AdvisorStatusChart :statusByAdvisor="data.statusByAdvisor" />
+        <AdvisorStatusTable :statusByAdvisor="data.statusByAdvisor" />
         
         <RegionPerformanceTable :regionPerformance="data.regionPerformance" />
         <AdvisorRatesChart :ratesByAdvisor="data.ratesByAdvisor" />
@@ -60,6 +61,7 @@ import RegionPerformanceTable from '@/components/dashboard/RegionPerformanceTabl
 import SourceChart from '@/components/dashboard/SourceChart.vue'
 import SourcePerformanceTable from '@/components/dashboard/SourcePerformanceTable.vue'
 import AdvisorStatusChart from '@/components/dashboard/AdvisorStatusChart.vue'
+import AdvisorStatusTable from '@/components/dashboard/AdvisorStatusTable.vue'
 import AdvisorRatesChart from '@/components/dashboard/AdvisorRatesChart.vue'
 
 import ProgressSpinner from 'primevue/progressspinner'

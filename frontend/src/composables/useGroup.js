@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import * as api from '@/helpers/groupHelper'
+import * as api from '@/services/groupService'
 
 export function useGroup() {
   const groups = ref([])

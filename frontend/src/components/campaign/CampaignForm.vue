@@ -51,7 +51,7 @@ import Select from 'primevue/select'
 import Textarea from 'primevue/textarea'
 import DatePicker from 'primevue/datepicker'
 import Button from 'primevue/button'
-import { getAllAccounts } from '@/helpers/accountHelper'
+import { getAllAccounts } from '@/services/accountService'
 
 const props = defineProps({
     modelValue: { type: Object, required: true },

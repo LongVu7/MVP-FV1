@@ -55,7 +55,7 @@ import MultiSelect from 'primevue/multiselect'
 import Button from 'primevue/button'
 
 import { useSourceData } from '@/composables/useSourceData'
-import { getChildrenById } from '@/helpers/sourceDataHelper'
+import { getChildrenById } from '@/services/sourceDataService'
 import { useSchoolOptions } from '@/composables/useSchoolOptions'
 
 const props = defineProps({

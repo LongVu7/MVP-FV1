@@ -1,4 +1,4 @@
-import api from './helper.js'
+import api from '@/services/apiClient'
 
 const prefix = '/schools'
 

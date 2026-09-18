@@ -5,15 +5,15 @@ import Dialog from 'primevue/dialog'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import { useStudent } from '@/composables/useStudent'
-import { formatDate, formatDateTime } from '@/helpers/dateUtils'
+import { formatDate, formatDateTime } from '@/utils/dateUtils'
 import {
   getClassLabel,
   getSchoolTypeLabel,
-  getProvinceGroupLabel,
   getGpaLabel,
   getProgramScoreLabel,
   getEnglishCertLabel
-} from '@/helpers/studentEnums'
+} from '@/utils/studentLabels'
+import { getProvinceGroupLabel } from '@/utils/regionLabels'
 
 const props = defineProps({
   visible: { type: Boolean, default: false },

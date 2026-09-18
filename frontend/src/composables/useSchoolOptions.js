@@ -1,5 +1,5 @@
 import { ref, watch } from 'vue'
-import { getAllOldProvinces, getSchoolOptions } from '@/helpers/schoolHelper'
+import { getAllOldProvinces, getSchoolOptions } from '@/services/schoolService'
 
 export function useSchoolOptions() {
   const oldProvinces = ref([])

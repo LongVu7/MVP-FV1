@@ -40,7 +40,7 @@ import Dialog from 'primevue/dialog';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Button from 'primevue/button';
-import { getAllInquiries } from '@/helpers/inquiryHelper';
+import { getAllInquiries } from '@/services/inquiryService';
 
 const props = defineProps({
     visible: Boolean,

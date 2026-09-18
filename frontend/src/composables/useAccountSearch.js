@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { searchAccounts as apiSearchAccounts } from '@/helpers/inquiryHelper'
+import { searchAccounts as apiSearchAccounts } from '@/services/inquiryService'
 
 export function useAccountSearch() {
   const accountSuggestions = ref([])

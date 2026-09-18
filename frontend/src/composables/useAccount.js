@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import * as api from '@/helpers/accountHelper'
+import * as api from '@/services/accountService'
 
 export function useAccount() {
   const accounts = ref([])

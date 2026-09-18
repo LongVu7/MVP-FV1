@@ -171,10 +171,10 @@ import {
   gpaOptions,
   programScoreOptions,
   schoolTypeOptions,
-  provinceGroupOptions,
   priorityOptions,
   classOptions
-} from '@/helpers/studentEnums'
+} from '@/constants/student'
+import { provinceGroupOptions } from '@/constants/region'
 
 export default {
   name: 'StudentForm',

@@ -6,7 +6,7 @@ import {
   updateTemplate, 
   deleteTemplate, 
   getTemplateVariables 
-} from '@/helpers/campaignTemplateHelper';
+} from '@/services/campaignTemplateService';
 
 export const useCampaignTemplates = () => {
   const templates = ref([]);

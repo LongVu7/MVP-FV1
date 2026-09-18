@@ -59,7 +59,7 @@ import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Textarea from 'primevue/textarea'
 import { useToast } from 'primevue/usetoast'
-import api from '@/helpers/helper'
+import api from '@/services/apiClient'
 
 const router = useRouter()
 const toast = useToast()

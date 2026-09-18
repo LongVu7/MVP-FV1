@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { getAllCountries } from '@/helpers/schoolHelper'
+import { getAllCountries } from '@/services/schoolService'
 
 export function useCountryOptions() {
   const countries = ref([])

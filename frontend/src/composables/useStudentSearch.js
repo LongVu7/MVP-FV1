@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { searchStudents as apiSearchStudents } from '@/helpers/inquiryHelper'
+import { searchStudents as apiSearchStudents } from '@/services/inquiryService'
 
 export function useStudentSearch() {
   const studentSuggestions = ref([])

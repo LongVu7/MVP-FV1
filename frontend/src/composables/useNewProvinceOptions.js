@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { getAllNewProvinces } from '@/helpers/schoolHelper'
+import { getAllNewProvinces } from '@/services/schoolService'
 
 export function useNewProvinceOptions() {
   const newProvinces = ref([])

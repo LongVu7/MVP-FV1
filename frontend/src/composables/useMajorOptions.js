@@ -1,5 +1,5 @@
 import { ref, shallowRef } from 'vue'
-import { getRootMajors, getMajorChildrenById } from '@/helpers/majorDataHelper'
+import { getRootMajors, getMajorChildrenById } from '@/services/majorDataService'
 
 export function useMajorOptions() {
   const interestedMajors = ref([])

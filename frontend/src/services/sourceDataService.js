@@ -1,6 +1,6 @@
-import api from './helper.js'
+import api from '@/services/apiClient'
 
-const prefix = '/status-data'
+const prefix = '/source-data'
 
 export const getRootOptions = async () => {
   const response = await api.get(`${prefix}/`)
@@ -12,7 +12,7 @@ export const getChildrenById = async (id) => {
   return response.data.data
 }
 
-export const getStatusDataById = async (id) => {
+export const getSourceDataById = async (id) => {
   const response = await api.get(`${prefix}/${id}`)
   return response.data.data
 }

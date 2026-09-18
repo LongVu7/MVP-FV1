@@ -102,7 +102,7 @@ import Button from 'primevue/button'
 import InputText from 'primevue/inputtext'
 import Message from 'primevue/message'
 import { useToast } from 'primevue/usetoast'
-import { previewImport, confirmImport } from '@/helpers/studentHelper'
+import { previewImport, confirmImport } from '@/services/studentService'
 
 const router = useRouter()
 const toast = useToast()

@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import * as api from '@/helpers/reportHelper'
+import * as api from '@/services/reportService'
 
 export function useDashboard() {
   const data = ref(null)
