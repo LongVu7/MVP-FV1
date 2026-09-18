@@ -57,6 +57,9 @@ import Button from 'primevue/button'
 import { useSourceData } from '@/composables/useSourceData'
 import { getChildrenById } from '@/services/sourceDataService'
 import { useSchoolOptions } from '@/composables/useSchoolOptions'
+import { provinceGroupOptions } from '@/constants/region'
+import { majorInterestOptions } from '@/constants/report'
+import { formatDateYMD } from '@/utils/dateUtils'
 
 const props = defineProps({
   loading: Boolean
@@ -78,18 +81,8 @@ const {
 const loadingSources = ref(false)
 const sourceDetails = ref([])
 
-const majorOptions = ref([
-  { label: 'Quan tâm đúng ngành', value: 'right_major_interest' },
-  { label: 'Ngành liên quan', value: 'related_major_interest' },
-  { label: 'Ngành khác', value: 'different_major_interest' }
-])
-
-const regionOptions = ref([
-  { label: 'TP. Hồ Chí Minh', value: 'HO_CHI_MINH' },
-  { label: 'Tỉnh trọng điểm', value: 'CORE_PROVINCE' },
-  { label: 'Tỉnh khác', value: 'OTHER_PROVINCE' },
-  { label: 'Nước ngoài', value: 'FOREIGN' }
-])
+const majorOptions = majorInterestOptions
+const regionOptions = provinceGroupOptions
 
 const filters = ref({
   from: null,
@@ -101,18 +94,11 @@ const filters = ref({
   oldProvinceIds: null
 })
 
-const formatDate = (date) => {
-  if (!date) return null
-  if (typeof date === 'string') return date
-  const d = new Date(date)
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
-}
-
 const emitFilters = () => {
   const formatted = {
     ...filters.value,
-    from: formatDate(filters.value.from),
-    to: formatDate(filters.value.to)
+    from: formatDateYMD(filters.value.from),
+    to: formatDateYMD(filters.value.to)
   }
   emit('filter-change', formatted)
 }

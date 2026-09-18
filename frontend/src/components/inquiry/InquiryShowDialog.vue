@@ -56,7 +56,7 @@ const navigateToEdit = () => {
     :contentStyle="{ padding: '0' }"
   >
     <div v-if="loading" class="loading-state">
-      <i class="pi pi-spin pi-spinner" style="fontSize: 2rem"></i>
+      <i class="pi pi-spin pi-spinner" style="font-size: 2rem"></i>
       <p>Loading inquiry data...</p>
     </div>
 
@@ -161,7 +161,7 @@ const navigateToEdit = () => {
             <span class="field-value field-value--muted">{{ inquiryData.recordFile || '—' }}</span>
           </div>
         </div>
-        <div v-if="inquiryData.callLog" class="field-item" style="marginTop: 1rem">
+        <div v-if="inquiryData.callLog" class="field-item" style="margin-top: 1rem">
           <span class="field-label">Lịch sử cuộc gọi</span>
           <p class="description-text">{{ inquiryData.callLog }}</p>
         </div>

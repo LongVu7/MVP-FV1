@@ -98,6 +98,7 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import ColumnGroup from 'primevue/columngroup'
 import Row from 'primevue/row'
+import { calcRate } from '@/utils/reportUtils'
 
 const props = defineProps({
   sourcePerformance: {
@@ -107,11 +108,6 @@ const props = defineProps({
 })
 
 const expandedRows = ref([])
-
-function calcRate(num, den) {
-  if (!den || den === 0) return 0
-  return Number(((num / den) * 100).toFixed(2))
-}
 
 // Footer totals — sum top-level Source rows, then recalculate rates
 const totals = computed(() => {

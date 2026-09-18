@@ -11,6 +11,7 @@
 <script setup>
 import { computed } from 'vue'
 import Chart from 'primevue/chart'
+import { ADVISOR_STATUS_CONFIG } from '@/constants/report'
 
 const props = defineProps({
   statusByAdvisor: {
@@ -25,17 +26,11 @@ const chartData = computed(() => {
 
   return {
     labels,
-    datasets: [
-      { label: 'Đã đóng phí (NB)', data: mapData('paymentCompletedNb'), backgroundColor: '#10b981' }, // Emerald
-      { label: 'Đã nộp hồ sơ', data: mapData('applicationSubmitted'), backgroundColor: '#3b82f6' }, // Blue
-      { label: 'Cân nhắc', data: mapData('considering'), backgroundColor: '#f59e0b' }, // Amber
-      { label: 'Quan tâm', data: mapData('interested'), backgroundColor: '#6366f1' }, // Indigo
-      { label: 'Hẹn gọi lại', data: mapData('scheduledCallback'), backgroundColor: '#8b5cf6' }, // Violet
-      { label: 'Không bắt máy', data: mapData('noAnswer'), backgroundColor: '#ef4444' }, // Red
-      { label: 'Không liên lạc được', data: mapData('unreachable'), backgroundColor: '#f43f5e' }, // Rose
-      { label: 'Không quan tâm', data: mapData('notInterested'), backgroundColor: '#9ca3af' }, // Gray 400
-      { label: 'Sai số', data: mapData('wrongNumber'), backgroundColor: '#d1d5db' }, // Gray 300
-    ]
+    datasets: ADVISOR_STATUS_CONFIG.map(status => ({
+      label: status.label,
+      data: mapData(status.key),
+      backgroundColor: status.color
+    }))
   }
 })
 

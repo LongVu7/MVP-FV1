@@ -1,29 +1,10 @@
 <template>
   <div class="chart-container bg-white dark:bg-gray-800 border rounded shadow-sm p-4 col-span-1 md:col-span-2">
-    <h3 class="text-lg font-semibold mb-4">Conversion Rates by Advisor</h3>
+    <h3 class="text-lg font-semibold mb-4">Thống kê tỷ lệ xử lý data</h3>
     <DataTable :value="ratesByAdvisor" dataKey="advisorId" responsiveLayout="scroll" :paginator="true" :rows="10">
-      <Column field="advisorName" header="Advisor" class="font-semibold"></Column>
-      <Column field="processed" header="Processed"></Column>
-      <Column field="interacted" header="Interacted"></Column>
-      <Column field="interactionRate" header="Int. Rate">
-        <template #body="{ data }">
-          {{ data.interactionRate }}%
-        </template>
-      </Column>
-      <Column field="nb" header="NB"></Column>
-      <Column field="nbRate" header="NB Rate">
-        <template #body="{ data }">
-          {{ data.nbRate }}%
-        </template>
-      </Column>
-      <Column field="notInterestedRate" header="Not Int. Rate">
-        <template #body="{ data }">
-          {{ data.notInterestedRate }}%
-        </template>
-      </Column>
-      <Column field="wrongNumberRate" header="Wrong No. Rate">
-        <template #body="{ data }">
-          {{ data.wrongNumberRate }}%
+      <Column v-for="col in ADVISOR_RATE_COLUMNS" :key="col.field" :field="col.field" :header="col.header" :class="col.class">
+        <template #body="{ data }" v-if="col.isRate">
+          {{ data[col.field] }}%
         </template>
       </Column>
     </DataTable>
@@ -33,6 +14,7 @@
 <script setup>
 import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
+import { ADVISOR_RATE_COLUMNS } from '@/constants/report'
 
 defineProps({
   ratesByAdvisor: {

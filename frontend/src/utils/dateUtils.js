@@ -22,3 +22,14 @@ export const formatDateTime = (dateStr) => {
     minute: '2-digit'
   })
 }
+
+/**
+ * Format a Date object or date string as YYYY-MM-DD.
+ */
+export const formatDateYMD = (date) => {
+  if (!date) return null
+  if (typeof date === 'string') return date
+  const d = new Date(date)
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+

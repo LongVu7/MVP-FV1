@@ -3,35 +3,19 @@
     <h3 class="text-lg font-semibold mb-4">2. Bảng tình trạng xử lý data</h3>
     <DataTable :value="statusByAdvisor" dataKey="advisorId" responsiveLayout="scroll" :paginator="true" :rows="10" scrollable scrollHeight="400px">
       <Column field="advisorName" header="Tư vấn" frozen class="font-semibold"></Column>
-      <Column field="paymentCompletedNb" header="Đã đóng phí (NB)"></Column>
-      <Column field="applicationSubmitted" header="Đã nộp hồ sơ"></Column>
-      <Column field="considering" header="Cân nhắc"></Column>
-      <Column field="interested" header="Quan tâm"></Column>
-      <Column field="scheduledCallback" header="Hẹn gọi lại"></Column>
-      <Column field="noAnswer" header="Không bắt máy"></Column>
-      <Column field="unreachable" header="Không liên lạc được"></Column>
-      <Column field="notInterested" header="Không quan tâm"></Column>
-      <Column field="wrongNumber" header="Sai số"></Column>
-      <Column field="processed" header="Tổng  data xử lý" class="font-semibold">
+      <Column v-for="status in ADVISOR_STATUS_CONFIG" :key="status.key" :field="status.key" :header="status.label"></Column>
+      <Column field="processed" header="Tổng data xử lý" class="font-semibold">
         <template #body="{ data }">
           <span class="font-bold">{{ data.processed ?? 0 }}</span>
         </template>
       </Column>
 
-      <!-- Footer total row — aggregates the FULL dataset, not just visible page -->
+      <!-- Footer total row -->
       <ColumnGroup type="footer">
         <Row>
           <Column footer="Tổng" frozen :colspan="1" class="font-bold" footerStyle="font-weight: bold" />
+          <Column v-for="status in ADVISOR_STATUS_CONFIG" :key="'footer-' + status.key" :footer="totals[status.key]" />
           <Column :footer="totals.processed" footerStyle="font-weight: bold" />
-          <Column :footer="totals.paymentCompletedNb" />
-          <Column :footer="totals.applicationSubmitted" />
-          <Column :footer="totals.considering" />
-          <Column :footer="totals.interested" />
-          <Column :footer="totals.scheduledCallback" />
-          <Column :footer="totals.noAnswer" />
-          <Column :footer="totals.unreachable" />
-          <Column :footer="totals.notInterested" />
-          <Column :footer="totals.wrongNumber" />
         </Row>
       </ColumnGroup>
     </DataTable>
@@ -44,6 +28,7 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import ColumnGroup from 'primevue/columngroup'
 import Row from 'primevue/row'
+import { ADVISOR_STATUS_CONFIG } from '@/constants/report'
 
 const props = defineProps({
   statusByAdvisor: {
@@ -52,18 +37,7 @@ const props = defineProps({
   }
 })
 
-const STATUS_FIELDS = [
-  'processed',
-  'paymentCompletedNb',
-  'applicationSubmitted',
-  'considering',
-  'interested',
-  'scheduledCallback',
-  'noAnswer',
-  'unreachable',
-  'notInterested',
-  'wrongNumber'
-]
+const STATUS_FIELDS = ['processed', ...ADVISOR_STATUS_CONFIG.map(s => s.key)]
 
 const totals = computed(() => {
   const seed = Object.fromEntries(STATUS_FIELDS.map(f => [f, 0]))
