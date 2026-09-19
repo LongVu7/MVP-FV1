@@ -104,6 +104,7 @@ import Message from 'primevue/message'
 import { useToast } from 'primevue/usetoast'
 import { previewImport, confirmImport } from '@/services/studentService'
 
+const emit = defineEmits(['cancel', 'success'])
 const router = useRouter()
 const toast = useToast()
 
@@ -163,6 +164,7 @@ const cancelImport = () => {
   parsedData.value = []
   duplicates.value = []
   duplicateCount.value = 0
+  emit('cancel')
 }
 
 const submitConfirm = async () => {
@@ -170,6 +172,7 @@ const submitConfirm = async () => {
   try {
     const result = await confirmImport(parsedData.value)
     toast.add({ severity: 'success', summary: 'Import Successful', detail: `Inserted: ${result.insertedCount}, Updated: ${result.updatedCount}`, life: 5000 })
+    emit('success')
     router.push('/students')
   } catch (error) {
     const detail = error.response?.data?.details || error.response?.data?.error || error.message || 'Import failed'

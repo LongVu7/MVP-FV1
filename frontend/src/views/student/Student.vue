@@ -1,55 +1,43 @@
 <template>
   <div class="student-list-view">
-    <div class="page-header">
-      <div class="header-left">
+    <div class="page-heading">
+      <div class="flex-heading">
         <h1><i class="pi pi-graduation-cap"></i> Student Management</h1>
         <Tag :value="`${pagination?.totalCount || 0} students`" severity="info" rounded />
       </div>
-      <div class="header-actions">
-        <!-- <Button label="Import Excel" icon="pi pi-file-import" severity="secondary" outlined @click="$router.push('/students/new')" /> -->
-        <Button label="New Student" icon="pi pi-plus" @click="$router.push('/students/new')" />
-      </div>
     </div>
 
-    <StudentList 
-      :students="students"
-      :loading="loading"
-      :pagination="pagination"
-      @page-change="onPageChange"
-      @search="onSearch"
-      @delete="onDelete"
-      @sort="onSort"
-      @filter="onFilter"
-      @show="onShow"
-    />
+    <StudentList :students="students" :loading="loading" :pagination="pagination" @page-change="onPageChange"
+      @search="onSearch" @delete="onDelete" @sort="onSort" @filter="onFilter" @show="onShow"
+      @open-import="showImportDialog = true" />
 
-    <StudentShowDialog
-      v-model:visible="showDialogVisible"
-      :studentId="showDialogStudentId"
-    />
+    <StudentShowDialog v-model:visible="showDialogVisible" :studentId="showDialogStudentId" />
+
+    <StudentImportDialog v-model:visible="showImportDialog" @success="onImportSuccess" />
   </div>
 </template>
 
 <script setup>
 import { onMounted, ref } from 'vue'
-import Button from 'primevue/button'
 import Tag from 'primevue/tag'
 import StudentList from '@/components/student/StudentList.vue'
 import StudentShowDialog from '@/components/student/StudentShowDialog.vue'
+import StudentImportDialog from '@/components/student/StudentImportDialog.vue'
 import { useStudent } from '@/composables/useStudent'
 import { useToast } from 'primevue/usetoast'
 
 const { students, pagination, loading, fetchStudents, deleteStudent } = useStudent()
 const toast = useToast()
 
-const currentParams = ref({ 
-  page: 1, limit: 20, search: '', sortField: null, sortOrder: null, 
+const currentParams = ref({
+  page: 1, limit: 20, search: '', sortField: null, sortOrder: null,
   oldProvinceId: null, birthYear: null
 })
 
 // Show dialog state
 const showDialogVisible = ref(false)
 const showDialogStudentId = ref(null)
+const showImportDialog = ref(false)
 
 onMounted(async () => {
   await loadData()
@@ -101,18 +89,47 @@ const onShow = (studentId) => {
   showDialogStudentId.value = studentId
   showDialogVisible.value = true
 }
+
+const onImportSuccess = async () => {
+  // Reload the data if import was successful
+  currentParams.value.page = 1
+  await loadData()
+}
 </script>
 
 <style scoped>
-.student-list-view { padding: 1.5rem 2rem; max-width: 100%; }
-.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
-.header-left { display: flex; align-items: center; gap: 0.75rem; }
-.header-left h1 { display: flex; align-items: center; gap: 0.5rem; font-size: 1.5rem; font-weight: 700; margin: 0; color: var(--p-text-color); }
-.header-left h1 i { color: var(--p-primary-color); }
-.header-actions { display: flex; gap: 0.5rem; }
+.student-list-view {
+  padding: 1.5rem 2rem;
+  max-width: 100%;
+}
+
+.page-heading {
+  margin-bottom: 1.5rem;
+}
+
+.flex-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.flex-heading h1 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--p-text-color);
+}
+
+.flex-heading h1 i {
+  color: var(--p-primary-color);
+}
 
 @media (max-width: 768px) {
-  .student-list-view { padding: 1rem; }
-  .page-header { flex-direction: column; align-items: flex-start; }
+  .student-list-view {
+    padding: 1rem;
+  }
 }
 </style>

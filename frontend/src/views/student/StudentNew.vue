@@ -2,7 +2,11 @@
   <div class="student-new-view">
     <div class="page-header">
       <h1>Add New Student</h1>
-      <Button label="Back to List" severity="secondary" icon="pi pi-arrow-left" @click="$router.push('/students')" />
+      <Button label="Back to List"
+        severity="secondary"
+        icon="pi pi-arrow-left"
+        @click="$router.push('/students')"
+      />
     </div>
 
     <div class="section-card">
@@ -14,8 +18,6 @@
         @submit="createNewStudent"
       />
     </div>
-
-    <StudentImport />
   </div>
 </template>
 
@@ -23,7 +25,6 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import StudentForm from '@/components/student/StudentForm.vue'
-import StudentImport from '@/components/student/StudentImport.vue'
 import Button from 'primevue/button'
 import { useToast } from 'primevue/usetoast'
 import { useStudent } from '@/composables/useStudent'
