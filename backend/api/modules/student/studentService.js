@@ -1,7 +1,6 @@
 const prisma = require('../../../config/db');
 const xlsx = require('xlsx');
 const { buildPaginationMeta } = require('../../utils/pagination');
-const { flattenObject } = require('../../utils/exportUtils');
 const {
   removeVietnameseTones,
   normalizeEnum,
@@ -710,7 +709,36 @@ const exportStudents = async (filters) => {
     }
   });
 
-  return students.map(s => flattenObject(s));
+  return students.map(s => ({
+    'Student ID': s.id,
+    'Full Name': s.fullName || '',
+    'Gender': s.gender || '',
+    'Email': s.email || '',
+    'Mobile': s.mobile || '',
+    'Other Phone': s.otherPhone || '',
+    'Date of Birth': s.birthDate ? s.birthDate.toISOString().split('T')[0] : '',
+    'Parent Phone': s.parentPhone || '',
+    'Primary Address': s.primaryAddress || '',
+    
+    // Education
+    'School Name': s.education?.school?.name || '',
+    'School City': s.education?.newProvince?.name || '',
+    'Country': s.education?.country?.name || '',
+    'Province Group': s.education?.provinceGroup || '',
+    'School Type': s.education?.schoolType || '',
+    'Class': s.education?.class || '',
+    
+    // Specialized Register
+    'GPA': s.specializedRegister?.gpa || '',
+    'English Certificate': s.specializedRegister?.englishCertificate || '',
+    'Program Score': s.specializedRegister?.programScore || '',
+    'Admission Year': s.specializedRegister?.admissionYear || '',
+    'Interested Major': s.specializedRegister?.interestedMajor?.name || '',
+    'Specific Major': s.specializedRegister?.specificMajor?.name || '',
+    
+    'Created At': s.createdAt ? s.createdAt.toISOString().split('T')[0] : '',
+    'Updated At': s.updatedAt ? s.updatedAt.toISOString().split('T')[0] : ''
+  }));
 };
 
 module.exports = {

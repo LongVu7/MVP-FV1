@@ -13,32 +13,9 @@ const sanitizeForExcel = (val) => {
   return val;
 };
 
-/**
- * Flattens a nested object for Excel export.
- */
-const flattenObject = (obj, prefix = '') => {
-  if (!obj) return {};
-  return Object.keys(obj).reduce((acc, k) => {
-    const pre = prefix.length ? prefix + '_' : '';
-    if (obj[k] !== null && typeof obj[k] === 'object' && !(obj[k] instanceof Date)) {
-      if (Array.isArray(obj[k])) {
-        acc[pre + k] = JSON.stringify(obj[k]);
-      } else {
-        Object.assign(acc, flattenObject(obj[k], pre + k));
-      }
-    } else {
-      acc[pre + k] = obj[k];
-    }
-    return acc;
-  }, {});
-};
 
-/**
- * Generates an Excel buffer from an array of objects.
- * @param {Array<Object>} data 
- * @param {string} worksheetName 
- * @returns {Buffer}
- */
+
+
 const generateExcelBuffer = (data, worksheetName = 'Data') => {
   // Sanitize data
   const sanitizedData = data.map(row => {
@@ -73,6 +50,5 @@ const generateExcelBuffer = (data, worksheetName = 'Data') => {
 
 module.exports = {
   sanitizeForExcel,
-  flattenObject,
   generateExcelBuffer
 };

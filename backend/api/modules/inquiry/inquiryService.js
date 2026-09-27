@@ -1,7 +1,6 @@
 const prisma = require('../../../config/db');
 const { buildInquiryScope } = require('../../../authorization/scope/inquiryScope');
 const { applyStatusTransition } = require('../../utils/statusTransition');
-const { flattenObject } = require('../../utils/exportUtils');
 // ─── Error factory
 const handleError = (message, status) => {
   const err = new Error(message);
@@ -47,8 +46,8 @@ const buildInquiryData = ({ assignedToId, sourceDataId, statusDataId, dataReceiv
 
 
 const fetchInquiry = (txOrPrisma, id) =>
-  txOrPrisma.inquiry.findUnique({ 
-    where: { id }, 
+  txOrPrisma.inquiry.findUnique({
+    where: { id },
     include: inquiryInclude
   });
 
@@ -73,7 +72,7 @@ const buildInquiryWhere = async (filters, user) => {
     ];
     where.AND = [...(where.AND || []), { OR: searchCondition }];
   }
-  
+
   // Existing specific status and assignment filters for Inquiry
   if (filters.statusGeneral) {
     where.AND = [...(where.AND || []), {
@@ -114,8 +113,8 @@ const getAllInquiries = async (filters) => {
 // ─── Get specific inquiry by ID
 const getInquiryById = async (id) => {
   const inquiry = await fetchInquiry(prisma, parseInt(id, 10));
-  if (!inquiry) 
-    throw handleError('Inquiry not found', 404); 
+  if (!inquiry)
+    throw handleError('Inquiry not found', 404);
   return inquiry;
 };
 
@@ -129,7 +128,7 @@ const createInquiry = async ({ studentId, student, assignedToId, ...inquiryField
   const creatorAssignedToId = assignedToId || user.accountId;
   const inquiryData = buildInquiryData({ assignedToId: creatorAssignedToId, ...inquiryFields });
 
-  if (studentId)         return _createWithExistingStudent(inquiryData, studentId);
+  if (studentId) return _createWithExistingStudent(inquiryData, studentId);
   if (student?.fullName) return _createWithNewStudent(inquiryData, student);
   return _createAlone(inquiryData);
 };
@@ -138,9 +137,9 @@ const _createWithExistingStudent = async (inquiryData, studentId) => {
   const sid = parseInt(studentId, 10);
 
   const existing = await prisma.student.findUnique({ where: { id: sid } });
-  if (!existing) 
+  if (!existing)
     throw handleError(
-      'Student not found with the provided studentId', 
+      'Student not found with the provided studentId',
       404
     );
 
@@ -161,8 +160,8 @@ const _createWithExistingStudent = async (inquiryData, studentId) => {
       if (inquiryData.statusData?.connect?.id) {
         milestoneUpdates = await applyStatusTransition({ tx, inquiry: {}, newStatusDataId: inquiryData.statusData.connect.id });
       }
-      const { id } = await tx.inquiry.create({ 
-        data: { ...inquiryData, ...milestoneUpdates, student: { connect: { id: sid } } } 
+      const { id } = await tx.inquiry.create({
+        data: { ...inquiryData, ...milestoneUpdates, student: { connect: { id: sid } } }
       });
       return fetchInquiry(tx, id);
     });
@@ -281,12 +280,12 @@ const updateInquiry = async (id, updateData) => {
 
       let milestoneUpdates = {};
       const newStatusDataId = statusDataId !== undefined ? (statusDataId ? parseInt(statusDataId, 10) : null) : currentInquiry.statusDataId;
-      
+
       if (newStatusDataId && newStatusDataId !== currentInquiry.statusDataId) {
-        milestoneUpdates = await applyStatusTransition({ 
-          tx, 
-          inquiry: currentInquiry, 
-          newStatusDataId 
+        milestoneUpdates = await applyStatusTransition({
+          tx,
+          inquiry: currentInquiry,
+          newStatusDataId
         });
       }
 
@@ -395,7 +394,7 @@ const searchStudents = async (query) =>
     where: {
       OR: [
         { fullName: { contains: query, mode: 'insensitive' } },
-        { email:    { contains: query, mode: 'insensitive' } }
+        { email: { contains: query, mode: 'insensitive' } }
       ]
     },
     take: 20,
@@ -411,7 +410,7 @@ const searchAccounts = async (query) =>
         {
           OR: [
             { fullName: { contains: query, mode: 'insensitive' } },
-            { email:    { contains: query, mode: 'insensitive' } }
+            { email: { contains: query, mode: 'insensitive' } }
           ]
         }
       ]
@@ -448,7 +447,48 @@ const exportInquiries = async (filters, user) => {
     }
   });
 
-  return inquiries.map(i => flattenObject(i));
+  return inquiries.map(i => ({
+
+    // Assigned Staff
+    'Assigned Staff': i.assignedTo?.fullName || '',
+    'Assigned Staff Email': i.assignedTo?.email || '',
+    // Source and Status
+    'Lead Source': i.sourceData?.label || '',
+    'Status General': i.statusData?.parent?.label || '',
+    'Status Detail': i.statusData?.label || '',
+    'Interaction Status': i.statusData?.parent?.parent?.label || '',
+
+    // Student Details
+    'Full Name': i.student?.fullName || '',
+    'Gender': i.student?.gender || '',
+    'Date of Birth': i.student?.birthDate ? i.student?.birthDate.toISOString().split('T')[0] : '',
+    'Mobile': i.student?.mobile || '',
+    'Other Phone': i.student?.otherPhone || '',
+    'Email': i.student?.email || '',
+    'Other Email': i.student?.otherEmail || '',
+    'Parent Phone': i.student?.parentPhone || '',
+    'Primary Address': i.student?.primaryAddress || '',
+    'Other Phone': i.student?.otherPhone || '',
+    'Other Email': i.student?.otherEmail || '',
+    // Inquiry basic details
+    'Description': i.description || '',
+    'Data Received': i.dataReceived ? i.dataReceived.toISOString().split('T')[0] : '',
+    'Group Tele': i.groupTele || '',
+    'Interaction At': i.interactionAt ? i.interactionAt.toISOString().split('T')[0] : '',
+    'Call Count': i.callCount || 0,
+    'Event Names': i.eventNames?.length > 0 ? i.eventNames.join(', ') : '',
+    'Call Log': i.callLog || '',
+    'Compensation Status': i.compensationStatus || '',
+    'Priority': i.priority || '',
+    'Create Date': i.createDate ? i.createDate.toISOString().split('T')[0] : '',
+    'Created At': i.createdAt ? i.createdAt.toISOString().split('T')[0] : '',
+    'First Processed At': i.firstProcessedAt ? i.firstProcessedAt.toISOString().split('T')[0] : '',
+    'First Interacted At': i.firstInteractedAt ? i.firstInteractedAt.toISOString().split('T')[0] : '',
+    'NB At': i.nbAt ? i.nbAt.toISOString().split('T')[0] : '',
+    'Updated At': i.updatedAt ? i.updatedAt.toISOString().split('T')[0] : '',
+
+
+  }));
 };
 
 module.exports = {
