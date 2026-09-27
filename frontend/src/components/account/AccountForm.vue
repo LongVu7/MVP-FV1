@@ -14,9 +14,13 @@
       </div>
     </div>
 
-    <div class="form-grid" v-if="!isEditing">
+    <div class="form-grid">
       <div class="form-field">
-        <label for="af-password">Password <span class="required">*</span></label>
+        <label for="af-password">
+          {{ isEditing ? 'New Password' : 'Password' }} 
+          <span v-if="!isEditing" class="required">*</span>
+          <span v-else style="font-size: 0.75rem; color: var(--p-text-muted-color); font-weight: normal; margin-left: 0.25rem;">(Leave blank to keep unchanged)</span>
+        </label>
         <InputText id="af-password" v-model="form.password" type="password" placeholder="Min 6 characters" :invalid="!!errors.password" fluid />
         <small v-if="errors.password" class="form-error">{{ errors.password }}</small>
       </div>
@@ -94,8 +98,14 @@ const validate = () => {
   } else if (!isValidEmail(form.value.email)) {
     e.email = 'Invalid email format'
   }
-  if (!props.isEditing && (!form.value.password || form.value.password.length < 6)) {
-    e.password = 'Password must be at least 6 characters'
+  if (!props.isEditing) {
+    if (!form.value.password || form.value.password.length < 6) {
+      e.password = 'Password must be at least 6 characters'
+    }
+  } else {
+    if (form.value.password && form.value.password.length < 6) {
+      e.password = 'Password must be at least 6 characters'
+    }
   }
   errors.value = e
   return Object.keys(e).length === 0
@@ -105,7 +115,7 @@ const getPayload = () => {
   const payload = {}
   if (form.value.fullName) payload.fullName = form.value.fullName.trim()
   if (form.value.email) payload.email = form.value.email.trim()
-  if (!props.isEditing && form.value.password) payload.password = form.value.password
+  if (form.value.password) payload.password = form.value.password
   if (form.value.roleId !== undefined) payload.roleId = form.value.roleId
   if (form.value.groupId !== undefined) payload.groupId = form.value.groupId
   if (props.isEditing && form.value.isActive !== undefined) payload.isActive = form.value.isActive

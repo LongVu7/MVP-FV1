@@ -13,6 +13,7 @@ const {
 } = require('../../utils/enumMapper');
 const { applyStatusTransition } = require('../../utils/statusTransition');
 
+// !!-- Create an idempotent key for import process to prevent duplicate imports --!   Notes: Migrate Redis for cache data
 // Map<token, { accountId, data, createdAt, expiresAt, status }>
 const importTokens = new Map();
 
@@ -94,8 +95,9 @@ const parseExcelDate = (val) => {
 };
 
 const resolveHierarchy = (nodes, levelNames, levelsProvided) => {
-  // nodes: list of all nodes for a tree (e.g., all StatusData)
-  // levelNames: ['interaction', 'general', 'detail']
+  // nodes: list of all nodes for a tree (For statusData and sourceData tree)
+  // levelNames: ['interaction', 'general', 'detail'] (statusData)
+  // levelNames: ['source', 'source_detail'] (sourceData) 
   // levelsProvided: array of strings corresponding to labels/names provided in excel
   // Returns { resolvedId, error }
   let currentParentId = null;
@@ -144,7 +146,7 @@ const previewImportInquiry = async (fileBuffer, accountId) => {
     throw error;
   }
 
-  // Validate headers
+  // Validate required column headers
   const fileHeaders = Object.keys(rawData[0] || {});
   for (const [header, config] of Object.entries(COLUMN_MAP)) {
     if (config.requiredStruct && !fileHeaders.includes(header)) {
@@ -285,7 +287,7 @@ const previewImportInquiry = async (fileBuffer, accountId) => {
       if (row.gpa) {
         let norm = normalizeEnum(row.gpa);
         // Sometimes `<` and `>` might not be replaced by the regex.
-        norm = norm.replace(/</g, '<').replace(/>/g, '>'); 
+        norm = norm.replace(/</g, '<').replace(/>/g, '>');
         row.gpa = GPA_MAP[norm] || norm;
         if (!Object.keys(GPA).includes(row.gpa)) {
           row._meta.errors.push(`Invalid GPA: ${row.gpa}`);
@@ -326,7 +328,7 @@ const previewImportInquiry = async (fileBuffer, accountId) => {
           row.specificMajorId = sm?.id;
         }
       }
-      
+
       // Academic Intentions cross-validation
       const hasAcademicIntentions = row.interestedMajorId || row.admissionYear || row.englishCertificate || row.gpa || row.programScore;
       if (hasAcademicIntentions) {

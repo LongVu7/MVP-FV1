@@ -153,7 +153,7 @@ const createAccount = async (req, res) => {
 const updateAccount = async (req, res) => {
   try {
     const { id } = req.params;
-    const { fullName, email, isActive, roleId, groupId } = req.body;
+    const { fullName, email, isActive, roleId, groupId, password } = req.body;
 
     const existing = await prisma.account.findUnique({ where: { id: Number(id) } });
     if (!existing) {
@@ -167,6 +167,9 @@ const updateAccount = async (req, res) => {
     if (isActive !== undefined) updateData.isActive = isActive;
     if (roleId !== undefined) updateData.roleId = roleId ? Number(roleId) : null;
     if (groupId !== undefined) updateData.groupId = groupId ? Number(groupId) : null;
+    if (password) {
+      updateData.password = await bcrypt.hash(password, 10);
+    }
 
     const updatedAccount = await prisma.account.update({
       where: { id: Number(id) },
