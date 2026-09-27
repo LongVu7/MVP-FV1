@@ -1,9 +1,9 @@
 <template>
   <div class="chart-container bg-white dark:bg-gray-800 border rounded shadow-sm p-4 col-span-1 md:col-span-2">
     <h3 class="text-lg font-semibold mb-4">2. Biểu đồ tình trạng xử lý data</h3>
-    
-    <div class="chart-wrapper" style="min-height: 400px;">
-      <Chart type="bar" :data="chartData" :options="chartOptions" class="h-full w-full" />
+
+    <div class="chart-wrapper">
+      <Chart type="bar" :data="chartData" :options="chartOptions" />
     </div>
   </div>
 </template>
@@ -27,7 +27,8 @@ const chartData = computed(() => {
   return {
     labels,
     datasets: ADVISOR_STATUS_CONFIG.map(status => ({
-      label: status.label,
+      label: status.alias,
+      fullLabel: status.label,
       data: mapData(status.key),
       backgroundColor: status.color
     }))
@@ -35,15 +36,26 @@ const chartData = computed(() => {
 })
 
 const chartOptions = {
+  responsive: true,
   maintainAspectRatio: false,
-  aspectRatio: 0.8,
   plugins: {
     legend: {
-      position: 'bottom'
+      position: 'bottom',
+      labels: {
+        boxWidth: 30,
+        boxHeight: 15,
+        padding: 12
+      }
     },
     tooltip: {
-      mode: 'index',
-      intersect: false
+      mode: 'nearest',
+      intersect: true,
+      callbacks: {
+        label: (context) => {
+          const { label: alias, fullLabel } = context.dataset
+          return `${alias} — ${fullLabel}: ${context.formattedValue}`
+        }
+      }
     }
   },
   scales: {
@@ -55,7 +67,11 @@ const chartOptions = {
     },
     y: {
       stacked: true,
-      beginAtZero: true
+      beginAtZero: true,
+      ticks: {
+        precision: 0,
+        maxTicksLimit: 6
+      }
     }
   }
 }
@@ -65,5 +81,12 @@ const chartOptions = {
 .chart-wrapper {
   position: relative;
   width: 100%;
+  height: 340px;
+}
+
+@media (max-width: 768px) {
+  .chart-wrapper {
+    min-height: 300px;
+  }
 }
 </style>

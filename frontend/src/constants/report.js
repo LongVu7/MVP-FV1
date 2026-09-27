@@ -7,15 +7,15 @@ export const majorInterestOptions = [
 ]
 
 export const ADVISOR_STATUS_CONFIG = [
-  { key: 'paymentCompletedNb', label: 'Đã đóng phí (NB)', color: '#10b981' },
-  { key: 'applicationSubmitted', label: 'Đã nộp hồ sơ', color: '#3b82f6' },
-  { key: 'considering', label: 'Cân nhắc', color: '#f59e0b' },
-  { key: 'interested', label: 'Quan tâm', color: '#6366f1' },
-  { key: 'scheduledCallback', label: 'Hẹn gọi lại', color: '#8b5cf6' },
-  { key: 'noAnswer', label: 'Không bắt máy', color: '#ef4444' },
-  { key: 'unreachable', label: 'Không liên lạc được', color: '#f43f5e' },
-  { key: 'notInterested', label: 'Không quan tâm', color: '#9ca3af' },
-  { key: 'wrongNumber', label: 'Sai số', color: '#d1d5db' }
+  { key: 'paymentCompletedNb', alias: 'NB', label: 'Đã đóng phí (NB)', color: '#10b981' },
+  { key: 'applicationSubmitted', alias: 'HS', label: 'Đã nộp hồ sơ', color: '#3b82f6' },
+  { key: 'considering', alias: 'CN', label: 'Cân nhắc', color: '#f59e0b' },
+  { key: 'interested', alias: 'QT', label: 'Quan tâm', color: '#6366f1' },
+  { key: 'scheduledCallback', alias: 'HGL', label: 'Hẹn gọi lại', color: '#8b5cf6' },
+  { key: 'noAnswer', alias: 'KBM', label: 'Không bắt máy', color: '#ef4444' },
+  { key: 'unreachable', alias: 'KLLĐ', label: 'Không liên lạc được', color: '#f43f5e' },
+  { key: 'notInterested', alias: 'KQT', label: 'Không quan tâm', color: '#9ca3af' },
+  { key: 'wrongNumber', alias: 'SS', label: 'Sai số', color: '#d1d5db' }
 ]
 
 export const PERFORMANCE_METRIC_COLUMNS = [

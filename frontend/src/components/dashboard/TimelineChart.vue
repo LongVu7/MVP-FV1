@@ -57,9 +57,12 @@ const chartOptions = {
     }
   },
   scales: {
-    y: {
-      beginAtZero: true
-    }
+    x: {
+    offset: true
+  },
+  y: {
+    beginAtZero: true
+  }
   }
 }
 </script>
