@@ -10,11 +10,11 @@ const { EnglishCertificate, GPA, ProgramScore, SchoolType, ProvinceGroup, Priori
 
 const capitalizeName = (str) => {
   if (typeof str !== 'string' || !str.trim()) return str;
-  return str.trim().split(/\s+/).map(word => 
+  return str.trim().split(/\s+/).map(word =>
     word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
   ).join(' ');
 };
-
+// Optional mobile phone format
 const optionalMobileString = z.preprocess(
   (val) => (val === '' || val === null ? null : val),
   z.string()
@@ -24,7 +24,7 @@ const optionalMobileString = z.preprocess(
     .nullable()
     .optional()
 );
-
+// Required mobile phone format
 const mobileString = z.preprocess(
   (val) => (val === '' || val === null ? undefined : val),
   z.string({ required_error: 'mobile is required' })
@@ -80,7 +80,7 @@ const updateStudentSchema = z.object({
   otherPhone: optionalMobileString.optional(),
   birthDate: dateString.nullable().optional(),
   parentPhone: optionalMobileString.optional(),
-  primaryAddress: z.string().max(255).nullable().optional(),  education: educationSchema.optional(),
+  primaryAddress: z.string().max(255).nullable().optional(), education: educationSchema.optional(),
   specializedRegister: specializedRegisterSchema.optional(),
 
 }).strict().refine(
@@ -141,6 +141,6 @@ const importStudentsPayloadSchema = z.object({
   students: z.array(importStudentSchema).min(1, 'At least one student must be provided for import')
 });
 
-module.exports = { createStudentSchema, updateStudentSchema, importStudentsPayloadSchema };
+module.exports = { createStudentSchema, updateStudentSchema, importStudentsPayloadSchema, mobileString, optionalMobileString, capitalizeName };
 
 

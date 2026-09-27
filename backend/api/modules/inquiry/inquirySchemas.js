@@ -1,11 +1,11 @@
 const { z } = require('zod');
-const { createStudentSchema } = require('../student/studentSchemas');
+const { createStudentSchema, optionalMobileString, mobileString, capitalizeName } = require('../student/studentSchemas');
 
 const dateString = z.string().refine((val) => !isNaN(Date.parse(val)), {
   message: 'Must be a valid date string'
 });
 
-const { 
+const {
   EventName,
   CompensationStatus,
   Priority
@@ -24,11 +24,11 @@ const inquiryFields = {
   createDate: dateString.optional(),
   interactionAt: dateString.optional(),
   callCount: z.number().int().min(1).max(10).optional(),
-  eventNames: z.array(z.nativeEnum(EventName)).optional(),
+  eventNames: z.array(z.enum(EventName)).optional(),
   callLog: z.string().max(5000).optional(),
   recordFile: z.string().optional(),
-  compensationStatus: z.nativeEnum(CompensationStatus).optional(),
-  priority: z.nativeEnum(Priority).optional()
+  compensationStatus: z.enum(CompensationStatus).optional(),
+  priority: z.enum(Priority).optional()
 };
 
 const createInquirySchema = z.object(inquiryFields).strict();
@@ -43,11 +43,11 @@ const updateInquirySchema = z.object({
   createDate: dateString.nullable().optional(),
   interactionAt: dateString.nullable().optional(),
   callCount: z.number().int().min(1).max(10).nullable().optional(),
-  eventNames: z.array(z.nativeEnum(EventName)).nullable().optional(),
+  eventNames: z.array(z.enum(EventName)).nullable().optional(),
   callLog: z.string().max(5000).nullable().optional(),
   recordFile: z.string().nullable().optional(),
-  compensationStatus: z.nativeEnum(CompensationStatus).nullable().optional(),
-  priority: z.nativeEnum(Priority).nullable().optional()
+  compensationStatus: z.enum(CompensationStatus).nullable().optional(),
+  priority: z.enum(Priority).nullable().optional()
 }).strict().refine((data) => Object.keys(data).length > 0, {
   message: 'Request body cannot be empty'
 });
@@ -60,10 +60,51 @@ const assignAccountSchema = z.object({
   accountId: z.number().int('accountId must be an integer')
 }).strict();
 
+// Schema for raw rows imported from Excel
+const importInquirySchema = z.object({
+  fullName: z.string().nullable().optional().or(z.literal('')).transform(capitalizeName),
+  gender: z.string().nullable().optional().or(z.literal('')),
+  email: z.string().email('Invalid email format').nullable().optional().or(z.literal('')),
+  mobile: mobileString,
+  otherPhone: optionalMobileString,
+  parentPhone: optionalMobileString,
+  birthDate: z.date().nullable().optional().or(z.literal('')),
+  primaryAddress: z.string().nullable().optional().or(z.literal('')),
+  priority: z.string().nullable().optional().or(z.literal('')),
+
+  oldProvince: z.string().nullable().optional().or(z.literal('')),
+  school: z.string().nullable().optional().or(z.literal('')),
+  newProvince: z.string().nullable().optional().or(z.literal('')),
+  country: z.string().nullable().optional().or(z.literal('')),
+  provinceGroup: z.string().nullable().optional().or(z.literal('')),
+  schoolType: z.string().nullable().optional().or(z.literal('')),
+  class: z.string().nullable().optional().or(z.literal('')),
+
+  interestedMajor: z.string().nullable().optional().or(z.literal('')),
+  specificMajor: z.string().nullable().optional().or(z.literal('')),
+  admissionYear: z.union([z.string(), z.number()]).nullable().optional().or(z.literal('')),
+  englishCertificate: z.string().nullable().optional().or(z.literal('')),
+  gpa: z.string().nullable().optional().or(z.literal('')),
+  programScore: z.string().nullable().optional().or(z.literal('')),
+
+  assignedTo: z.string().email('Assigned To must be a valid email').nullable().optional().or(z.literal('')),
+  statusInteraction: z.string().nullable().optional().or(z.literal('')),
+  statusGeneral: z.string().nullable().optional().or(z.literal('')),
+  statusDetail: z.string().nullable().optional().or(z.literal('')),
+  source: z.string().nullable().optional().or(z.literal('')),
+  sourceDetail: z.string().nullable().optional().or(z.literal('')),
+  approachMethod: z.string().nullable().optional().or(z.literal('')),
+  description: z.string().nullable().optional().or(z.literal('')),
+  dataReceived: z.date().nullable().optional().or(z.literal('')),
+
+  _meta: z.any().optional()
+});
+
 module.exports = {
   createInquirySchema,
   updateInquirySchema,
   assignStudentSchema,
-  assignAccountSchema
+  assignAccountSchema,
+  importInquirySchema
 };
 
