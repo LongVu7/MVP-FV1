@@ -66,7 +66,7 @@
       </Column>
       <Column field="createdAt" header="Created" sortable style="width: 150px">
         <template #body="{ data }">
-          <span class="date-text">{{ formatDate(data.createdAt) }}</span>
+          <span class="date-text">{{ formatCompactDate(data.createdAt) }}</span>
         </template>
       </Column>
       <Column header="Actions" style="width: 120px" :exportable="false" frozen alignFrozen="right">
@@ -96,6 +96,8 @@ import IconField from 'primevue/iconfield'
 import InputIcon from 'primevue/inputicon'
 import ConfirmDialog from 'primevue/confirmdialog'
 import { useConfirm } from 'primevue/useconfirm'
+import { getStatusLevel } from '@/utils/inquiryLabels'
+import { formatCompactDate } from '@/utils/dateUtils'
 
 const props = defineProps({
   inquiries: { type: Array, default: () => [] },
@@ -138,32 +140,6 @@ const confirmDeleteAction = (inquiry) => {
       emit('delete', inquiry.id)
     }
   })
-}
-
-const formatDate = (dateStr) => {
-  if (!dateStr) return '—'
-  return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
-}
-
-const getStatusLevel = (statusData, level) => {
-  if (!statusData) return '—'
-  
-  if (level === 'interaction') {
-    if (statusData.level === 'interaction') return statusData.label
-    if (statusData.level === 'general' && statusData.parent) return statusData.parent.label
-    if (statusData.level === 'detail' && statusData.parent?.parent) return statusData.parent.parent.label
-  }
-  
-  if (level === 'general') {
-    if (statusData.level === 'general') return statusData.label
-    if (statusData.level === 'detail' && statusData.parent) return statusData.parent.label
-  }
-  
-  if (level === 'detail') {
-    if (statusData.level === 'detail') return statusData.label
-  }
-  
-  return '—'
 }
 </script>
 

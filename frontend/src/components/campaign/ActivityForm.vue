@@ -3,7 +3,7 @@
         <div class="formgrid grid">
             <div class="field col">
                 <label for="actType">Type *</label>
-                <Select id="actType" v-model="activity.type" :options="typeOptions" optionLabel="label" optionValue="value" :disabled="isEditMode" @change="onTypeChange" />
+                <Select id="actType" v-model="activity.type" :options="activityTypeOptions" optionLabel="label" optionValue="value" :disabled="isEditMode" @change="onTypeChange" />
             </div>
             <div class="field col">
                 <label for="actName">Activity Name *</label>
@@ -64,6 +64,7 @@ import DatePicker from 'primevue/datepicker'
 import Button from 'primevue/button'
 import { ref, onMounted, watch } from 'vue'
 import { useCampaignTemplates } from '@/composables/useCampaignTemplates'
+import { activityTypeOptions } from '@/constants/campaign'
 
 const props = defineProps({
     modelValue: { type: Object, required: true },
@@ -77,12 +78,6 @@ const activity = computed({
     get: () => props.modelValue,
     set: (value) => emit('update:modelValue', value)
 })
-
-const typeOptions = [
-    { label: 'Email Campaign', value: 'EMAIL' },
-    { label: 'SMS Campaign', value: 'SMS' },
-    { label: 'ZNS Campaign', value: 'ZNS' }
-]
 
 const characterCount = computed(() => {
     return activity.value.content ? activity.value.content.length : 0
@@ -106,6 +101,7 @@ const filterTemplates = () => {
     filteredTemplates.value = templates.value.filter(t => t.channel === activity.value.type)
     if (selectedTemplate.value && selectedTemplate.value.channel !== activity.value.type) {
         selectedTemplate.value = null
+        activity.value.templateId = null
     }
 }
 

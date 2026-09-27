@@ -17,7 +17,7 @@
             </div>
             <div class="form-field">
                 <label for="status">Status *</label>
-                <Select id="status" v-model="campaign.status" :options="statusOptions" optionLabel="label" optionValue="value" />
+                <Select id="status" v-model="campaign.status" :options="campaignStatusOptions" optionLabel="label" optionValue="value" />
             </div>
         </div>
 
@@ -52,6 +52,7 @@ import Textarea from 'primevue/textarea'
 import DatePicker from 'primevue/datepicker'
 import Button from 'primevue/button'
 import { getAllAccounts } from '@/services/accountService'
+import { campaignStatusOptions } from '@/constants/campaign'
 
 const props = defineProps({
     modelValue: { type: Object, required: true },
@@ -67,13 +68,6 @@ const campaign = computed({
 })
 
 const accounts = ref([])
-
-const statusOptions = [
-    { label: 'In Progress', value: 'in_progress' },
-    { label: 'Scheduled', value: 'scheduled' },
-    { label: 'Completed', value: 'completed' },
-    { label: 'Cancelled', value: 'cancelled' }
-]
 
 onMounted(async () => {
     try {

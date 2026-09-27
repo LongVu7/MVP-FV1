@@ -7,17 +7,17 @@
         <Column field="owner.fullName" header="Owner" sortable style="min-width: 10rem"></Column>
         <Column field="status" header="Status" sortable style="min-width: 10rem">
             <template #body="{ data }">
-                <Tag :value="data.status" :severity="getStatusSeverity(data.status)" />
+                <Tag :value="getCampaignStatusLabel(data.status)" :severity="getCampaignStatusSeverity(data.status)" />
             </template>
         </Column>
         <Column field="startDate" header="Start Date" sortable style="min-width: 10rem">
             <template #body="{ data }">
-                {{ formatDate(data.startDate) }}
+                {{ formatCompactDate(data.startDate) }}
             </template>
         </Column>
         <Column field="endDate" header="End Date" sortable style="min-width: 10rem">
             <template #body="{ data }">
-                {{ formatDate(data.endDate) }}
+                {{ formatCompactDate(data.endDate) }}
             </template>
         </Column>
         
@@ -35,6 +35,8 @@ import DataTable from 'primevue/datatable'
 import Column from 'primevue/column'
 import Button from 'primevue/button'
 import Tag from 'primevue/tag'
+import { formatCompactDate } from '@/utils/dateUtils'
+import { getCampaignStatusSeverity, getCampaignStatusLabel } from '@/utils/campaignLabels'
 
 defineProps({
     campaigns: { type: Array, required: true },
@@ -42,19 +44,4 @@ defineProps({
 })
 
 const emit = defineEmits(['edit', 'delete'])
-
-const getStatusSeverity = (status) => {
-    switch (status) {
-        case 'in_progress': return 'info'
-        case 'completed': return 'success'
-        case 'scheduled': return 'warning'
-        case 'cancelled': return 'danger'
-        default: return 'secondary'
-    }
-}
-
-const formatDate = (value) => {
-    if (!value) return ''
-    return new Date(value).toLocaleDateString('en-US')
-}
 </script>

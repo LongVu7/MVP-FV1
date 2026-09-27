@@ -111,7 +111,7 @@
 
       <Column field="education.class" header="Class" sortable style="min-width: 100px">
         <template #body="{ data }">
-          <span v-if="data.education?.class">{{ formatClass(data.education.class) }}</span>
+          <span v-if="data.education?.class">{{ getClassLabel(data.education.class) }}</span>
           <span v-else class="null-text">—</span>
         </template>
       </Column>
@@ -134,7 +134,7 @@
 
       <Column header="GPA" style="min-width: 130px">
         <template #body="{ data }">
-          <span v-if="data.specializedRegister?.gpa" class="gpa-badge">{{ gpaLabel(data.specializedRegister.gpa)
+          <span v-if="data.specializedRegister?.gpa" class="gpa-badge">{{ getGpaLabel(data.specializedRegister.gpa)
           }}</span>
           <span v-else class="null-text">—</span>
         </template>
@@ -180,6 +180,8 @@ import Popover from 'primevue/popover'
 import Badge from 'primevue/badge'
 import { useConfirm } from 'primevue/useconfirm'
 import { useSchoolOptions } from '@/composables/useSchoolOptions'
+import { getClassLabel, getGpaLabel } from '@/utils/studentLabels'
+import { formatCompactDate, formatCompactTime } from '@/utils/dateUtils'
 
 const props = defineProps({
   students: { type: Array, default: () => [] },
@@ -232,12 +234,6 @@ const resetFilters = () => {
   filterPopover.value.hide()
 }
 
-const classOptions = [
-  { label: 'Lớp 11', value: 'GRADE_11' },
-  { label: 'Lớp 12', value: 'GRADE_12' },
-  { label: 'Thí sinh tự do', value: 'FREELANCE' }
-]
-
 const currentYear = new Date().getFullYear()
 const birthYearOptions = Array.from({ length: 40 }, (_, i) => {
   const year = currentYear - i
@@ -274,38 +270,6 @@ const confirmDeleteAction = (student) => {
       emit('delete', student.id)
     }
   })
-}
-
-const gpaLabel = (g) => {
-  if (g === 'LOWER_21') return '3 môn <21đ'
-  if (g === 'G11_21_TO_23') return '3 môn lớp 11 từ 21-23đ'
-  if (g === 'G12_SEM1_21_TO_23') return '3 môn HK1 12 từ 21-23đ'
-  if (g === 'G12_21_TO_23') return '3 môn cả năm 12 từ 21-23đ'
-  if (g === 'G11_24_TO_26') return '3 môn lớp 11 từ 24-26đ'
-  if (g === 'G12_SEM1_24_TO_26') return '3 môn HK1 12 từ 24-26đ'
-  if (g === 'G12_24_TO_26') return '3 môn cả năm 12 từ 24-26đ'
-  if (g === 'G11_HIGHER_26') return '3 môn lớp 11 >26đ'
-  if (g === 'G12_SEM1_HIGHER_26') return '3 môn HK1 12 >26đ'
-  if (g === 'G12_HIGHER_26') return '3 môn cả năm 12 >26đ'
-  if (g === 'OTHER') return 'Khác'
-  return g
-}
-
-const formatClass = (value) => {
-  const opt = classOptions.find(o => o.value === value)
-  return opt ? opt.label : value
-}
-
-const formatCompactDate = (dateStr) => {
-  if (!dateStr) return '—'
-  const d = new Date(dateStr)
-  const month = d.toLocaleString('en-US', { month: 'short' })
-  return `${month} ${d.getDate()}, ${d.getFullYear()}`
-}
-
-const formatCompactTime = (dateStr) => {
-  if (!dateStr) return ''
-  return new Date(dateStr).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
 }
 </script>
 

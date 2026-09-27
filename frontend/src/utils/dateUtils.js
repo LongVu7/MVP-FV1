@@ -33,3 +33,21 @@ export const formatDateYMD = (date) => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
+/**
+ * Format a date string in a compact list format (e.g. "Sep 17, 2026").
+ */
+export const formatCompactDate = (dateStr) => {
+  if (!dateStr) return '—'
+  const d = new Date(dateStr)
+  const month = d.toLocaleString('en-US', { month: 'short' })
+  return `${month} ${d.getDate()}, ${d.getFullYear()}`
+}
+
+/**
+ * Format a time string in a compact list format (e.g. "01:30 PM").
+ */
+export const formatCompactTime = (dateStr) => {
+  if (!dateStr) return ''
+  return new Date(dateStr).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+}
+
