@@ -6,7 +6,7 @@
       v-model:selection="selectedStudents" dataKey="id" :removableSort="true" :scrollable="true"
       :scrollHeight="'calc(100vh - 200px)'" class="student-datatable"
       paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown CurrentPageReport"
-      currentPageReportTemplate="{first}–{last} of {totalRecords} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Rows per page: {rows}"
+      currentPageReportTemplate="Showing {first} to {last} of {totalRecords}"
       :paginatorLeft="true" :paginatorRight="true">
       <template #header>
         <!-- Primary Toolbar -->
@@ -21,6 +21,8 @@
           <div class="toolbar-actions">
             <Button v-if="$can('import', 'student')" label="Import" icon="pi pi-file-import" text
               @click="emit('open-import')" class="import-btn" />
+            <Button v-if="$can('export', 'student')" label="Export" icon="pi pi-download" text
+              @click="emit('export')" class="export-btn" :loading="exporting" />
             <Button v-if="$can('create', 'student')" label="New Student" icon="pi pi-plus"
               @click="$router.push('/students/new')" />
           </div>
@@ -182,10 +184,11 @@ import { useSchoolOptions } from '@/composables/useSchoolOptions'
 const props = defineProps({
   students: { type: Array, default: () => [] },
   loading: { type: Boolean, default: false },
+  exporting: { type: Boolean, default: false },
   pagination: { type: Object, default: null }
 })
 
-const emit = defineEmits(['page-change', 'search', 'delete', 'delete-multiple', 'sort', 'filter', 'show', 'open-import'])
+const emit = defineEmits(['page-change', 'search', 'delete', 'delete-multiple', 'sort', 'filter', 'show', 'open-import', 'export'])
 
 const router = useRouter()
 const confirm = useConfirm()

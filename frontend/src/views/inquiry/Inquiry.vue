@@ -13,11 +13,13 @@
     <InquiryList 
       :inquiries="inquiries"
       :loading="loading"
+      :exporting="exporting"
       :pagination="pagination"
       @page-change="onPageChange"
       @search="onSearch"
       @delete="onDelete"
       @show="onShow"
+      @export="onExport"
     />
 
     <InquiryShowDialog
@@ -34,6 +36,7 @@ import Tag from 'primevue/tag'
 import InquiryList from '@/components/inquiry/InquiryList.vue'
 import InquiryShowDialog from '@/components/inquiry/InquiryShowDialog.vue'
 import { useInquiry } from '@/composables/useInquiry'
+import { exportInquiries } from '@/services/inquiryService'
 import { useToast } from 'primevue/usetoast'
 
 const { inquiries, pagination, loading, fetchInquiries, deleteInquiry } = useInquiry()
@@ -44,6 +47,7 @@ const currentParams = ref({ page: 1, limit: 20, search: '' })
 // Show dialog state
 const showDialogVisible = ref(false)
 const showDialogInquiryId = ref(null)
+const exporting = ref(false)
 
 onMounted(async () => {
   await loadData()
@@ -82,6 +86,27 @@ const onDelete = async (id) => {
 const onShow = (inquiryId) => {
   showDialogInquiryId.value = inquiryId
   showDialogVisible.value = true
+}
+
+const onExport = async () => {
+  if (exporting.value) return
+  exporting.value = true
+  try {
+    const data = await exportInquiries(currentParams.value)
+    const url = window.URL.createObjectURL(new Blob([data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `inquiries-${new Date().toISOString().split('T')[0]}.xlsx`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+    toast.add({ severity: 'success', summary: 'Success', detail: 'Export downloaded successfully', life: 3000 })
+  } catch (error) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to export inquiries', life: 5000 })
+  } finally {
+    exporting.value = false
+  }
 }
 </script>
 

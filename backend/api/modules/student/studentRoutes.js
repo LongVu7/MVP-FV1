@@ -12,6 +12,9 @@ router.route('/')
     .get(authenticate, authorize('student.read'), studentController.getAllStudents)
     .post(authenticate, authorize('student.create'), validateBody(createStudentSchema), studentController.createStudent);
 
+router.route('/export')
+    .get(authenticate, authorize('student.export'), studentController.exportStudents);
+
 router.route('/import/preview')
     .post(authenticate, authorize('student.import'), upload.array('files'), studentController.previewImport);
 

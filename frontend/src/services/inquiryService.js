@@ -75,3 +75,11 @@ export const confirmImportInquiry = async (importToken) => {
   const response = await api.post(`${prefix}/import/confirm`, { importToken })
   return response.data
 }
+
+export const exportInquiries = async (paramsObj = {}) => {
+  const response = await api.get(`${prefix}/export`, {
+    params: paramsObj,
+    responseType: 'blob'
+  })
+  return response.data
+}

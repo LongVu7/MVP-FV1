@@ -12,13 +12,13 @@ import { definePreset } from '@primeuix/themes'
 
 const CustomPreset = definePreset(Aura, {
   semantic: {
-    primary: {
+    primary: { //Primary color: #3b65b5
       50: '#eff4fa',
       100: '#dce8f5',
       200: '#bed5ee',
       300: '#90bae4',
       400: '#5c9ad5',
-      500: '#3b65b5', //Primary color
+      500: '#3b65b5', 
       600: '#2b509a',
       700: '#23417e',
       800: '#1f3768',

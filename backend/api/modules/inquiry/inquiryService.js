@@ -1,7 +1,7 @@
 const prisma = require('../../../config/db');
 const { buildInquiryScope } = require('../../../authorization/scope/inquiryScope');
 const { applyStatusTransition } = require('../../utils/statusTransition');
-
+const { flattenObject } = require('../../utils/exportUtils');
 // ─── Error factory
 const handleError = (message, status) => {
   const err = new Error(message);
@@ -57,22 +57,42 @@ const fetchInquiry = (txOrPrisma, id) =>
 
 const { buildPaginationMeta } = require('../../utils/pagination');
 
-// ─── List all inquiries
-const getAllInquiries = async ({ page, limit, skip, search, user, hasStudent }) => {
+// ─── Build Inquiry Where Clause
+const buildInquiryWhere = async (filters, user) => {
   const scope = await buildInquiryScope(user);
   const where = { ...scope };
 
-  if (hasStudent) {
+  if (filters.hasStudent) {
     where.studentId = { not: null };
   }
 
-  if (search) {
+  if (filters.search) {
     const searchCondition = [
-      { description: { contains: search, mode: 'insensitive' } },
-      { student: { fullName: { contains: search, mode: 'insensitive' } } }
+      { description: { contains: filters.search, mode: 'insensitive' } },
+      { student: { fullName: { contains: filters.search, mode: 'insensitive' } } }
     ];
     where.AND = [...(where.AND || []), { OR: searchCondition }];
   }
+  
+  // Existing specific status and assignment filters for Inquiry
+  if (filters.statusGeneral) {
+    where.AND = [...(where.AND || []), {
+      statusData: {
+        parent: { label: filters.statusGeneral }
+      }
+    }];
+  }
+  if (filters.assignedTo) {
+    where.assignedToId = parseInt(filters.assignedTo, 10);
+  }
+
+  return where;
+};
+
+// ─── List all inquiries
+const getAllInquiries = async (filters) => {
+  const { page, limit, skip, user } = filters;
+  const where = await buildInquiryWhere(filters, user);
 
   const [inquiries, totalCount] = await prisma.$transaction([
     prisma.inquiry.findMany({
@@ -406,6 +426,31 @@ const searchAccounts = async (query) =>
     orderBy: { fullName: 'asc' }
   });
 
+// ─── Export Inquiries
+const exportInquiries = async (filters, user) => {
+  const where = await buildInquiryWhere(filters, user);
+  const inquiries = await prisma.inquiry.findMany({
+    where,
+    orderBy: { createdAt: 'desc' },
+    include: {
+      student: true,
+      assignedTo: true,
+      sourceData: true,
+      statusData: {
+        include: {
+          parent: {
+            include: {
+              parent: true
+            }
+          }
+        }
+      }
+    }
+  });
+
+  return inquiries.map(i => flattenObject(i));
+};
+
 module.exports = {
   getAllInquiries,
   getInquiryById,
@@ -416,5 +461,6 @@ module.exports = {
   unassignStudentFromInquiry,
   assignAccountToInquiry,
   searchStudents,
-  searchAccounts
+  searchAccounts,
+  exportInquiries
 };

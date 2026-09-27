@@ -1,6 +1,7 @@
 const prisma = require('../../../config/db');
 const xlsx = require('xlsx');
 const { buildPaginationMeta } = require('../../utils/pagination');
+const { flattenObject } = require('../../utils/exportUtils');
 const {
   removeVietnameseTones,
   normalizeEnum,
@@ -67,8 +68,7 @@ const createStudent = async (data) => {
 };
 
 
-// ─── Get all students
-const getAllStudents = async ({ page, limit, skip, search, sortField, sortOrder, oldProvinceId, newProvinceId, countryId, provinceGroup, schoolType, birthYear, class: studentClass }) => {
+const buildStudentWhere = ({ search, oldProvinceId, newProvinceId, countryId, provinceGroup, schoolType, birthYear, class: studentClass }) => {
   const where = {};
   
   if (search) {
@@ -88,7 +88,6 @@ const getAllStudents = async ({ page, limit, skip, search, sortField, sortOrder,
     };
   }
 
-
   // Education filters
   if (oldProvinceId || newProvinceId || countryId || provinceGroup || schoolType || studentClass) {
     where.education = {
@@ -100,6 +99,14 @@ const getAllStudents = async ({ page, limit, skip, search, sortField, sortOrder,
       ...(studentClass && { class: studentClass })
     };
   }
+
+  return where;
+};
+
+// ─── Get all students
+const getAllStudents = async (filters) => {
+  const { page, limit, skip, sortField, sortOrder } = filters;
+  const where = buildStudentWhere(filters);
 
   let orderBy = { createdAt: 'desc' };
   if (sortField) {
@@ -680,6 +687,32 @@ const processImport = async (students) => {
   return { insertedCount, updatedCount };
 };
 
+// ─── Export students
+const exportStudents = async (filters) => {
+  const where = buildStudentWhere(filters);
+  const students = await prisma.student.findMany({
+    where,
+    orderBy: { createdAt: 'desc' },
+    include: {
+      specializedRegister: {
+        include: {
+          interestedMajor: true,
+          specificMajor: true
+        }
+      },
+      education: {
+        include: {
+          school: { include: { oldProvince: true } },
+          newProvince: true,
+          country: true
+        }
+      }
+    }
+  });
+
+  return students.map(s => flattenObject(s));
+};
+
 module.exports = {
   createStudent,
   getAllStudents,
@@ -687,5 +720,6 @@ module.exports = {
   updateStudent,
   deleteStudent,
   analyzeImport,
-  processImport
+  processImport,
+  exportStudents
 }; 

@@ -2,6 +2,7 @@ const fs = require('fs');
 const studentService = require('./studentService');
 const { parseExcelFiles } = require('../../utils/excelParser');
 const { parsePagination } = require('../../utils/pagination');
+const { generateExcelBuffer } = require('../../utils/exportUtils');
 
 // Helper: translate service errors to HTTP responses
 const handleError = (res, error) => {
@@ -29,13 +30,21 @@ const createStudent = async (req, res) => {
 const getAllStudents = async (req, res) => {
   try {
     const { page, limit, skip } = parsePagination(req.query);
-    const search = req.query.search || '';
-    const sortField = req.query.sortField || null;
-    const sortOrder = req.query.sortOrder ? parseInt(req.query.sortOrder, 10) : null;
-    const oldProvinceId = req.query.oldProvinceId || null;
-    const birthYear = req.query.birthYear || null;
+    const filters = {
+      page, limit, skip,
+      search: req.query.search || '',
+      sortField: req.query.sortField || null,
+      sortOrder: req.query.sortOrder ? parseInt(req.query.sortOrder, 10) : null,
+      oldProvinceId: req.query.oldProvinceId || null,
+      newProvinceId: req.query.newProvinceId || null,
+      countryId: req.query.countryId || null,
+      provinceGroup: req.query.provinceGroup || null,
+      schoolType: req.query.schoolType || null,
+      birthYear: req.query.birthYear || null,
+      class: req.query.class || null,
+    };
 
-    const { students, pagination } = await studentService.getAllStudents({ page, limit, skip, search, sortField, sortOrder, oldProvinceId, birthYear });
+    const { students, pagination } = await studentService.getAllStudents(filters);
 
     res.status(200).json({
       message: 'Students retrieved successfully',
@@ -44,6 +53,30 @@ const getAllStudents = async (req, res) => {
       data: students,
       pagination
     });
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
+const exportStudents = async (req, res) => {
+  try {
+    const filters = {
+      search: req.query.search || '',
+      oldProvinceId: req.query.oldProvinceId || null,
+      newProvinceId: req.query.newProvinceId || null,
+      countryId: req.query.countryId || null,
+      provinceGroup: req.query.provinceGroup || null,
+      schoolType: req.query.schoolType || null,
+      birthYear: req.query.birthYear || null,
+      class: req.query.class || null,
+    };
+
+    const data = await studentService.exportStudents(filters);
+    const buffer = generateExcelBuffer(data, 'Students');
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="students-${new Date().toISOString().split('T')[0]}.xlsx"`);
+    res.send(buffer);
   } catch (error) {
     handleError(res, error);
   }
@@ -142,6 +175,7 @@ const confirmImport = async (req, res) => {
 module.exports = {
   createStudent,
   getAllStudents,
+  exportStudents,
   updateStudent,
   deleteStudent,
   previewImport,

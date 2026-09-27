@@ -33,6 +33,9 @@ router.route('/')
     .get(authenticate, authorize('inquiry.read'), inquiryController.getAllInquiries)
     .post(authenticate, authorize('inquiry.create'), validateBody(createInquirySchema), inquiryController.createInquiry);
 
+router.route('/export')
+    .get(authenticate, authorize('inquiry.export'), inquiryController.exportInquiries);
+
 router.route('/:id')
     .get(authenticate, authorize('inquiry.read', withOwnership), validateParams(idParamSchema), inquiryController.getInquiryById)
     .put(authenticate, authorize('inquiry.update', withOwnership), validateParams(idParamSchema), validateBody(updateInquirySchema), inquiryController.updateInquiry)

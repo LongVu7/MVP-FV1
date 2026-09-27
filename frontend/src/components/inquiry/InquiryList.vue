@@ -13,6 +13,10 @@
             <InputText placeholder="Search inquiries (desc, student)..." @input="onSearch" :value="searchQuery"
               class="search-input" />
           </IconField>
+          <div class="toolbar-actions" style="margin-left: auto;">
+            <Button v-if="$can('export', 'inquiry')" label="Export" icon="pi pi-download" text
+              @click="emit('export')" class="export-btn" :loading="exporting" />
+          </div>
         </div>
       </template>
 
@@ -96,10 +100,11 @@ import { useConfirm } from 'primevue/useconfirm'
 const props = defineProps({
   inquiries: { type: Array, default: () => [] },
   loading: { type: Boolean, default: false },
+  exporting: { type: Boolean, default: false },
   pagination: { type: Object, default: null }
 })
 
-const emit = defineEmits(['page-change', 'search', 'delete', 'show'])
+const emit = defineEmits(['page-change', 'search', 'delete', 'show', 'export'])
 
 const router = useRouter()
 const confirm = useConfirm()

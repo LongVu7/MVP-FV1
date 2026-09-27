@@ -1,4 +1,5 @@
 const inquiryService = require('./inquiryService');
+const { generateExcelBuffer } = require('../../utils/exportUtils');
 
 // Error handling
 const handleError = (res, error) => {
@@ -14,8 +15,10 @@ const getAllInquiries = async (req, res) => {
     const { page, limit, skip } = parsePagination(req.query);
     const search = req.query.search || '';
     const hasStudent = req.query.hasStudent === 'true';
+    const statusGeneral = req.query.statusGeneral || null;
+    const assignedTo = req.query.assignedTo || null;
 
-    const { inquiries, pagination } = await inquiryService.getAllInquiries({ page, limit, skip, search, user: req.user, hasStudent });
+    const { inquiries, pagination } = await inquiryService.getAllInquiries({ page, limit, skip, search, user: req.user, hasStudent, statusGeneral, assignedTo });
 
     res.status(200).json({
       message: 'Inquiries retrieved successfully',
@@ -24,6 +27,27 @@ const getAllInquiries = async (req, res) => {
       data: inquiries,
       pagination
     });
+  } catch (error) {
+    handleError(res, error);
+  }
+};
+
+// ─── Export Inquiries
+const exportInquiries = async (req, res) => {
+  try {
+    const filters = {
+      search: req.query.search || '',
+      hasStudent: req.query.hasStudent === 'true',
+      statusGeneral: req.query.statusGeneral || null,
+      assignedTo: req.query.assignedTo || null
+    };
+
+    const data = await inquiryService.exportInquiries(filters, req.user);
+    const buffer = generateExcelBuffer(data, 'Inquiries');
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="inquiries-${new Date().toISOString().split('T')[0]}.xlsx"`);
+    res.send(buffer);
   } catch (error) {
     handleError(res, error);
   }
@@ -252,6 +276,7 @@ const confirmImportInquiry = async (req, res) => {
 
 module.exports = {
   getAllInquiries,
+  exportInquiries,
   getInquiryById,
   createInquiry,
   updateInquiry,

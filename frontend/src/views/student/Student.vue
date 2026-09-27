@@ -7,9 +7,9 @@
       </div>
     </div>
 
-    <StudentList :students="students" :loading="loading" :pagination="pagination" @page-change="onPageChange"
+    <StudentList :students="students" :loading="loading" :exporting="exporting" :pagination="pagination" @page-change="onPageChange"
       @search="onSearch" @delete="onDelete" @sort="onSort" @filter="onFilter" @show="onShow"
-      @open-import="showImportDialog = true" />
+      @open-import="showImportDialog = true" @export="onExport" />
 
     <StudentShowDialog v-model:visible="showDialogVisible" :studentId="showDialogStudentId" />
 
@@ -24,6 +24,7 @@ import StudentList from '@/components/student/StudentList.vue'
 import StudentShowDialog from '@/components/student/StudentShowDialog.vue'
 import StudentImportDialog from '@/components/student/StudentImportDialog.vue'
 import { useStudent } from '@/composables/useStudent'
+import { exportStudents } from '@/services/studentService'
 import { useToast } from 'primevue/usetoast'
 
 const { students, pagination, loading, fetchStudents, deleteStudent } = useStudent()
@@ -38,6 +39,7 @@ const currentParams = ref({
 const showDialogVisible = ref(false)
 const showDialogStudentId = ref(null)
 const showImportDialog = ref(false)
+const exporting = ref(false)
 
 onMounted(async () => {
   await loadData()
@@ -94,6 +96,27 @@ const onImportSuccess = async () => {
   // Reload the data if import was successful
   currentParams.value.page = 1
   await loadData()
+}
+
+const onExport = async () => {
+  if (exporting.value) return
+  exporting.value = true
+  try {
+    const data = await exportStudents(currentParams.value)
+    const url = window.URL.createObjectURL(new Blob([data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `students-${new Date().toISOString().split('T')[0]}.xlsx`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+    toast.add({ severity: 'success', summary: 'Success', detail: 'Export downloaded successfully', life: 3000 })
+  } catch (error) {
+    toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to export students', life: 5000 })
+  } finally {
+    exporting.value = false
+  }
 }
 </script>
 

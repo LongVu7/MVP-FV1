@@ -57,3 +57,11 @@ export const confirmImport = async (students) => {
   const response = await api.post(`${prefix}/import/confirm`, { students })
   return response.data
 }
+
+export const exportStudents = async (paramsObj = {}) => {
+  const response = await api.get(`${prefix}/export`, {
+    params: paramsObj,
+    responseType: 'blob'
+  })
+  return response.data
+}
