@@ -17,8 +17,6 @@ model Student {
 
   primaryAddress String? @map("primary_address") @db.VarChar(255)
 
-  priority Priority? @map("priority")
-
   education StudentEducation?
 
   specializedRegisterId Int?                 @unique @map("specialized_register_id")

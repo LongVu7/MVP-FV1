@@ -97,6 +97,10 @@ const navigateToEdit = () => {
             <span class="field-label">Data Received</span>
             <span class="field-value">{{ formatDate(inquiryData.dataReceived) }}</span>
           </div>
+          <div class="field-item">
+            <span class="field-label">Priority</span>
+            <span class="field-value">{{ inquiryData.priority || '—' }}</span>
+          </div>
         </div>
       </div>
 
@@ -106,32 +110,7 @@ const navigateToEdit = () => {
         <p class="description-text">{{ inquiryData.description || '—' }}</p>
       </div>
 
-      <!-- Assigned Account -->
-      <div class="show-section">
-        <h3 class="section-title"><i class="pi pi-briefcase"></i> Assigned Account</h3>
-        <div v-if="inquiryData.assignedTo" class="entity-info">
-          <div class="entity-avatar"><i class="pi pi-id-card"></i></div>
-          <div class="entity-details">
-            <h4 class="entity-name">{{ inquiryData.assignedTo.fullName }}</h4>
-            <p class="entity-meta">{{ inquiryData.assignedTo.email || 'No email' }}</p>
-          </div>
-        </div>
-        <span v-else class="field-value field-value--muted">No account assigned</span>
-      </div>
-
-      <!-- Student Assignment — visible only with inquiry.assign permission -->
-      <div v-if="$can('assign', 'inquiry')" class="show-section">
-        <h3 class="section-title"><i class="pi pi-user"></i> Student Assignment</h3>
-        <div v-if="inquiryData.student" class="entity-info">
-          <div class="entity-avatar"><i class="pi pi-user"></i></div>
-          <div class="entity-details">
-            <h4 class="entity-name">{{ inquiryData.student.fullName }}</h4>
-            <p class="entity-meta">{{ inquiryData.student.email || 'No email' }} | {{ inquiryData.student.mobile || 'No phone' }}</p>
-          </div>
-        </div>
-        <span v-else class="field-value field-value--muted">No student assigned</span>
-      </div>
-
+      
       <!-- Interaction Information -->
       <div class="show-section">
         <h3 class="section-title"><i class="pi pi-comments"></i> Interaction Information</h3>
@@ -166,6 +145,32 @@ const navigateToEdit = () => {
           <p class="description-text">{{ inquiryData.callLog }}</p>
         </div>
       </div>
+      <div class="show-section">
+        <h3 class="section-title"><i class="pi pi-briefcase"></i> Assigned Account</h3>
+        <div v-if="inquiryData.assignedTo" class="entity-info">
+          <div class="entity-avatar"><i class="pi pi-id-card"></i></div>
+          <div class="entity-details">
+            <h4 class="entity-name">{{ inquiryData.assignedTo.fullName }}</h4>
+            <p class="entity-meta">{{ inquiryData.assignedTo.email || 'No email' }}</p>
+          </div>
+        </div>
+        <span v-else class="field-value field-value--muted">No account assigned</span>
+      </div>
+
+      <!-- Student Assignment -->
+      <div v-if="$can('assign', 'inquiry')" class="show-section">
+        <h3 class="section-title"><i class="pi pi-user"></i> Student Assignment</h3>
+        <div v-if="inquiryData.student" class="entity-info">
+          <div class="entity-avatar"><i class="pi pi-user"></i></div>
+          <div class="entity-details">
+            <h4 class="entity-name">{{ inquiryData.student.fullName }}</h4>
+            <p class="entity-meta">{{ inquiryData.student.email || 'No email' }} | {{ inquiryData.student.mobile || 'No phone' }}</p>
+          </div>
+        </div>
+        <span v-else class="field-value field-value--muted">No student assigned</span>
+      </div>
+
+      
 
       <!-- Metadata -->
       <div class="show-section show-section--metadata">

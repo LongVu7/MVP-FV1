@@ -22,6 +22,7 @@ model Inquiry {
   callLog            String?             @map("call_log") @db.Text
   recordFile         String?             @map("record_file")
   compensationStatus CompensationStatus? @map("compensation_status")
+  priority           Priority?           @map("priority")
 
   createDate DateTime? @map("create_date") @db.Timestamptz()
   createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz()

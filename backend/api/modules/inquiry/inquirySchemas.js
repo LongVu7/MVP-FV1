@@ -7,7 +7,8 @@ const dateString = z.string().refine((val) => !isNaN(Date.parse(val)), {
 
 const { 
   EventName,
-  CompensationStatus
+  CompensationStatus,
+  Priority
 } = require('@prisma/client');
 
 
@@ -26,7 +27,8 @@ const inquiryFields = {
   eventNames: z.array(z.nativeEnum(EventName)).optional(),
   callLog: z.string().max(5000).optional(),
   recordFile: z.string().optional(),
-  compensationStatus: z.nativeEnum(CompensationStatus).optional()
+  compensationStatus: z.nativeEnum(CompensationStatus).optional(),
+  priority: z.nativeEnum(Priority).optional()
 };
 
 const createInquirySchema = z.object(inquiryFields).strict();
@@ -44,7 +46,8 @@ const updateInquirySchema = z.object({
   eventNames: z.array(z.nativeEnum(EventName)).nullable().optional(),
   callLog: z.string().max(5000).nullable().optional(),
   recordFile: z.string().nullable().optional(),
-  compensationStatus: z.nativeEnum(CompensationStatus).nullable().optional()
+  compensationStatus: z.nativeEnum(CompensationStatus).nullable().optional(),
+  priority: z.nativeEnum(Priority).nullable().optional()
 }).strict().refine((data) => Object.keys(data).length > 0, {
   message: 'Request body cannot be empty'
 });

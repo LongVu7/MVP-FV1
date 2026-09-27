@@ -78,7 +78,7 @@ const createGroup = async (name, groupLeaderId, user, permissionIds) => {
 
   return prisma.$transaction(async (tx) => {
     const group = await tx.userGroup.create({
-      data: { 
+      data: {
         name: name.trim(),
         ...(leaderId && { groupLeader: { connect: { id: leaderId } } }),
         ...(user.accountId && { createdBy: { connect: { id: user.accountId } } })
@@ -124,8 +124,8 @@ const updateGroup = async (id, { name, groupLeaderId, permissionIds }) => {
     const updateData = {};
     if (name !== undefined) updateData.name = name.trim();
     if (groupLeaderId !== undefined) {
-      updateData.groupLeader = groupLeaderId 
-        ? { connect: { id: Number(groupLeaderId) } } 
+      updateData.groupLeader = groupLeaderId
+        ? { connect: { id: Number(groupLeaderId) } }
         : { disconnect: true };
     }
 

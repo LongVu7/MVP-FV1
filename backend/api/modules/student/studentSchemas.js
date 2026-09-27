@@ -8,6 +8,13 @@ const dateString = z.string().refine((val) => !isNaN(Date.parse(val)), {
 
 const { EnglishCertificate, GPA, ProgramScore, SchoolType, ProvinceGroup, Priority, StudentClass } = require('@prisma/client');
 
+const capitalizeName = (str) => {
+  if (typeof str !== 'string' || !str.trim()) return str;
+  return str.trim().split(/\s+/).map(word => 
+    word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+  ).join(' ');
+};
+
 const optionalMobileString = z.preprocess(
   (val) => (val === '' || val === null ? null : val),
   z.string()
@@ -52,7 +59,7 @@ const createStudentSchema = z.object({
   fullName: z.string({
     required_error: 'fullName is required',
     invalid_type_error: 'fullName must be a string'
-  }).min(1, 'fullName is required').max(255),
+  }).min(1, 'fullName is required').max(255).transform(capitalizeName),
   gender: z.string().max(20),
   email: z.email('email must be a valid email address').max(255).nullable().optional(),
   mobile: mobileString,
@@ -60,23 +67,20 @@ const createStudentSchema = z.object({
   birthDate: dateString.nullable().optional(),
   parentPhone: optionalMobileString,
   primaryAddress: z.string().max(255).nullable().optional(),
-  priority: z.enum(Priority).nullable().optional(),
   education: educationSchema,
   specializedRegister: specializedRegisterSchema,
 
 }).strict();
 
 const updateStudentSchema = z.object({
-  fullName: z.string().min(1).max(255).optional(),
+  fullName: z.string().min(1).max(255).optional().transform((val) => val ? capitalizeName(val) : val),
   gender: z.string().max(20).optional(),
   email: z.email('email must be a valid email address').max(255).nullable().optional(),
   mobile: mobileString.optional(),
   otherPhone: optionalMobileString.optional(),
   birthDate: dateString.nullable().optional(),
   parentPhone: optionalMobileString.optional(),
-  primaryAddress: z.string().max(255).nullable().optional(),
-  priority: z.enum(Priority).nullable().optional(),
-  education: educationSchema.optional(),
+  primaryAddress: z.string().max(255).nullable().optional(),  education: educationSchema.optional(),
   specializedRegister: specializedRegisterSchema.optional(),
 
 }).strict().refine(
@@ -94,7 +98,7 @@ const importStudentSchema = z.object({
   fullName: z.string({
     required_error: 'fullName is required',
     invalid_type_error: 'fullName must be a string'
-  }).min(1, 'fullName is required').max(255),
+  }).min(1, 'fullName is required').max(255).transform(capitalizeName),
   gender: z.string().max(20).optional(),
   email: z.preprocess((val) => (val === '' ? undefined : val), z.email('email must be a valid email address').max(255).optional()),
   mobile: mobileString,
@@ -102,7 +106,6 @@ const importStudentSchema = z.object({
   birthDate: dateString.optional(),
   parentPhone: optionalMobileString.optional(),
   primaryAddress: z.string().max(255).optional(),
-  priority: cleanEnumForImport(Priority),
   education: educationSchema.optional(),
   specializedRegister: specializedRegisterSchema.optional(),
   // Flat SR fields from Excel columns — preprocessed to handle empty strings

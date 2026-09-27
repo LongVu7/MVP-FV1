@@ -341,7 +341,7 @@ const previewImportInquiry = async (fileBuffer, accountId) => {
     // Common Inquiry Fields Validation
     if (row.assignedTo) {
       const acc = accounts.find(a => a.email.toLowerCase() === row.assignedTo.toLowerCase());
-      if (!acc) row._meta.errors.push(`UNRESOLVED_MAPPING: Account Email "${row.assignedTo}"`);
+      if (!acc) row._meta.errors.push(`UNRESOLVED_MAPPING: Assigned account Email "${row.assignedTo} is invalid"`);
       else row.assignedToId = acc.id;
     }
 
@@ -449,7 +449,6 @@ const confirmImportInquiry = async (importToken, accountId) => {
               birthDate: row.birthDate || null,
               parentPhone: row.parentPhone || null,
               primaryAddress: row.primaryAddress || null,
-              priority: row.priority || null,
               specializedRegisterId: srId
             }
           });
@@ -478,6 +477,7 @@ const confirmImportInquiry = async (importToken, accountId) => {
               description: row.description,
               dataReceived: row.dataReceived,
               groupTele: row.groupTele,
+              priority: row.priority || null,
               statusDataId: row.statusDataId,
               sourceDataId: row.sourceDataId,
               studentId: student.id,

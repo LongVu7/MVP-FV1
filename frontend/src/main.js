@@ -8,6 +8,25 @@ import router from './router'
 // PrimeVue
 import PrimeVue from 'primevue/config'
 import Aura from '@primeuix/themes/aura'
+import { definePreset } from '@primeuix/themes'
+
+const CustomPreset = definePreset(Aura, {
+  semantic: {
+    primary: {
+      50: '#eff4fa',
+      100: '#dce8f5',
+      200: '#bed5ee',
+      300: '#90bae4',
+      400: '#5c9ad5',
+      500: '#3b65b5', //Primary color
+      600: '#2b509a',
+      700: '#23417e',
+      800: '#1f3768',
+      900: '#1d2f56',
+      950: '#131e39'
+    }
+  }
+})
 import 'primeflex/primeflex.css'
 import 'primeicons/primeicons.css'
 
@@ -40,7 +59,7 @@ authStore.checkAuth().finally(() => {
 
   app.use(PrimeVue, {
     theme: {
-      preset: Aura
+      preset: CustomPreset
     }
   })
 

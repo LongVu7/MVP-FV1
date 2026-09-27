@@ -17,14 +17,6 @@ export const schoolTypeOptions = [
   { label: 'D', value: 'D' }
 ]
 
-export const priorityOptions = [
-  { label: 'I', value: 'I' },
-  { label: 'II', value: 'II' },
-  { label: 'III', value: 'III' },
-  { label: 'IV', value: 'IV' },
-  { label: 'V', value: 'V' }
-]
-
 export const gpaOptions = [
   { label: '3 môn <21đ', value: 'LOWER_21' },
   { label: '3 môn lớp 11 từ 21-23đ', value: 'G11_21_TO_23' },
@@ -59,4 +51,16 @@ export const englishCertOptions = [
   { label: 'Cambridge Exam', value: 'CAMBRIDGE_EXAM' },
   { label: 'PTE', value: 'PTE' },
   { label: 'Other', value: 'other' }
+]
+
+export const ALLOWED_STUDENT_FIELDS = [
+  'fullName', 'gender', 'email', 'mobile', 'otherPhone', 'birthDate', 'parentPhone', 'primaryAddress'
+]
+
+export const ALLOWED_EDUCATION_FIELDS = [
+  'schoolId', 'newProvinceId', 'countryId', 'provinceGroup', 'schoolType', 'class'
+]
+
+export const ALLOWED_SR_FIELDS = [
+  'interestedMajorId', 'specificMajorId', 'admissionYear', 'englishCertificate', 'gpa', 'programScore'
 ]

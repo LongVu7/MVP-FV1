@@ -12,3 +12,11 @@ export const compensationOptions = [
   { label: 'Báo bù sổ', value: 'REPORTED' },
   { label: 'Đã được bù', value: 'COMPENSATED' }
 ]
+
+export const priorityOptions = [
+  { label: 'I', value: 'I' },
+  { label: 'II', value: 'II' },
+  { label: 'III', value: 'III' },
+  { label: 'IV', value: 'IV' },
+  { label: 'V', value: 'V' }
+]

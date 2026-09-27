@@ -52,6 +52,10 @@
         <Textarea :modelValue="modelValue.description" rows="3" placeholder="Enter description" fluid
           @update:modelValue="emitField('description', $event)" />
       </div>
+      <div class="form-field">
+        <label>Priority</label>
+        <Select :modelValue="modelValue.priority" :options="priorityOptions" optionLabel="label" optionValue="value" placeholder="Select priority" showClear fluid @update:modelValue="emitField('priority', $event)" />
+      </div>
     </div>
 
     <div class="section-divider">Interaction Information</div>
@@ -115,7 +119,7 @@ const callCountOptions = Array.from({ length: 10 }, (_, i) => ({
   value: i + 1
 }))
 
-import { eventOptions, compensationOptions } from '@/constants/inquiry'
+import { eventOptions, compensationOptions, priorityOptions } from '@/constants/inquiry'
 const props = defineProps({
   modelValue: { type: Object, required: true },
   initialSourceDataId: { type: Number, default: null },

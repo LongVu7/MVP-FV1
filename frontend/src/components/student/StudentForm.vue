@@ -1,3 +1,220 @@
+<script setup>
+import { ref, watch, onMounted } from 'vue'
+import InputText from 'primevue/inputtext'
+import InputNumber from 'primevue/inputnumber'
+import Select from 'primevue/select'
+import DatePicker from 'primevue/datepicker'
+import Button from 'primevue/button'
+
+import { useSchoolOptions } from '@/composables/useSchoolOptions'
+import { useNewProvinceOptions } from '@/composables/useNewProvinceOptions'
+import { useCountryOptions } from '@/composables/useCountryOptions'
+import { useMajorOptions } from '@/composables/useMajorOptions'
+
+import {
+  genderOptions,
+  englishCertOptions,
+  gpaOptions,
+  programScoreOptions,
+  schoolTypeOptions,
+  classOptions,
+  ALLOWED_STUDENT_FIELDS,
+  ALLOWED_EDUCATION_FIELDS,
+  ALLOWED_SR_FIELDS
+} from '@/constants/student'
+import { provinceGroupOptions } from '@/constants/region'
+import { isValidEmail, isValidMobile } from '@/utils/validationUtils'
+
+const props = defineProps({
+  student: { type: Object, required: true },
+  isSubmitting: { type: Boolean, default: false },
+  buttonText: { type: String, default: 'Submit' },
+  hideSubmit: { type: Boolean, default: false }
+})
+
+const emit = defineEmits(['submit'])
+
+// Composables
+const { oldProvinces, schools, loadingOldProvinces, loadingSchools, fetchOldProvinces, fetchSchools } = useSchoolOptions()
+const { newProvinces, loadingNewProvinces, fetchNewProvinces } = useNewProvinceOptions()
+const { countries, loadingCountries, fetchCountries } = useCountryOptions()
+const { interestedMajors, specificMajors, loadingInterested, loadingSpecific, fetchInterestedMajors, fetchSpecificMajors } = useMajorOptions()
+
+// Component State
+const form = ref({
+  ...props.student,
+  education: props.student.education ? { ...props.student.education } : {},
+  specializedRegister: props.student.specializedRegister ? { ...props.student.specializedRegister } : {}
+})
+
+const errors = ref({})
+const warnings = ref({})
+const selectedOldProvinceId = ref(null)
+
+// Watchers
+watch(
+  () => props.student,
+  (newVal) => {
+    form.value = { 
+      ...newVal,
+      education: newVal.education ? { ...newVal.education } : {},
+      specializedRegister: newVal.specializedRegister ? { ...newVal.specializedRegister } : {}
+    }
+    errors.value = {}
+    
+    // Restore old province selection when editing an existing student with school data
+    if (newVal.education?.school?.oldProvince?.id) {
+      selectedOldProvinceId.value = newVal.education.school.oldProvince.id
+      fetchSchools(selectedOldProvinceId.value)
+    } else {
+      selectedOldProvinceId.value = null
+      schools.value = []
+    }
+
+    // Restore majors
+    if (newVal.specializedRegister?.interestedMajorId) {
+      fetchSpecificMajors(newVal.specializedRegister.interestedMajorId)
+    } else {
+      specificMajors.value = []
+    }
+  },
+  { deep: true }
+)
+
+// Lifecycle
+onMounted(async () => {
+  fetchOldProvinces()
+  fetchNewProvinces()
+  fetchCountries()
+  
+  // If editing student with existing school, load the school's old province dropdown
+  if (props.student.education?.school?.oldProvince?.id) {
+    selectedOldProvinceId.value = props.student.education.school.oldProvince.id
+    fetchSchools(selectedOldProvinceId.value)
+  }
+
+  // Fetch interested majors
+  await fetchInterestedMajors()
+  if (form.value.specializedRegister?.interestedMajorId) {
+    fetchSpecificMajors(form.value.specializedRegister.interestedMajorId)
+  }
+})
+
+// Methods
+const onOldProvinceChange = () => {
+  form.value.education.schoolId = null
+  if (selectedOldProvinceId.value) {
+    fetchSchools(selectedOldProvinceId.value)
+  } else {
+    schools.value = []
+  }
+}
+
+const onInterestedMajorChange = () => {
+  form.value.specializedRegister.specificMajorId = null
+  specificMajors.value = []
+  if (form.value.specializedRegister.interestedMajorId) {
+    fetchSpecificMajors(form.value.specializedRegister.interestedMajorId)
+  }
+}
+
+const validate = () => {
+  const e = {}
+  if (!form.value.fullName || !form.value.fullName.trim()) e.fullName = 'Full name is required'
+  if (form.value.email && !isValidEmail(form.value.email)) e.email = 'Invalid email format'
+  
+  if (!form.value.mobile) {
+    e.mobile = 'Mobile is required'
+  } else if (!isValidMobile(form.value.mobile)) {
+    e.mobile = 'Mobile number must be exactly 10 digits long and start with 0'
+  }
+
+  if (!form.value.gender) e.gender = 'Gender is required'
+
+  if (!form.value.education?.newProvinceId) e.newProvince = 'New Province is required'
+  if (!form.value.education?.countryId) e.country = 'Country is required'
+  if (!form.value.education?.schoolType) e.schoolType = 'School Type is required'
+  if (!form.value.education?.provinceGroup) e.provinceGroup = 'Province Group is required'
+  if (!form.value.education?.class) e.class = 'Class is required'
+
+  if (!form.value.specializedRegister?.gpa) e.gpa = 'GPA is required'
+  if (!form.value.specializedRegister?.interestedMajorId) e.interestedMajor = 'Interested Major is required'
+  if (!form.value.specializedRegister?.specificMajorId) e.specificMajor = 'Specific Major is required'
+  if (!form.value.specializedRegister?.programScore) e.programScore = 'Program Score is required'
+
+  // Required field validation
+  if (!selectedOldProvinceId.value && !form.value.education?.schoolId) {
+    e.schoolOldProvince = 'School old province is required'
+    e.school = 'School is required'
+  } else if (selectedOldProvinceId.value && !form.value.education?.schoolId) {
+    e.school = 'Please select a school for the chosen old province'
+  } else if (!selectedOldProvinceId.value && form.value.education?.schoolId) {
+    e.schoolOldProvince = 'School old province is required when a school is selected'
+  }
+
+  errors.value = e
+  warnings.value = {}
+  return Object.keys(e).length === 0
+}
+
+const getPayload = () => {
+  const payload = {}
+  for (const key of ALLOWED_STUDENT_FIELDS) {
+    const value = form.value[key]
+    if (value === '' || value === null) {
+      payload[key] = null
+    } else if (value !== undefined) {
+      payload[key] = value
+    }
+  }
+  
+  // Handle education
+  if (form.value.education) {
+    const eduPayload = {}
+    for (const key of ALLOWED_EDUCATION_FIELDS) {
+      const value = form.value.education[key]
+      if (value === '' || value === null) {
+        eduPayload[key] = null
+      } else if (value !== undefined) {
+        eduPayload[key] = value
+      }
+    }
+    if (Object.keys(eduPayload).length > 0) {
+      payload.education = eduPayload
+    }
+  }
+  
+  // Handle specializedRegister
+  if (form.value.specializedRegister) {
+    const srPayload = {}
+    for (const key of ALLOWED_SR_FIELDS) {
+      const value = form.value.specializedRegister[key]
+      if (value === '' || value === null) {
+        srPayload[key] = null
+      } else if (value !== undefined) {
+        srPayload[key] = value
+      }
+    }
+    if (Object.keys(srPayload).length > 0) {
+      payload.specializedRegister = srPayload
+    }
+  }
+  
+  return payload
+}
+
+const onSubmit = () => {
+  if (!validate()) return
+  emit('submit', getPayload())
+}
+
+// Ensure parent components can call these methods if a ref is used
+defineExpose({
+  getPayload,
+  validate
+})
+</script>
+
 <template>
   <form @submit.prevent="onSubmit" class="student-form">
     <div class="form-grid">
@@ -45,13 +262,6 @@
       <div class="form-field">
         <label for="sf-primaryAddress">Primary address</label>
         <InputText id="sf-primaryAddress" v-model="form.primaryAddress" placeholder="Primary address" fluid />
-      </div>
-    </div>
-
-    <div class="form-grid">
-      <div class="form-field">
-        <label for="sf-priority">Priority</label>
-        <Select id="sf-priority" v-model="form.priority" :options="priorityOptions" optionLabel="label" optionValue="value" placeholder="Select priority" showClear fluid />
       </div>
     </div>
 
@@ -153,226 +363,6 @@
     </div>
   </form>
 </template>
-
-<script>
-import InputText from 'primevue/inputtext'
-import InputNumber from 'primevue/inputnumber'
-import Select from 'primevue/select'
-import DatePicker from 'primevue/datepicker'
-import Button from 'primevue/button'
-import { useSchoolOptions } from '@/composables/useSchoolOptions'
-import { useNewProvinceOptions } from '@/composables/useNewProvinceOptions'
-import { useCountryOptions } from '@/composables/useCountryOptions'
-import { useMajorOptions } from '@/composables/useMajorOptions'
-
-import {
-  genderOptions,
-  englishCertOptions,
-  gpaOptions,
-  programScoreOptions,
-  schoolTypeOptions,
-  priorityOptions,
-  classOptions
-} from '@/constants/student'
-import { provinceGroupOptions } from '@/constants/region'
-
-export default {
-  name: 'StudentForm',
-  components: { InputText, InputNumber, Select, DatePicker, Button },
-  props: {
-    student: { type: Object, required: true },
-    isSubmitting: { type: Boolean, default: false },
-    buttonText: { type: String, default: 'Submit' },
-    hideSubmit: { type: Boolean, default: false }
-  },
-  emits: ['submit'],
-  setup() {
-    const { oldProvinces, schools, loadingOldProvinces, loadingSchools, fetchOldProvinces, fetchSchools } = useSchoolOptions()
-    const { newProvinces, loadingNewProvinces, fetchNewProvinces } = useNewProvinceOptions()
-    const { countries, loadingCountries, fetchCountries } = useCountryOptions()
-    const { interestedMajors, specificMajors, loadingInterested, loadingSpecific, fetchInterestedMajors, fetchSpecificMajors } = useMajorOptions()
-    return { 
-      oldProvinces, schools, loadingOldProvinces, loadingSchools, fetchOldProvinces, fetchSchools,
-      newProvinces, loadingNewProvinces, fetchNewProvinces,
-      countries, loadingCountries, fetchCountries,
-      interestedMajors, specificMajors, loadingInterested, loadingSpecific, fetchInterestedMajors, fetchSpecificMajors
-    }
-  },
-  data() {
-    return {
-      form: { 
-        ...this.student,
-        education: this.student.education ? { ...this.student.education } : {},
-        specializedRegister: this.student.specializedRegister ? { ...this.student.specializedRegister } : {}
-      },
-      errors: {},
-      warnings: {},
-      selectedOldProvinceId: null,
-      genderOptions,
-      englishCertOptions,
-      gpaOptions,
-      programScoreOptions,
-      schoolTypeOptions,
-      provinceGroupOptions,
-      priorityOptions,
-      classOptions
-    }
-  },
-  watch: {
-    student: {
-      async handler(newVal) {
-        this.form = { 
-          ...newVal,
-          education: newVal.education ? { ...newVal.education } : {},
-          specializedRegister: { ...newVal.specializedRegister }
-        }
-        this.errors = {}
-        // Restore old province selection when editing an existing student with school data
-        if (newVal.education?.school?.oldProvince?.id) {
-          this.selectedOldProvinceId = newVal.education.school.oldProvince.id
-          this.fetchSchools(this.selectedOldProvinceId)
-        } else {
-          this.selectedOldProvinceId = null
-          this.schools = []
-        }
-
-        // Restore majors
-        if (newVal.specializedRegister?.interestedMajorId) {
-          this.fetchSpecificMajors(newVal.specializedRegister.interestedMajorId)
-        } else {
-          this.specificMajors = []
-        }
-      },
-      deep: true
-    }
-  },
-  async created() {
-    this.fetchOldProvinces()
-    this.fetchNewProvinces()
-    this.fetchCountries()
-    // If editing student with existing school, load the school's old province dropdown
-    if (this.student.education?.school?.oldProvince?.id) {
-      this.selectedOldProvinceId = this.student.education.school.oldProvince.id
-      this.fetchSchools(this.selectedOldProvinceId)
-    }
-
-    // Fetch interested majors
-    await this.fetchInterestedMajors()
-    if (this.form.specializedRegister?.interestedMajorId) {
-      this.fetchSpecificMajors(this.form.specializedRegister.interestedMajorId)
-    }
-  },
-  methods: {
-    onOldProvinceChange() {
-      this.form.education.schoolId = null
-      if (this.selectedOldProvinceId) {
-        this.fetchSchools(this.selectedOldProvinceId)
-      } else {
-        this.schools = []
-      }
-    },
-    onInterestedMajorChange() {
-      this.form.specializedRegister.specificMajorId = null
-      this.specificMajors = []
-      if (this.form.specializedRegister.interestedMajorId) {
-        this.fetchSpecificMajors(this.form.specializedRegister.interestedMajorId)
-      }
-    },
-    validate() {
-      const e = {}
-      if (!this.form.fullName || !this.form.fullName.trim()) e.fullName = 'Full name is required'
-      if (this.form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email)) e.email = 'Invalid email format'
-      
-      if (!this.form.mobile) {
-        e.mobile = 'Mobile is required'
-      } else if (!/^0\d{9}$/.test(this.form.mobile)) {
-        e.mobile = 'Mobile number must be exactly 10 digits long and start with 0'
-      }
-
-      if (!this.form.gender) e.gender = 'Gender is required'
-
-      if (!this.form.education?.newProvinceId) e.newProvince = 'New Province is required'
-      if (!this.form.education?.countryId) e.country = 'Country is required'
-      if (!this.form.education?.schoolType) e.schoolType = 'School Type is required'
-      if (!this.form.education?.provinceGroup) e.provinceGroup = 'Province Group is required'
-      if (!this.form.education?.class) e.class = 'Class is required'
-
-      if (!this.form.specializedRegister?.gpa) e.gpa = 'GPA is required'
-      if (!this.form.specializedRegister?.interestedMajorId) e.interestedMajor = 'Interested Major is required'
-      if (!this.form.specializedRegister?.specificMajorId) e.specificMajor = 'Specific Major is required'
-      if (!this.form.specializedRegister?.programScore) e.programScore = 'Program Score is required'
-
-      // Required field validation
-      if (!this.selectedOldProvinceId && !this.form.education?.schoolId) {
-        e.schoolOldProvince = 'School old province is required'
-        e.school = 'School is required'
-      } else if (this.selectedOldProvinceId && !this.form.education?.schoolId) {
-        e.school = 'Please select a school for the chosen old province'
-      } else if (!this.selectedOldProvinceId && this.form.education?.schoolId) {
-        e.schoolOldProvince = 'School old province is required when a school is selected'
-      }
-
-      this.errors = e
-      this.warnings = {}
-      return Object.keys(e).length === 0
-    },
-    getPayload() {
-      // Allowlist: only include fields that the backend Zod schemas accept
-      const allowedStudentFields = ['fullName', 'gender', 'email', 'mobile', 'otherPhone', 'birthDate', 'parentPhone', 'primaryAddress', 'priority']
-      const allowedEducationFields = ['schoolId', 'newProvinceId', 'countryId', 'provinceGroup', 'schoolType', 'class']
-      const allowedSRFields = ['interestedMajorId', 'specificMajorId', 'admissionYear', 'englishCertificate', 'gpa', 'programScore']
-
-      const payload = {}
-      for (const key of allowedStudentFields) {
-        const value = this.form[key]
-        if (value === '' || value === null) {
-          payload[key] = null
-        } else if (value !== undefined) {
-          payload[key] = value
-        }
-      }
-      
-      // Handle education
-      if (this.form.education) {
-        const eduPayload = {}
-        for (const key of allowedEducationFields) {
-          const value = this.form.education[key]
-          if (value === '' || value === null) {
-            eduPayload[key] = null
-          } else if (value !== undefined) {
-            eduPayload[key] = value
-          }
-        }
-        if (Object.keys(eduPayload).length > 0) {
-          payload.education = eduPayload
-        }
-      }
-      
-      // Handle specializedRegister
-      if (this.form.specializedRegister) {
-        const srPayload = {}
-        for (const key of allowedSRFields) {
-          const value = this.form.specializedRegister[key]
-          if (value === '' || value === null) {
-            srPayload[key] = null
-          } else if (value !== undefined) {
-            srPayload[key] = value
-          }
-        }
-        if (Object.keys(srPayload).length > 0) {
-          payload.specializedRegister = srPayload
-        }
-      }
-      
-      return payload
-    },
-    onSubmit() {
-      if (!this.validate()) return
-      this.$emit('submit', this.getPayload())
-    }
-  }
-}
-</script>
 
 <style scoped>
 .student-form {

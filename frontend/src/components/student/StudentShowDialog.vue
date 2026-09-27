@@ -87,10 +87,6 @@ const navigateToEdit = () => {
             <span class="field-label">Birth Date</span>
             <span class="field-value">{{ formatDate(studentData.birthDate) }}</span>
           </div>
-          <div class="field-item">
-            <span class="field-label">Priority</span>
-            <span class="field-value">{{ studentData.priority || '—' }}</span>
-          </div>
         </div>
       </div>
 

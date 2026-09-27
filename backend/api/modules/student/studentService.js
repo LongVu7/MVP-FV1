@@ -68,13 +68,15 @@ const createStudent = async (data) => {
 
 
 // ─── Get all students
-const getAllStudents = async ({ page, limit, skip, search, sortField, sortOrder, oldProvinceId, newProvinceId, countryId, provinceGroup, schoolType, birthYear, priority, class: studentClass }) => {
+const getAllStudents = async ({ page, limit, skip, search, sortField, sortOrder, oldProvinceId, newProvinceId, countryId, provinceGroup, schoolType, birthYear, class: studentClass }) => {
   const where = {};
+  
   if (search) {
     where.OR = [
-      { mobile: { contains: search, mode: 'insensitive' } },
+      { fullName: { contains: search, mode: 'insensitive' } },
+      { mobile: { contains: search } },
       { email: { contains: search, mode: 'insensitive' } },
-      { fullName: { contains: search, mode: 'insensitive' } }
+      { parentPhone: { contains: search } }
     ];
   }
   //Filter by birthYear
@@ -86,10 +88,6 @@ const getAllStudents = async ({ page, limit, skip, search, sortField, sortOrder,
     };
   }
 
-  // Filter by Priority
-  if (priority) {
-    where.priority = priority;
-  }
 
   // Education filters
   if (oldProvinceId || newProvinceId || countryId || provinceGroup || schoolType || studentClass) {
