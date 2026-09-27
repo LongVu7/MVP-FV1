@@ -282,3 +282,10 @@ export const schoolCountryOptions = [
   { label: "Western Sahara", value: "WESTERN_SAHARA" },
   { label: "Zimbabwe", value: "ZIMBABWE" }
 ];
+export const schoolTypeOptions = [
+  { label: 'A*', value: 'A_STAR' },
+  { label: 'A', value: 'A' },
+  { label: 'B', value: 'B' },
+  { label: 'C', value: 'C' },
+  { label: 'D', value: 'D' }
+];

@@ -92,6 +92,8 @@ import Select from 'primevue/select'
 import ConfirmDialog from 'primevue/confirmdialog'
 import { useConfirm } from 'primevue/useconfirm'
 import { useSchoolOptions } from '@/composables/useSchoolOptions'
+import { formatDateTime } from '@/utils/dateUtils'
+import { formatSchoolType, typeSeverity } from '@/utils/schoolLabels'
 
 const props = defineProps({
   schools: { type: Array, default: () => [] },
@@ -142,30 +144,6 @@ const confirmDeleteAction = (school) => {
       emit('delete', school.id)
     }
   })
-}
-
-const formatDateTime = (dateStr) => {
-  if (!dateStr) return '—'
-  return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-}
-
-const formatSchoolType = (type) => {
-  if (type === 'A_STAR') return 'A*'
-  if (type === 'A') return 'A'
-  if (type === 'B') return 'B'
-  if (type === 'C') return 'C'
-  if (type === 'D') return 'D'
-  return type
-}
-
-const typeSeverity = (type) => {
-  if (type === 'A_STAR') return 'info'
-  if (type === 'A') return 'warn'
-  if (type === 'B') return 'success'
-  if (type === 'C') return 'danger'
-  if (type === 'D') return 'secondary'
-  if (type === 'D') return 'secondary'
-  return 'secondary'
 }
 </script>
 

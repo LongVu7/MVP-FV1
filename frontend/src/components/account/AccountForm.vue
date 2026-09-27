@@ -57,6 +57,7 @@ import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
 import ToggleSwitch from 'primevue/toggleswitch'
 import Button from 'primevue/button'
+import { isValidEmail } from '@/utils/validationUtils'
 
 const props = defineProps({
   account: { type: Object, required: true },
@@ -90,7 +91,7 @@ const validate = () => {
   if (!form.value.fullName || !form.value.fullName.trim()) e.fullName = 'Full name is required'
   if (!form.value.email || !form.value.email.trim()) {
     e.email = 'Email is required'
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.value.email)) {
+  } else if (!isValidEmail(form.value.email)) {
     e.email = 'Invalid email format'
   }
   if (!props.isEditing && (!form.value.password || form.value.password.length < 6)) {

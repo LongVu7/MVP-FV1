@@ -12,6 +12,7 @@ import ConfirmDialog from 'primevue/confirmdialog'
 import { useToast } from 'primevue/usetoast'
 import { useConfirm } from 'primevue/useconfirm'
 import { useAccount } from '@/composables/useAccount'
+import { formatDateTime } from '@/utils/dateUtils'
 
 const router = useRouter()
 const toast = useToast()
@@ -53,11 +54,6 @@ const confirmDeleteAction = (account) => {
       }
     }
   })
-}
-
-const formatDateTime = (dateStr) => {
-  if (!dateStr) return '—'
-  return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 }
 
 const onGlobalFilter = (e) => {

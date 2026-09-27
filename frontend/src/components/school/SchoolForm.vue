@@ -28,74 +28,59 @@
   </form>
 </template>
 
-<script>
+<script setup>
+import { ref, watch, onMounted } from 'vue'
 import InputText from 'primevue/inputtext'
 import Select from 'primevue/select'
 import Button from 'primevue/button'
 import { useSchoolOptions } from '@/composables/useSchoolOptions'
+import { schoolTypeOptions } from '@/constants/school'
 
-export default {
-  name: 'SchoolForm',
-  components: { InputText, Select, Button },
-  props: {
-    school: { type: Object, required: true },
-    isSubmitting: { type: Boolean, default: false },
-    buttonText: { type: String, default: 'Submit' },
-    hideSubmit: { type: Boolean, default: false }
-  },
-  emits: ['submit'],
-  setup() {
-    const { oldProvinces, loadingOldProvinces, fetchOldProvinces } = useSchoolOptions()
-    return { oldProvinces, loadingOldProvinces, fetchOldProvinces }
-  },
-  data() {
-    return {
-      form: { ...this.school },
-      errors: {},
-      schoolTypeOptions: [
-        { label: 'A*', value: 'A_STAR' },
-        { label: 'A', value: 'A' },
-        { label: 'B', value: 'B' },
-        { label: 'C', value: 'C' },
-        { label: 'D', value: 'D' }
-      ]
-    }
-  },
-  watch: {
-    school: {
-      handler(newVal) {
-        this.form = { ...newVal }
-        this.errors = {}
-      },
-      deep: true
-    }
-  },
-  created() {
-    this.fetchOldProvinces()
-  },
-  methods: {
-    validate() {
-      const e = {}
-      if (!this.form.name || !this.form.name.trim()) e.name = 'School name is required'
-      if (!this.form.oldProvinceId) e.oldProvinceId = 'Old Province is required'
-      this.errors = e
-      return Object.keys(e).length === 0
-    },
-    getPayload() {
-      const payload = {}
-      for (const [key, value] of Object.entries(this.form)) {
-        if (key === 'id' || key === 'createdAt' || key === 'updatedAt' || key === 'oldProvince') continue
-        if (value !== '' && value !== null && value !== undefined) {
-          payload[key] = value
-        }
-      }
-      return payload
-    },
-    onSubmit() {
-      if (!this.validate()) return
-      this.$emit('submit', this.getPayload())
+const props = defineProps({
+  school: { type: Object, required: true },
+  isSubmitting: { type: Boolean, default: false },
+  buttonText: { type: String, default: 'Submit' },
+  hideSubmit: { type: Boolean, default: false }
+})
+
+const emit = defineEmits(['submit'])
+
+const { oldProvinces, loadingOldProvinces, fetchOldProvinces } = useSchoolOptions()
+
+const form = ref({ ...props.school })
+const errors = ref({})
+
+watch(() => props.school, (newVal) => {
+  form.value = { ...newVal }
+  errors.value = {}
+}, { deep: true })
+
+onMounted(() => {
+  fetchOldProvinces()
+})
+
+const validate = () => {
+  const e = {}
+  if (!form.value.name || !form.value.name.trim()) e.name = 'School name is required'
+  if (!form.value.oldProvinceId) e.oldProvinceId = 'Old Province is required'
+  errors.value = e
+  return Object.keys(e).length === 0
+}
+
+const getPayload = () => {
+  const payload = {}
+  for (const [key, value] of Object.entries(form.value)) {
+    if (key === 'id' || key === 'createdAt' || key === 'updatedAt' || key === 'oldProvince') continue
+    if (value !== '' && value !== null && value !== undefined) {
+      payload[key] = value
     }
   }
+  return payload
+}
+
+const onSubmit = () => {
+  if (!validate()) return
+  emit('submit', getPayload())
 }
 </script>
 
